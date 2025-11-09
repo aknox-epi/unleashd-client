@@ -21,6 +21,11 @@
   - ESLint configured with React Native, TypeScript, and React 19 rules
   - Prettier handles all code formatting (indentation, quotes, semicolons, etc.)
   - Formatting rules in ESLint are disabled to avoid conflicts
+- **Pre-commit hooks**: Husky + lint-staged configured
+  - Automatically runs ESLint and Prettier on staged files before commit
+  - Auto-fixes linting issues and formats code
+  - Blocks commits if unfixable linting errors exist
+  - Bypass with `git commit --no-verify` (not recommended)
 
 ## Code Style
 
@@ -39,10 +44,14 @@
 
 ## Development Workflow
 
-1. **Before committing**: Run `bun run lint:fix` to fix code quality issues
-2. **Formatting**: Prettier runs automatically on save (if editor configured), or manually via `bun run format`
-3. **Code quality**: ESLint checks logic, best practices, React rules, TypeScript issues
-4. **Formatting**: Prettier ensures consistent code style across all files
+1. **Pre-commit automation**: ESLint and Prettier run automatically on staged files when you commit
+   - Linting errors are auto-fixed when possible
+   - Code is automatically formatted to match project style
+   - Commit is blocked if unfixable errors exist
+2. **Manual checks**: Run `bun run lint:fix` to fix all code quality issues in the project
+3. **Manual formatting**: Run `bun run format` to format all files (Prettier runs on commit automatically)
+4. **Code quality**: ESLint checks logic, best practices, React rules, TypeScript issues
+5. **Formatting**: Prettier ensures consistent code style across all files
 
 ## React Native + Expo
 

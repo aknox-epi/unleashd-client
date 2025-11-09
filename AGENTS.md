@@ -1,5 +1,16 @@
 # Agent Guidelines for unleashd-client
 
+## Commit Workflow
+
+When changes need to be committed:
+
+1. **Stage files**: Agent stages relevant files with `git add`
+2. **Suggest commit message**: Agent suggests a message following Conventional Commits format
+3. **Manual commit**: User manually runs `git commit` with their chosen message
+4. **Continue**: Agent continues execution after user commits
+
+This workflow gives the user full control over commits while the agent handles staging and provides commit message guidance.
+
 ## Build/Test Commands
 
 - **Start dev**: `bun run start` (or `npm start` for iOS/Android/web)
@@ -10,6 +21,8 @@
 - **Lint fix**: `bun run lint:fix` (auto-fix linting issues)
 - **Format**: `bun run format` (format all code with Prettier)
 - **Format check**: `bun run format:check` (check formatting without changes)
+- **Release**: `bun run release` (generate changelog and bump version)
+- **Release dry run**: `bun run release:dry` (preview release without changes)
 
 ## Project Structure
 
@@ -89,6 +102,89 @@ footer?
 - No period at end of subject
 - Header max 100 characters
 - Use imperative mood ("add" not "added")
+
+## Changelog Generation
+
+This project uses [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) to automatically generate changelogs and manage versions based on Conventional Commits.
+
+### How It Works
+
+- Analyzes commit messages since the last release
+- Determines version bump based on commit types:
+  - `feat:` → **minor** version bump (0.1.0 → 0.2.0)
+  - `fix:` → **patch** version bump (0.1.0 → 0.1.1)
+  - `BREAKING CHANGE:` → **major** version bump (0.1.0 → 1.0.0)
+- Generates/updates `CHANGELOG.md` with grouped changes
+- Updates `package.json` version
+- Creates a git commit and tag
+
+### Release Commands
+
+- `bun run release` - Auto-detect version bump and generate changelog
+- `bun run release:major` - Force major version bump (breaking changes)
+- `bun run release:minor` - Force minor version bump (new features)
+- `bun run release:patch` - Force patch version bump (bug fixes)
+- `bun run release:first` - Create initial release (v0.1.0 or v1.0.0)
+- `bun run release:dry` - Preview changes without modifying files
+
+### Release Workflow
+
+1. **Make changes** using conventional commits:
+
+   ```bash
+   git commit -m "feat: add user authentication"
+   git commit -m "fix: resolve crash on startup"
+   ```
+
+2. **Preview release** (recommended first step):
+
+   ```bash
+   bun run release:dry
+   ```
+
+3. **Generate release**:
+
+   ```bash
+   bun run release
+   ```
+
+4. **Review changes**:
+   - Check `CHANGELOG.md` for accuracy
+   - Verify version bump in `package.json`
+   - Review the git commit and tag
+
+5. **Push to remote**:
+   ```bash
+   git push --follow-tags origin main
+   ```
+
+### What Appears in CHANGELOG
+
+Commits are grouped by type in the changelog:
+
+- **Features** (`feat:`) - Always visible
+- **Bug Fixes** (`fix:`) - Always visible
+- **Performance Improvements** (`perf:`) - Always visible
+- **Documentation** (`docs:`) - Visible
+- **Build System** (`build:`) - Visible
+- **Reverts** (`revert:`) - Always visible
+- **Hidden types**: `style:`, `refactor:`, `test:`, `ci:`, `chore:`
+
+### Configuration
+
+Release behavior is configured in `.versionrc.json`:
+
+- Defines which commit types appear in changelog
+- Customizes section headings
+- Sets changelog header format
+
+### Best Practices
+
+- **Always run dry run first**: Preview changes before committing
+- **Don't edit CHANGELOG manually**: Regenerate if needed
+- **Use semantic commits consistently**: Ensures accurate version bumps
+- **Review before pushing**: Check changelog and version are correct
+- **Push with tags**: Use `git push --follow-tags` to include version tags
 
 ## Development Workflow
 

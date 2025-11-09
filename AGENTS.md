@@ -26,6 +26,10 @@
   - Auto-fixes linting issues and formats code
   - Blocks commits if unfixable linting errors exist
   - Bypass with `git commit --no-verify` (not recommended)
+- **Commit message validation**: commitlint enforces Conventional Commits standard
+  - Runs automatically via commit-msg hook
+  - Blocks commits with invalid message format
+  - Ensures consistent commit history and enables automated changelog generation
 
 ## Code Style
 
@@ -42,16 +46,64 @@
 - **Styling**: Use className with Tailwind classes via NativeWind, `tva()` for component variants
 - **Error handling**: No specific convention found - use standard try/catch
 
+## Commit Message Convention
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) enforced by commitlint.
+
+### Format
+
+```
+type(scope?): subject
+
+body?
+
+footer?
+```
+
+### Types
+
+- **feat**: New feature for users
+- **fix**: Bug fix for users
+- **docs**: Documentation changes
+- **style**: Code formatting (no logic change)
+- **refactor**: Code restructuring (no feat/fix)
+- **perf**: Performance improvements
+- **test**: Adding/updating tests
+- **build**: Build system or dependency changes
+- **ci**: CI/CD configuration changes
+- **chore**: Other changes (tooling, configs)
+- **revert**: Revert a previous commit
+
+### Examples
+
+- `feat: add dark mode toggle`
+- `fix(auth): resolve login timeout`
+- `docs: update API documentation`
+- `refactor(ui): simplify button component`
+- `test: add unit tests for auth service`
+
+### Rules
+
+- Type must be lowercase
+- Subject cannot be empty
+- No period at end of subject
+- Header max 100 characters
+- Use imperative mood ("add" not "added")
+
 ## Development Workflow
 
 1. **Pre-commit automation**: ESLint and Prettier run automatically on staged files when you commit
    - Linting errors are auto-fixed when possible
    - Code is automatically formatted to match project style
    - Commit is blocked if unfixable errors exist
-2. **Manual checks**: Run `bun run lint:fix` to fix all code quality issues in the project
-3. **Manual formatting**: Run `bun run format` to format all files (Prettier runs on commit automatically)
-4. **Code quality**: ESLint checks logic, best practices, React rules, TypeScript issues
-5. **Formatting**: Prettier ensures consistent code style across all files
+2. **Commit message validation**: commitlint validates commit messages automatically
+   - Enforces Conventional Commits format (type: subject)
+   - Blocks commits with invalid message format
+   - Use proper type prefix (feat, fix, docs, chore, etc.)
+3. **Manual checks**: Run `bun run lint:fix` to fix all code quality issues in the project
+4. **Manual formatting**: Run `bun run format` to format all files (Prettier runs on commit automatically)
+5. **Code quality**: ESLint checks logic, best practices, React rules, TypeScript issues
+6. **Formatting**: Prettier ensures consistent code style across all files
 
 ## React Native + Expo
 

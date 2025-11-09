@@ -119,7 +119,18 @@ module.exports = [
 
   // Config files override
   {
-    files: ['*.config.js', '*.config.ts', 'babel.config.js', 'metro.config.js'],
+    files: [
+      '*.config.js',
+      '*.config.ts',
+      'babel.config.js',
+      'metro.config.js',
+      'commitlint.config.js',
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: null, // Disable TypeScript project for config files
+      },
+    },
     rules: {
       '@typescript-eslint/no-var-requires': 'off',
     },

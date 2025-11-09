@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+bun.lock
+
+# Build outputs
+dist/
+.expo/
+.next/
+out/
+
+# Generated files
+expo-env.d.ts
+nativewind-env.d.ts
+
+# Assets
+assets/
+
+# Cache
+.cache/
+*.log
+
+# OS
+.DS_Store
+
+# Config files (if needed)
+# Uncomment if you don't want Prettier to format these
+# metro.config.js
+# babel.config.js
+# tailwind.config.js

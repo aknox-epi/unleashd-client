@@ -1,5 +1,33 @@
 # Agent Guidelines for unleashd-client
 
+## Branching Strategy
+
+This project uses **GitHub Flow** for development:
+
+- **`main`** - Production-ready code, always stable and deployable
+- **Feature branches** - Short-lived branches for features, fixes, or improvements
+
+### Key Principles
+
+1. **`main` is sacred** - Always keep it stable and deployable
+2. **Branch often** - Create a new branch for each feature or fix
+3. **Merge fast** - Keep branches short-lived (hours to days, not weeks)
+4. **Review everything** - All changes go through pull requests
+5. **Delete after merge** - Clean up branches after merging
+
+### Branch Naming
+
+Use descriptive names with prefixes:
+
+- `feature/add-authentication` - New features
+- `fix/login-timeout` - Bug fixes
+- `docs/update-readme` - Documentation
+- `refactor/simplify-auth-flow` - Code refactoring
+- `chore/update-dependencies` - Maintenance tasks
+- `test/add-auth-tests` - Test additions
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed workflow.
+
 ## Commit Workflow
 
 When changes need to be committed:

@@ -30,7 +30,7 @@ jobs:
         run: bun run format:check
 
       - name: Run tests
-        run: bun run test -- --ci --coverage --maxWorkers=2
+        run: bun run test:ci
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4

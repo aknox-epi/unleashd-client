@@ -37,6 +37,11 @@ interface RescueGroupsContextState {
   error: RescueGroupsAPIError | Error | null;
 
   /**
+   * Warning messages from API
+   */
+  warnings: string[];
+
+  /**
    * Current search parameters
    */
   searchParams: AnimalSearchParams | null;
@@ -67,6 +72,11 @@ interface RescueGroupsContextActions {
   setError: (error: RescueGroupsAPIError | Error | null) => void;
 
   /**
+   * Sets warning messages
+   */
+  setWarnings: (warnings: string[]) => void;
+
+  /**
    * Sets search parameters
    */
   setSearchParams: (params: AnimalSearchParams | null) => void;
@@ -91,6 +101,7 @@ const defaultState: RescueGroupsContextState = {
   selectedAnimal: null,
   isLoading: false,
   error: null,
+  warnings: [],
   searchParams: null,
 };
 
@@ -124,6 +135,7 @@ export function RescueGroupsProvider({
   const [error, setError] = useState<RescueGroupsAPIError | Error | null>(
     defaultState.error
   );
+  const [warnings, setWarnings] = useState<string[]>(defaultState.warnings);
   const [searchParams, setSearchParams] = useState<AnimalSearchParams | null>(
     defaultState.searchParams
   );
@@ -133,6 +145,7 @@ export function RescueGroupsProvider({
     setSelectedAnimal(defaultState.selectedAnimal);
     setIsLoading(defaultState.isLoading);
     setError(defaultState.error);
+    setWarnings(defaultState.warnings);
     setSearchParams(defaultState.searchParams);
   }, []);
 
@@ -142,12 +155,14 @@ export function RescueGroupsProvider({
     selectedAnimal,
     isLoading,
     error,
+    warnings,
     searchParams,
     // Actions
     setSearchResults,
     setSelectedAnimal,
     setIsLoading,
     setError,
+    setWarnings,
     setSearchParams,
     clearState,
   };

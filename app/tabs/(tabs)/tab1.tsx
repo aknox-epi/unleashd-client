@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, Pressable } from 'react-native';
+import { X } from 'lucide-react-native';
 import { Button, ButtonText } from '@/components/ui/button';
 import { Center } from '@/components/ui/center';
 import { Heading } from '@/components/ui/heading';
@@ -7,16 +8,28 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import { HStack } from '@/components/ui/hstack';
 import { Spinner } from '@/components/ui/spinner';
+import { Icon } from '@/components/ui/icon';
 import { useAnimalSearch } from '@/hooks/useAnimals';
+import { useRescueGroupsContext } from '@/contexts/RescueGroupsContext';
 import { RESCUEGROUPS_CONFIG } from '@/constants/RescueGroupsConfig';
 import { getErrorMessage } from '@/services/rescuegroups';
+import { isDevelopment } from '@/utils/env';
+import { useWarningToast } from '@/hooks/useWarningToast';
 
 export default function Tab1() {
   const { search, results, total, isLoading, error } = useAnimalSearch();
+  const { warnings } = useRescueGroupsContext();
   const [searchPerformed, setSearchPerformed] = useState(false);
+  const [errorDismissed, setErrorDismissed] = useState(false);
+  const [warningsDismissed, setWarningsDismissed] = useState(false);
+
+  // Show toast notifications in production
+  useWarningToast(warnings, error);
 
   const handleSearchDogs = async () => {
     setSearchPerformed(true);
+    setErrorDismissed(false);
+    setWarningsDismissed(false);
     await search({
       species: RESCUEGROUPS_CONFIG.SPECIES.DOG,
       limit: 10,
@@ -25,6 +38,8 @@ export default function Tab1() {
 
   const handleSearchCats = async () => {
     setSearchPerformed(true);
+    setErrorDismissed(false);
+    setWarningsDismissed(false);
     await search({
       species: RESCUEGROUPS_CONFIG.SPECIES.CAT,
       limit: 10,
@@ -60,12 +75,48 @@ export default function Tab1() {
             </Center>
           )}
 
-          {error && (
-            <Center className="py-4">
-              <Text className="text-error-500 text-center">
-                {getErrorMessage(error)}
-              </Text>
-            </Center>
+          {isDevelopment() && error && !errorDismissed && (
+            <HStack
+              space="md"
+              className="border-l-4 border-error-500 bg-error-50 p-4 rounded-r-lg"
+            >
+              <VStack space="sm" className="flex-1">
+                <Text className="font-semibold text-error-700">Error:</Text>
+                <Text className="text-error-700 text-sm">
+                  {getErrorMessage(error)}
+                </Text>
+              </VStack>
+              <Pressable
+                onPress={() => setErrorDismissed(true)}
+                className="p-1"
+              >
+                <Icon as={X} className="text-error-700" size="sm" />
+              </Pressable>
+            </HStack>
+          )}
+
+          {isDevelopment() && warnings.length > 0 && !warningsDismissed && (
+            <HStack
+              space="md"
+              className="border-l-4 border-warning-500 bg-warning-50 p-4 rounded-r-lg"
+            >
+              <VStack space="sm" className="flex-1">
+                <Text className="font-semibold text-warning-700">
+                  API Warnings ({warnings.length}):
+                </Text>
+                {warnings.map((warning, index) => (
+                  <Text key={index} className="text-warning-700 text-sm">
+                    • {warning}
+                  </Text>
+                ))}
+              </VStack>
+              <Pressable
+                onPress={() => setWarningsDismissed(true)}
+                className="p-1"
+              >
+                <Icon as={X} className="text-warning-700" size="sm" />
+              </Pressable>
+            </HStack>
           )}
 
           {!isLoading && searchPerformed && results.length === 0 && !error && (

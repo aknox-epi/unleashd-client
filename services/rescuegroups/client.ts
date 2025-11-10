@@ -34,6 +34,20 @@ export class RescueGroupsClient {
       apikey: apiKey,
     };
 
+    // Debug logging
+    console.log(
+      '[RescueGroups API] Request:',
+      JSON.stringify(
+        {
+          objectType: payload.objectType,
+          objectAction: payload.objectAction,
+          search: payload.search,
+        },
+        null,
+        2
+      )
+    );
+
     try {
       const controller = new AbortController();
       const timeoutId = global.setTimeout(
@@ -60,6 +74,34 @@ export class RescueGroupsClient {
       }
 
       const data = (await response.json()) as RescueGroupsResponse<T>;
+
+      // Debug logging
+      console.log('[RescueGroups API] Response status:', data.status);
+      console.log('[RescueGroups API] Found rows:', data.foundRows);
+
+      // Log warnings/messages
+      if (data.messages?.generalMessages) {
+        console.warn(
+          '[RescueGroups API] Messages:',
+          data.messages.generalMessages.map((m) => m.messageText)
+        );
+      }
+
+      if (data.data) {
+        const records = Object.values(data.data);
+        console.log('[RescueGroups API] Records returned:', records.length);
+        if (records.length > 0) {
+          const firstRecord = records[0] as Record<string, unknown>;
+          if ('animalSpecies' in firstRecord) {
+            const species = records.map(
+              (r) => (r as Record<string, unknown>).animalSpecies
+            );
+            console.log('[RescueGroups API] Species in results:', [
+              ...new Set(species),
+            ]);
+          }
+        }
+      }
 
       if (data.status === 'error') {
         const errorMessages = this.extractErrorMessages(data);

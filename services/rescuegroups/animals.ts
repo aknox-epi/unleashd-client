@@ -10,11 +10,16 @@ import type {
 
 /**
  * Animal fields to request from the API
+ * Using only core, well-documented fields to avoid API warnings
+ * Reference: https://userguide.rescuegroups.org/display/APIDG/Animals
  */
 const ANIMAL_FIELDS = [
+  // Core identification
   'animalID',
   'animalOrgID',
   'animalName',
+
+  // Basic info
   'animalSpecies',
   'animalBreed',
   'animalPrimaryBreed',
@@ -24,36 +29,38 @@ const ANIMAL_FIELDS = [
   'animalBirthdate',
   'animalGeneralSizePotential',
   'animalColor',
-  'animalPattern',
+
+  // Description
   'animalDescriptionPlain',
   'animalDescription',
-  'animalDistinguishingMarks',
+
+  // Status and location
   'animalStatus',
   'animalLocation',
   'animalLocationDistance',
   'animalLocationCitystate',
+
+  // Media
   'animalPictures',
-  'animalVideos',
   'animalThumbnailUrl',
+
+  // Dates
   'animalUpdatedDate',
   'animalCreatedDate',
+
+  // Adoption info
   'animalRescueID',
+  'animalAdoptionFee',
+  'animalUrl',
+
+  // Characteristics
   'animalAltered',
-  'animalDeclawed',
   'animalHousetrained',
   'animalOKWithKids',
   'animalOKWithCats',
   'animalOKWithDogs',
-  'animalOKWithAdults',
   'animalSpecialNeeds',
   'animalSpecialNeedsDescription',
-  'animalEnergyLevel',
-  'animalExerciseNeeds',
-  'animalGroomingNeeds',
-  'animalVocal',
-  'animalFence',
-  'animalAdoptionFee',
-  'animalUrl',
 ];
 
 /**
@@ -165,9 +172,9 @@ export class AnimalService {
         resultOrder: order,
         calcFoundRows: 'Yes',
         filters,
-        filterProcessing: filters.length > 1 ? '1 2 3 4 5 6 7 8 9' : '1',
+        filterProcessing: filters.map((_, i) => i + 1).join(' '),
+        fields: ANIMAL_FIELDS,
       },
-      fields: ANIMAL_FIELDS,
     });
 
     return this.parseSearchResponse(response, offset, limit);
@@ -193,8 +200,8 @@ export class AnimalService {
             criteria: animalId,
           },
         ],
+        fields: ANIMAL_FIELDS,
       },
-      fields: ANIMAL_FIELDS,
     });
 
     const animals = this.extractAnimals(response);
@@ -211,6 +218,7 @@ export class AnimalService {
   ): SearchResult<Animal> {
     const animals = this.extractAnimals(response);
     const total = response.foundRows || 0;
+    const warnings = this.extractWarnings(response);
 
     return {
       data: animals,
@@ -218,6 +226,7 @@ export class AnimalService {
       offset,
       limit,
       hasMore: offset + animals.length < total,
+      warnings: warnings.length > 0 ? warnings : undefined,
     };
   }
 
@@ -230,6 +239,21 @@ export class AnimalService {
     }
 
     return Object.values(response.data);
+  }
+
+  /**
+   * Extracts warning messages from API response
+   */
+  private extractWarnings(response: RescueGroupsResponse<Animal>): string[] {
+    const warnings: string[] = [];
+
+    if (response.status === 'warning' && response.messages?.generalMessages) {
+      warnings.push(
+        ...response.messages.generalMessages.map((msg) => msg.messageText)
+      );
+    }
+
+    return warnings;
   }
 }
 

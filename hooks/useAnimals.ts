@@ -16,6 +16,7 @@ export function useAnimalSearch() {
     setSearchResults,
     setIsLoading,
     setError,
+    setWarnings,
     setSearchParams,
   } = useRescueGroupsContext();
 
@@ -35,11 +36,13 @@ export function useAnimalSearch() {
 
       setIsLoading(true);
       setError(null);
+      setWarnings([]);
       setSearchParams(params);
 
       try {
         const results = await animalService.searchAnimals(params);
         setSearchResults(results);
+        setWarnings(results.warnings || []);
       } catch (err) {
         if (err instanceof Error && err.name !== 'AbortError') {
           setError(err);
@@ -50,7 +53,7 @@ export function useAnimalSearch() {
         abortControllerRef.current = null;
       }
     },
-    [setIsLoading, setError, setSearchParams, setSearchResults]
+    [setIsLoading, setError, setWarnings, setSearchParams, setSearchResults]
   );
 
   /**
@@ -74,6 +77,7 @@ export function useAnimalSearch() {
 
     setIsLoading(true);
     setError(null);
+    setWarnings([]);
 
     try {
       const results = await animalService.searchAnimals(nextParams);
@@ -85,6 +89,7 @@ export function useAnimalSearch() {
         offset: nextOffset,
       });
       setSearchParams(nextParams);
+      setWarnings(results.warnings || []);
     } catch (err) {
       if (err instanceof Error) {
         setError(err);
@@ -98,6 +103,7 @@ export function useAnimalSearch() {
     isLoading,
     setIsLoading,
     setError,
+    setWarnings,
     setSearchResults,
     setSearchParams,
   ]);
@@ -112,7 +118,8 @@ export function useAnimalSearch() {
     setSearchResults(null);
     setSearchParams(null);
     setError(null);
-  }, [setSearchResults, setSearchParams, setError]);
+    setWarnings([]);
+  }, [setSearchResults, setSearchParams, setError, setWarnings]);
 
   // Cleanup on unmount
   useEffect(() => {

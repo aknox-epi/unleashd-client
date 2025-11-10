@@ -40,12 +40,12 @@ export interface RescueGroupsRequest {
     calcFoundRows?: 'Yes' | 'No';
     filters?: Filter[];
     filterProcessing?: string;
-  };
 
-  /**
-   * Fields to return in the response
-   */
-  fields?: string[];
+    /**
+     * Fields to return in the response
+     */
+    fields?: string[];
+  };
 
   /**
    * Values to set (for create/update operations)
@@ -115,7 +115,7 @@ export interface RescueGroupsResponse<T = unknown> {
   /**
    * Status of the request
    */
-  status: 'ok' | 'error';
+  status: 'ok' | 'error' | 'warning';
 
   /**
    * Data returned from the API
@@ -325,6 +325,11 @@ export interface SearchResult<T> {
    * Whether there are more results
    */
   hasMore: boolean;
+
+  /**
+   * Warning messages from API
+   */
+  warnings?: string[];
 }
 
 /**

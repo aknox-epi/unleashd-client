@@ -26,6 +26,7 @@ module.exports = [
       '.cache/**',
       '*.log',
       '.DS_Store',
+      'coverage/**',
     ],
   },
 

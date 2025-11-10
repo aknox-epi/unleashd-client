@@ -11,6 +11,7 @@
     "build:preview": "expo export --platform web --output-dir dist",
     "test": "jest --watchAll",
     "test:ci": "jest --ci --coverage --maxWorkers=2 --passWithNoTests",
+    "test:staged": "jest --bail --findRelatedTests",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
@@ -30,10 +31,27 @@
     ],
     "*.{json,css,md}": [
       "prettier --write"
+    ],
+    "**/__tests__/**/*.{ts,tsx}": [
+      "jest --bail --findRelatedTests"
     ]
   },
   "jest": {
-    "preset": "jest-expo"
+    "preset": "jest-expo",
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest-setup.ts"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)"
+    ],
+    "collectCoverageFrom": [
+      "**/*.{ts,tsx}",
+      "!**/*.d.ts",
+      "!**/node_modules/**",
+      "!**/.expo/**",
+      "!**/dist/**",
+      "!**/coverage/**"
+    ]
   },
   "dependencies": {
     "@expo/html-elements": "^0.12.5",
@@ -76,6 +94,9 @@
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
     "@eslint/js": "^9.39.1",
+    "@testing-library/jest-native": "^5.4.3",
+    "@testing-library/react-native": "^13.3.3",
+    "@types/jest": "^30.0.0",
     "@types/react": "~19.1.10",
     "@typescript-eslint/eslint-plugin": "^8.46.3",
     "@typescript-eslint/parser": "^8.46.3",

@@ -2,18 +2,20 @@
 
 ## Branching Strategy
 
-This project uses **GitHub Flow** for development:
+This project uses a modified **GitHub Flow** for development:
 
-- **`main`** - Production-ready code, always stable and deployable
-- **Feature branches** - Short-lived branches for features, fixes, or improvements
+- **`main`** - Production code, receives updates from `dev` only
+- **`dev`** - Current source of truth, all feature work branches from here
+- **Feature branches** - Short-lived branches created from `dev`, merged back to `dev`
 
 ### Key Principles
 
 1. **`main` is sacred** - Always keep it stable and deployable
-2. **Branch often** - Create a new branch for each feature or fix
-3. **Merge fast** - Keep branches short-lived (hours to days, not weeks)
-4. **Review everything** - All changes go through pull requests
-5. **Delete after merge** - Clean up branches after merging
+2. **`dev` is the working branch** - All features branch from `dev` and merge to `dev`
+3. **Branch often** - Create a new branch for each feature or fix
+4. **Merge fast** - Keep branches short-lived (hours to days, not weeks)
+5. **Review everything** - All changes go through pull requests
+6. **Delete after merge** - Clean up branches after merging
 
 ### Branch Naming
 
@@ -38,6 +40,8 @@ When changes need to be committed:
 4. **Continue**: Agent continues execution after user commits
 
 This workflow gives the user full control over commits while the agent handles staging and provides commit message guidance.
+
+**Important:** Feature branches should be created from `dev` and pull requests should target `dev`, not `main`.
 
 ## Build/Test Commands
 
@@ -164,27 +168,45 @@ This project uses [commit-and-tag-version](https://github.com/absolute-version/c
    git commit -m "fix: resolve crash on startup"
    ```
 
-2. **Preview release** (recommended first step):
+2. **Push changes to origin**
+
+   ```bash
+   git push origin feature/branch
+   ```
+
+3. **Create PR to dev and get approvals**
+
+4. **Squash commits** (optional but recommended):
+
+   ```bash
+   git rebase -i dev
+
+   ```
+
+5. **Preview release** (recommended first step):
 
    ```bash
    bun run release:dry
    ```
 
-3. **Generate release**:
+6. **Generate release**:
 
    ```bash
    bun run release
    ```
 
-4. **Review changes**:
+7. **Review changes**:
    - Check `CHANGELOG.md` for accuracy
    - Verify version bump in `package.json`
    - Review the git commit and tag
 
-5. **Push to remote**:
+8. **Push to remote**:
+
    ```bash
-   git push --follow-tags origin main
+   git push --follow-tags origin dev
    ```
+
+9. **Complete PR**
 
 ### What Appears in CHANGELOG
 
@@ -216,18 +238,25 @@ Release behavior is configured in `.versionrc.json`:
 
 ## Development Workflow
 
-1. **Pre-commit automation**: ESLint and Prettier run automatically on staged files when you commit
+1. **Start from dev**: Always create feature branches from the latest `dev` branch
+   ```bash
+   git checkout dev
+   git pull origin dev
+   git checkout -b feature/your-feature-name
+   ```
+2. **Pre-commit automation**: ESLint and Prettier run automatically on staged files when you commit
    - Linting errors are auto-fixed when possible
    - Code is automatically formatted to match project style
    - Commit is blocked if unfixable errors exist
-2. **Commit message validation**: commitlint validates commit messages automatically
+3. **Commit message validation**: commitlint validates commit messages automatically
    - Enforces Conventional Commits format (type: subject)
    - Blocks commits with invalid message format
    - Use proper type prefix (feat, fix, docs, chore, etc.)
-3. **Manual checks**: Run `bun run lint:fix` to fix all code quality issues in the project
-4. **Manual formatting**: Run `bun run format` to format all files (Prettier runs on commit automatically)
-5. **Code quality**: ESLint checks logic, best practices, React rules, TypeScript issues
-6. **Formatting**: Prettier ensures consistent code style across all files
+4. **Pull requests**: Open PRs against `dev` branch, not `main`
+5. **Manual checks**: Run `bun run lint:fix` to fix all code quality issues in the project
+6. **Manual formatting**: Run `bun run format` to format all files (Prettier runs on commit automatically)
+7. **Code quality**: ESLint checks logic, best practices, React rules, TypeScript issues
+8. **Formatting**: Prettier ensures consistent code style across all files
 
 ## React Native + Expo
 

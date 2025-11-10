@@ -14,28 +14,30 @@ Thank you for your interest in contributing to unleashd-client! This document pr
 
 ## Branching Strategy
 
-We use **GitHub Flow** for our development workflow:
+We use a modified **GitHub Flow** for our development workflow:
 
 - **`main`** - Production-ready code, always deployable
+- ** `dev` ** - Used as a staging area for main given current deployment limits with Netlify
 - **Feature branches** - Short-lived branches for new features, fixes, or improvements
 
 ### Key Principles
 
 1. **`main` is sacred** - Always keep it stable and deployable
-2. **Branch often** - Create a new branch for each feature or fix
-3. **Merge fast** - Keep branches short-lived (hours to days, not weeks)
-4. **Review everything** - All changes go through pull requests
-5. **Delete after merge** - Clean up branches after merging
+2. **`dev`** - Current source of truth, all feature work should branch of dev and merge to dev
+3. **Branch often** - Create a new branch for each feature or fix
+4. **Merge fast** - Keep branches short-lived (hours to days, not weeks)
+5. **Review everything** - All changes go through pull requests
+6. **Delete after merge** - Clean up branches after merging
 
 ## Development Workflow
 
-### 1. Start from main
+### 1. Start from dev
 
-Always start your work from the latest `main`:
+Always start your work from the latest `dev`:
 
 ```bash
-git checkout main
-git pull origin main
+git checkout dev
+git pull origin dev
 ```
 
 ### 2. Create a feature branch
@@ -64,7 +66,7 @@ git push -u origin feature/your-feature-name
 
 ### 4. Open a pull request
 
-- Go to GitHub and create a pull request
+- Go to GitHub and create a pull request against `dev`
 - Fill out the PR template with details
 - Request reviews from team members
 - Wait for CI checks to pass
@@ -80,15 +82,66 @@ git push origin feature/your-feature-name
 
 ### 6. Merge and clean up
 
-After approval:
+After initial approval:
 
-1. Merge via GitHub (squash or merge commit)
-2. Delete the remote branch (GitHub offers this option)
-3. Clean up locally:
+#### Release Process
+
+Releases are managed using [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) based on conventional commits.
+
+##### Creating a release
 
 ```bash
-git checkout main
-git pull origin main
+# 1. Squash commits for your feature branch
+git rebase -i dev
+
+# 2. Preview the release (recommended)
+bun run release:dry
+
+# 3. Create the release
+bun run release
+
+# 4. Push with tags
+git push --follow-tags origin dev
+```
+
+###### Version bumps
+
+Version is automatically determined by commit types since last release:
+
+- `feat:` commits → **minor** version bump (0.1.0 → 0.2.0)
+- `fix:` commits → **patch** version bump (0.1.0 → 0.1.1)
+- `BREAKING CHANGE:` footer → **major** version bump (0.1.0 → 1.0.0)
+
+###### Manual version bump
+
+If needed, you can force a specific bump:
+
+```bash
+bun run release:major  # 1.0.0 → 2.0.0
+bun run release:minor  # 1.0.0 → 1.1.0
+bun run release:patch  # 1.0.0 → 1.0.1
+```
+
+###### What happens during release
+
+1. Analyzes commits since last release
+2. Determines version bump
+3. Updates `CHANGELOG.md`
+4. Updates `package.json` version
+5. Creates a git commit
+6. Creates a git tag
+7. You push to remote
+
+#### Lastly
+
+1. Get last approval
+2. Merge via GitHub
+3. Delete the remote branch (GitHub offers this option)
+4. Clean up locally:
+
+```bash
+git checkout dev
+git pull origin dev
 git branch -d feature/your-feature-name
 ```
 
@@ -207,7 +260,7 @@ If there are unfixable errors, the commit will be blocked.
 - [ ] Lint passes: `bun run lint`
 - [ ] Build succeeds: `bun run build` (if applicable)
 - [ ] Commits follow conventional commit format
-- [ ] Branch is up to date with `main`
+- [ ] Branch is up to date with `dev`
 
 ### PR checklist
 
@@ -235,7 +288,7 @@ When opening a PR, ensure:
 1. At least one approval required (configure in branch protection)
 2. All CI checks must pass
 3. No unresolved conversations
-4. Branch must be up to date with `main`
+4. Branch must be up to date with `dev`
 
 ## Code Quality
 
@@ -286,57 +339,6 @@ npm run ios
 # Android
 npm run android
 ```
-
-## Release Process
-
-Releases are managed using [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) based on conventional commits.
-
-### Creating a release
-
-Only maintainers create releases from `main`:
-
-```bash
-# 1. Ensure you're on main and up to date
-git checkout main
-git pull origin main
-
-# 2. Preview the release (recommended)
-bun run release:dry
-
-# 3. Create the release
-bun run release
-
-# 4. Push with tags
-git push --follow-tags origin main
-```
-
-### Version bumps
-
-Version is automatically determined by commit types since last release:
-
-- `feat:` commits → **minor** version bump (0.1.0 → 0.2.0)
-- `fix:` commits → **patch** version bump (0.1.0 → 0.1.1)
-- `BREAKING CHANGE:` footer → **major** version bump (0.1.0 → 1.0.0)
-
-### Manual version bump
-
-If needed, you can force a specific bump:
-
-```bash
-bun run release:major  # 1.0.0 → 2.0.0
-bun run release:minor  # 1.0.0 → 1.1.0
-bun run release:patch  # 1.0.0 → 1.0.1
-```
-
-### What happens during release
-
-1. Analyzes commits since last release
-2. Determines version bump
-3. Updates `CHANGELOG.md`
-4. Updates `package.json` version
-5. Creates a git commit
-6. Creates a git tag
-7. You push to remote
 
 ## Getting Help
 

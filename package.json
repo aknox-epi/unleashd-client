@@ -1,7 +1,7 @@
 {
   "name": "unleashd-client",
   "main": "expo-router/entry",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -10,6 +10,7 @@
     "build": "expo export --platform web --output-dir dist",
     "build:preview": "expo export --platform web --output-dir dist",
     "test": "jest --watchAll",
+    "test:ci": "jest --ci --coverage --maxWorkers=2 --passWithNoTests",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",

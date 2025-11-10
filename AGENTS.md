@@ -48,6 +48,8 @@ This workflow gives the user full control over commits while the agent handles s
 - **Start dev**: `bun run start` (or `npm start` for iOS/Android/web)
 - **Run tests**: `bun run test` or `jest --watchAll`
 - **Run single test**: `jest path/to/test.spec.ts` or `jest -t "test name"`
+- **Run tests with coverage**: `bun run test:coverage` (generates coverage report in `coverage/`)
+- **Run staged tests**: `bun run test:staged` (runs tests on staged test files only)
 - **Build**: `bun run build` (exports web platform to dist/)
 - **Lint**: `bun run lint` (check for code quality issues)
 - **Lint fix**: `bun run lint:fix` (auto-fix linting issues)
@@ -55,6 +57,11 @@ This workflow gives the user full control over commits while the agent handles s
 - **Format check**: `bun run format:check` (check formatting without changes)
 - **Release**: `bun run release` (generate changelog and bump version)
 - **Release dry run**: `bun run release:dry` (preview release without changes)
+
+**Note:** Tests run automatically via Git hooks:
+
+- Pre-commit: Runs `test:staged` on staged test files
+- Pre-push: Runs `test:coverage` on full test suite before push
 
 ## Project Structure
 
@@ -68,9 +75,14 @@ This workflow gives the user full control over commits while the agent handles s
   - Formatting rules in ESLint are disabled to avoid conflicts
 - **Pre-commit hooks**: Husky + lint-staged configured
   - Automatically runs ESLint and Prettier on staged files before commit
+  - Runs tests on staged test files (if committing `.test.ts` files)
   - Auto-fixes linting issues and formats code
-  - Blocks commits if unfixable linting errors exist
+  - Blocks commits if unfixable linting errors exist or tests fail
   - Bypass with `git commit --no-verify` (not recommended)
+- **Pre-push hooks**: Husky configured
+  - Runs full test suite with coverage before push
+  - Blocks push if any tests fail or coverage drops
+  - Bypass with `git push --no-verify` (not recommended)
 - **Commit message validation**: commitlint enforces Conventional Commits standard
   - Runs automatically via commit-msg hook
   - Blocks commits with invalid message format

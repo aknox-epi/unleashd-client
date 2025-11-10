@@ -79,6 +79,21 @@ Scan the QR code with Expo Go (Android) or Camera app (iOS) to run on a physical
 - `bun run test` - Run tests in watch mode
 - `jest` - Run tests once
 - `jest --coverage` - Run tests with coverage report
+- `bun run test:staged` - Run tests for staged files (used by pre-commit hook)
+
+#### Test Automation
+
+Tests run automatically via Git hooks:
+
+- **Pre-commit:** Runs tests on staged test files for fast feedback
+- **Pre-push:** Runs full test suite with coverage to ensure quality
+
+Coverage reports are generated in `coverage/` (git-ignored). View by opening `coverage/lcov-report/index.html`.
+
+**Coverage Standards:**
+
+- API integrations: 99%+ coverage required
+- Critical services: 95%+ coverage recommended
 
 ### Code Quality
 
@@ -176,18 +191,37 @@ This project uses a **modified GitHub Flow** for development. See [CONTRIBUTING.
    - Delete the feature branch
    - Pull latest `dev`: `git checkout dev && git pull origin dev`
 
-## Pre-commit Hooks
+## Git Hooks
 
-This project uses Husky and lint-staged to automatically:
+This project uses Husky and lint-staged to automate quality checks:
 
-- Run ESLint and auto-fix issues
-- Format code with Prettier
-- Validate commit messages with commitlint
+### Pre-commit Hook
 
-Hooks run automatically on `git commit`. To bypass (not recommended):
+Runs automatically on `git commit`:
+
+- **ESLint:** Checks and auto-fixes code quality issues
+- **Prettier:** Formats code to project standards
+- **Tests:** Runs tests on staged test files (in `__tests__/` directories)
+- **commitlint:** Validates commit message format
+
+If there are unfixable errors or failing tests, the commit will be blocked.
+
+### Pre-push Hook
+
+Runs automatically on `git push`:
+
+- **Full test suite:** Runs all tests with coverage reporting
+- **Push is blocked** if any tests fail
+
+This ensures only tested, working code reaches the remote repository.
+
+### Bypassing Hooks
+
+To bypass hooks (not recommended):
 
 ```bash
-git commit --no-verify
+git commit --no-verify  # Skip pre-commit
+git push --no-verify    # Skip pre-push
 ```
 
 ## CI/CD

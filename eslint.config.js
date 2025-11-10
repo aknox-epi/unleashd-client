@@ -27,6 +27,7 @@ module.exports = [
       '*.log',
       '.DS_Store',
       'coverage/**',
+      'scripts/**', // Ignore utility scripts
     ],
   },
 
@@ -134,6 +135,21 @@ module.exports = [
     },
     rules: {
       '@typescript-eslint/no-var-requires': 'off',
+    },
+  },
+
+  // Scripts directory override (Node.js scripts)
+  {
+    files: ['scripts/**/*.js'],
+    languageOptions: {
+      parserOptions: {
+        project: null, // Disable TypeScript project for scripts
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-var-requires': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
+      'no-console': 'off', // Allow console in scripts
     },
   },
 

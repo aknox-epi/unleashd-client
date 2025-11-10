@@ -33,7 +33,7 @@ describe('AnimalService', () => {
         animalID: '12345',
         animalName: 'Buddy',
         animalOrgID: 'org-1',
-        animalSpecies: 'Dog',
+        animalSpecies: RESCUEGROUPS_CONFIG.SPECIES.DOG,
         animalBreed: 'Labrador Retriever',
         animalSex: 'Male',
         animalGeneralAge: 'Adult',
@@ -43,7 +43,7 @@ describe('AnimalService', () => {
         animalID: '67890',
         animalName: 'Whiskers',
         animalOrgID: 'org-2',
-        animalSpecies: 'Cat',
+        animalSpecies: RESCUEGROUPS_CONFIG.SPECIES.CAT,
         animalBreed: 'Domestic Shorthair',
         animalSex: 'Female',
         animalGeneralAge: 'Young',
@@ -100,17 +100,21 @@ describe('AnimalService', () => {
 
       mockRequest.mockResolvedValueOnce(mockResponse);
 
-      const params: AnimalSearchParams = { species: 'Dog' };
+      const params: AnimalSearchParams = {
+        species: RESCUEGROUPS_CONFIG.SPECIES.DOG,
+      };
       const result = await service.searchAnimals(params);
 
       expect(result.data).toHaveLength(1);
-      expect(result.data[0].animalSpecies).toBe('Dog');
+      expect(result.data[0].animalSpecies).toBe(
+        RESCUEGROUPS_CONFIG.SPECIES.DOG
+      );
 
       const callArgs = mockRequest.mock.calls[0][0];
       expect(callArgs.search?.filters).toContainEqual({
         fieldName: 'animalSpecies',
         operation: 'equals',
-        criteria: 'Dog',
+        criteria: RESCUEGROUPS_CONFIG.SPECIES.DOG,
       });
     });
 
@@ -367,7 +371,7 @@ describe('AnimalService', () => {
       mockRequest.mockResolvedValueOnce(mockResponse);
 
       const params: AnimalSearchParams = {
-        species: 'Dog',
+        species: RESCUEGROUPS_CONFIG.SPECIES.DOG,
         breed: 'Labrador',
         location: '90001',
         radius: 50,
@@ -505,7 +509,7 @@ describe('AnimalService', () => {
         animalID: '12345',
         animalName: 'Buddy',
         animalOrgID: 'org-1',
-        animalSpecies: 'Dog',
+        animalSpecies: RESCUEGROUPS_CONFIG.SPECIES.DOG,
         animalBreed: 'Labrador Retriever',
         animalSex: 'Male',
         animalGeneralAge: 'Adult',

@@ -3,12 +3,23 @@ import {
   rescueGroupsClient,
 } from '@/services/rescuegroups/client';
 import type { RescueGroupsResponse } from '@/services/rescuegroups/types';
+import { RESCUEGROUPS_CONFIG } from '@/constants/RescueGroupsConfig';
 
 // Mock the config module
 jest.mock('@/constants/RescueGroupsConfig', () => ({
   RESCUEGROUPS_CONFIG: {
     API_ENDPOINT: 'https://api.rescuegroups.org/http/v2.json',
     TIMEOUT: 30000,
+    SPECIES: {
+      DOG: 'dog',
+      CAT: 'cat',
+      BIRD: 'bird',
+      RABBIT: 'rabbit',
+      SMALL_FURRY: 'small&furry',
+      HORSE: 'horse',
+      REPTILE: 'reptile',
+      BARNYARD: 'barnyard',
+    },
   },
   getApiKey: jest.fn(() => 'test-api-key'),
 }));
@@ -283,8 +294,14 @@ describe('RescueGroupsClient', () => {
         status: 'ok',
         foundRows: 2,
         data: {
-          '1': { animalID: '1', animalSpecies: 'Dog' },
-          '2': { animalID: '2', animalSpecies: 'Cat' },
+          '1': {
+            animalID: '1',
+            animalSpecies: RESCUEGROUPS_CONFIG.SPECIES.DOG,
+          },
+          '2': {
+            animalID: '2',
+            animalSpecies: RESCUEGROUPS_CONFIG.SPECIES.CAT,
+          },
         },
       };
 

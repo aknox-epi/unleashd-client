@@ -52,14 +52,14 @@ export const RESCUEGROUPS_CONFIG = {
    * Common species options
    */
   SPECIES: {
-    DOG: 'Dog',
-    CAT: 'Cat',
-    BIRD: 'Bird',
-    RABBIT: 'Rabbit',
-    SMALL_FURRY: 'Small&Furry',
-    HORSE: 'Horse',
-    REPTILE: 'Reptile',
-    BARNYARD: 'Barnyard',
+    DOG: 'dog',
+    CAT: 'cat',
+    BIRD: 'bird',
+    RABBIT: 'rabbit',
+    SMALL_FURRY: 'small&furry',
+    HORSE: 'horse',
+    REPTILE: 'reptile',
+    BARNYARD: 'barnyard',
   },
 } as const;
 

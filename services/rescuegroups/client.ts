@@ -94,7 +94,17 @@ export class RescueGroupsClient {
     const messages: string[] = [];
 
     if (response.messages?.generalMessages) {
-      messages.push(...response.messages.generalMessages);
+      // Extract messageText from each message object
+      messages.push(
+        ...response.messages.generalMessages.map((msg) => msg.messageText)
+      );
+    }
+
+    if (response.messages?.recordMessages) {
+      // Extract messageText from record-specific messages
+      messages.push(
+        ...response.messages.recordMessages.map((msg) => msg.messageText)
+      );
     }
 
     if (response.messages?.errors) {

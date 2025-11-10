@@ -22,4 +22,8 @@ export type {
   SearchResult,
 } from './types';
 
-export { RescueGroupsAPIError } from './types';
+export {
+  RescueGroupsAPIError,
+  isRescueGroupsAPIError,
+  getErrorMessage,
+} from './types';

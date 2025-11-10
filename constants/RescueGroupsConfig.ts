@@ -1,5 +1,3 @@
-import Constants from 'expo-constants';
-
 /**
  * RescueGroups API v2 Configuration
  * Documentation: https://userguide.rescuegroups.org/display/APIDG/API+Developer+Guide
@@ -14,8 +12,9 @@ export const RESCUEGROUPS_CONFIG = {
   /**
    * API key for authentication (public access)
    * Set this in your .env.local file as EXPO_PUBLIC_RESCUEGROUPS_API_KEY
+   * Expo automatically inlines EXPO_PUBLIC_* variables at build time
    */
-  API_KEY: Constants.expoConfig?.extra?.rescueGroupsApiKey || '',
+  API_KEY: process.env.EXPO_PUBLIC_RESCUEGROUPS_API_KEY || '',
 
   /**
    * Default request timeout in milliseconds

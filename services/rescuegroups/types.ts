@@ -89,6 +89,26 @@ export type FilterOperation =
   | 'notblank';
 
 /**
+ * Message structure from RescueGroups API
+ */
+export interface RescueGroupsMessage {
+  /**
+   * Unique message identifier
+   */
+  messageID: string;
+
+  /**
+   * Severity level of the message
+   */
+  messageCriticality: 'error' | 'warning' | 'info';
+
+  /**
+   * Human-readable message text
+   */
+  messageText: string;
+}
+
+/**
  * Base API response structure
  */
 export interface RescueGroupsResponse<T = unknown> {
@@ -106,9 +126,9 @@ export interface RescueGroupsResponse<T = unknown> {
    * Messages from the API
    */
   messages?: {
-    generalMessages?: string[];
+    generalMessages?: RescueGroupsMessage[];
+    recordMessages?: RescueGroupsMessage[];
     errors?: Record<string, string[]>;
-    warnings?: Record<string, string[]>;
   };
 
   /**
@@ -319,4 +339,65 @@ export class RescueGroupsAPIError extends Error {
     super(message);
     this.name = 'RescueGroupsAPIError';
   }
+}
+
+/**
+ * Type guard to check if error is a RescueGroupsAPIError
+ */
+export function isRescueGroupsAPIError(
+  error: unknown
+): error is RescueGroupsAPIError {
+  return (
+    error instanceof Error &&
+    error.name === 'RescueGroupsAPIError' &&
+    'statusCode' in error
+  );
+}
+
+/**
+ * Extracts a user-friendly error message from any error type
+ * Handles RescueGroupsAPIError with nested field errors
+ */
+export function getErrorMessage(
+  error: Error | RescueGroupsAPIError | null | undefined | unknown
+): string {
+  if (!error) {
+    return 'An error occurred';
+  }
+
+  // Handle plain objects (shouldn't happen but being defensive)
+  if (typeof error === 'object' && !(error instanceof Error)) {
+    return JSON.stringify(error);
+  }
+
+  // Check if it's actually an Error instance
+  if (!(error instanceof Error)) {
+    return String(error);
+  }
+
+  // Handle RescueGroupsAPIError with nested field errors
+  if (isRescueGroupsAPIError(error)) {
+    // If there are field-specific errors, format them
+    if (error.errors && Object.keys(error.errors).length > 0) {
+      const fieldErrors = Object.entries(error.errors)
+        .flatMap(([field, messages]) =>
+          messages.map((msg) => `${field}: ${msg}`)
+        )
+        .join(', ');
+
+      // Combine main message with field errors if both exist
+      if (error.message && error.message !== 'API request failed') {
+        return `${error.message}. ${fieldErrors}`;
+      }
+      return fieldErrors;
+    }
+
+    // Return status code info if available
+    if (error.statusCode && error.message) {
+      return `${error.message} (${error.statusCode})`;
+    }
+  }
+
+  // Standard error message - be extra defensive
+  return error.message || error.toString() || 'An error occurred';
 }

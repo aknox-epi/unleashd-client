@@ -32,8 +32,5 @@ module.exports = {
     experiments: {
       typedRoutes: true,
     },
-    extra: {
-      rescueGroupsApiKey: process.env.EXPO_PUBLIC_RESCUEGROUPS_API_KEY,
-    },
   },
 };

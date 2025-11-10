@@ -32,14 +32,42 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed workflow.
 
 ## Commit Workflow
 
-When changes need to be committed:
+**⚠️ CRITICAL: AGENTS MUST NEVER EXECUTE `git commit` COMMANDS ⚠️**
+
+**This applies to ALL operational modes (Build, Plan, etc.). No exceptions.**
+
+### Proper Commit Workflow
+
+When changes are ready to be committed, agents must follow this exact workflow:
 
 1. **Stage files**: Agent stages relevant files with `git add`
-2. **Suggest commit message**: Agent suggests a message following Conventional Commits format
-3. **Manual commit**: User manually runs `git commit` with their chosen message
-4. **Continue**: Agent continues execution after user commits
+2. **Suggest commit message**: Agent provides a commit message following Conventional Commits format
+3. **STOP**: Agent MUST NOT run `git commit` - wait for user to commit manually
+4. **User commits**: User runs `git commit` with their chosen message
+5. **Continue**: After user confirms commit, agent may continue with next tasks
 
-This workflow gives the user full control over commits while the agent handles staging and provides commit message guidance.
+### Why Agents Don't Commit
+
+- **User control**: User maintains full control over commit history
+- **GPG signing**: Many users require GPG-signed commits (requires interactive passphrase)
+- **Review opportunity**: User can review staged changes before committing
+- **Flexibility**: User can modify the suggested commit message if needed
+
+### What Agents Should Do
+
+✅ Run `git add <files>` to stage changes
+✅ Run `git status` to show what will be committed
+✅ Run `git diff --cached` to show staged changes
+✅ Suggest a properly formatted commit message
+✅ Inform user that files are staged and ready to commit
+
+### What Agents Must NEVER Do
+
+❌ Run `git commit` in any form
+❌ Run `git commit -m "message"`
+❌ Run `git commit --no-verify`
+❌ Run `git commit --amend`
+❌ Attempt to work around commit restrictions
 
 **Important:** Feature branches should be created from `dev` and pull requests should target `dev`, not `main`.
 

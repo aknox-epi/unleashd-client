@@ -71,6 +71,8 @@ When changes are ready to be committed, agents must follow this exact workflow:
 
 **Important:** Feature branches should be created from `dev` and pull requests should target `dev`, not `main`.
 
+**Important:** Feature branches should be created from `dev` and pull requests should target `dev`, not `main`.
+
 ## Build/Test Commands
 
 - **Start dev**: `bun run start` (or `npm start` for iOS/Android/web)
@@ -265,13 +267,28 @@ Releases are created using a dedicated release branch that merges to `dev` first
    git checkout -b release/0.x.x
    ```
 
-2. **Preview release** (recommended first step):
+2. **Push changes to origin**
+
+   ```bash
+   git push origin feature/branch
+   ```
+
+3. **Create PR to dev and get approvals**
+
+4. **Squash commits** (optional but recommended):
+
+   ```bash
+   git rebase -i dev
+
+   ```
+
+5. **Preview release** (recommended first step):
 
    ```bash
    bun run release:dry
    ```
 
-3. **Generate release**:
+6. **Generate release**:
 
    ```bash
    bun run release        # Auto-detect version bump
@@ -281,34 +298,34 @@ Releases are created using a dedicated release branch that merges to `dev` first
    # bun run release:patch
    ```
 
-4. **Review changes**:
+7. **Review changes**:
    - Check `CHANGELOG.md` for accuracy
    - Verify version bump in `package.json`
    - Review the git commit and tag
 
-5. **Push release branch with tags**:
+8. **Push release branch with tags**:
 
    ```bash
    git push --follow-tags origin release/0.x.x
    ```
 
-6. **Create PR from release branch to dev on GitHub**:
+9. **Create PR from release branch to dev on GitHub**:
    - **Title**: `chore(release): 0.x.x`
    - **Body**: `Release preparation - updates changelog and version`
    - Wait for CI checks to pass
    - Get approval from reviewers
 
-7. **Merge release PR to dev using "Squash and merge"**
+10. **Merge release PR to dev using "Squash and merge"**
 
-8. **Create PR from dev to main on GitHub**:
-   - **Title**: `chore: release v0.x.x to production`
-   - **Body**: `Production release v0.x.x - see CHANGELOG.md for details`
-   - Wait for CI checks to pass
-   - Get approval from reviewers
+11. **Create PR from dev to main on GitHub**:
+    - **Title**: `chore: release v0.x.x to production`
+    - **Body**: `Production release v0.x.x - see CHANGELOG.md for details`
+    - Wait for CI checks to pass
+    - Get approval from reviewers
 
-9. **Merge dev to main using "Squash and merge"**
+12. **Merge dev to main using "Squash and merge"**
 
-10. **Sync local branches and clean up**:
+13. **Sync local branches and clean up**:
 
     ```bash
     git checkout dev && git pull origin dev

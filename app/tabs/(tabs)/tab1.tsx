@@ -9,12 +9,37 @@ import { VStack } from '@/components/ui/vstack';
 import { HStack } from '@/components/ui/hstack';
 import { Spinner } from '@/components/ui/spinner';
 import { Icon } from '@/components/ui/icon';
+import { Image } from '@/components/ui/image';
 import { useAnimalSearch } from '@/hooks/useAnimals';
 import { useRescueGroupsContext } from '@/contexts/RescueGroupsContext';
 import { RESCUEGROUPS_CONFIG } from '@/constants/RescueGroupsConfig';
-import { getErrorMessage } from '@/services/rescuegroups';
+import { getErrorMessage, type Animal } from '@/services/rescuegroups';
 import { isDevelopment } from '@/utils/env';
 import { useWarningToast } from '@/hooks/useWarningToast';
+
+/**
+ * Get the best available image URL for an animal
+ * Priority: animalThumbnailUrl > first picture's large URL > first picture's small URL
+ */
+function getAnimalImageUrl(animal: Animal): string | undefined {
+  // Try direct thumbnail URL first (most reliable)
+  if (animal.animalThumbnailUrl) {
+    return animal.animalThumbnailUrl;
+  }
+
+  // Fallback to first picture in the array
+  if (animal.animalPictures && animal.animalPictures.length > 0) {
+    const firstPicture = animal.animalPictures[0];
+    // Try large URL first, then small
+    return (
+      firstPicture.urlSecureLarge ||
+      firstPicture.urlSecureSmall ||
+      firstPicture.urlSecureThumbnail
+    );
+  }
+
+  return undefined;
+}
 
 export default function Tab1() {
   const { search, results, total, isLoading, error } = useAnimalSearch();
@@ -131,45 +156,61 @@ export default function Tab1() {
                 Found {total} animals (showing {results.length})
               </Text>
 
-              {results.map((animal) => (
-                <VStack
-                  key={animal.animalID}
-                  className="border border-outline-200 rounded-lg p-4 bg-background-0"
-                  space="sm"
-                >
-                  <Heading size="sm" className="font-semibold">
-                    {animal.animalName}
-                  </Heading>
-                  <HStack space="sm">
-                    <Text className="text-typography-500">
-                      {animal.animalSpecies}
-                    </Text>
-                    {animal.animalBreed && (
-                      <>
-                        <Text className="text-typography-500">•</Text>
-                        <Text className="text-typography-500">
-                          {animal.animalBreed}
-                        </Text>
-                      </>
-                    )}
-                  </HStack>
-                  {animal.animalGeneralAge && (
-                    <Text className="text-typography-500">
-                      Age: {animal.animalGeneralAge}
-                    </Text>
-                  )}
-                  {animal.animalSex && (
-                    <Text className="text-typography-500">
-                      Sex: {animal.animalSex}
-                    </Text>
-                  )}
-                  {animal.animalLocationCitystate && (
-                    <Text className="text-typography-400 text-sm">
-                      Location: {animal.animalLocationCitystate}
-                    </Text>
-                  )}
-                </VStack>
-              ))}
+              {results.map((animal) => {
+                const imageUrl = getAnimalImageUrl(animal);
+
+                return (
+                  <VStack
+                    key={animal.animalID}
+                    className="border border-outline-200 rounded-lg p-4 bg-background-0"
+                    space="sm"
+                  >
+                    <HStack space="md">
+                      {imageUrl && (
+                        <Image
+                          source={{ uri: imageUrl }}
+                          size="xl"
+                          alt={animal.animalName}
+                          className="rounded-lg"
+                        />
+                      )}
+                      <VStack space="sm" className="flex-1">
+                        <Heading size="sm" className="font-semibold">
+                          {animal.animalName}
+                        </Heading>
+                        <HStack space="sm">
+                          <Text className="text-typography-500">
+                            {animal.animalSpecies}
+                          </Text>
+                          {animal.animalBreed && (
+                            <>
+                              <Text className="text-typography-500">•</Text>
+                              <Text className="text-typography-500">
+                                {animal.animalBreed}
+                              </Text>
+                            </>
+                          )}
+                        </HStack>
+                        {animal.animalGeneralAge && (
+                          <Text className="text-typography-500">
+                            Age: {animal.animalGeneralAge}
+                          </Text>
+                        )}
+                        {animal.animalSex && (
+                          <Text className="text-typography-500">
+                            Sex: {animal.animalSex}
+                          </Text>
+                        )}
+                        {animal.animalLocationCitystate && (
+                          <Text className="text-typography-400 text-sm">
+                            Location: {animal.animalLocationCitystate}
+                          </Text>
+                        )}
+                      </VStack>
+                    </HStack>
+                  </VStack>
+                );
+              })}
             </VStack>
           )}
         </VStack>

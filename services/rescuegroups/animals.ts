@@ -10,57 +10,26 @@ import type {
 
 /**
  * Animal fields to request from the API
- * Using only core, well-documented fields to avoid API warnings
+ * Only requesting fields that are displayed in the UI to optimize payload size
  * Reference: https://userguide.rescuegroups.org/display/APIDG/Animals
  */
 const ANIMAL_FIELDS = [
   // Core identification
   'animalID',
-  'animalOrgID',
   'animalName',
 
-  // Basic info
+  // Basic info displayed in cards
   'animalSpecies',
   'animalBreed',
-  'animalPrimaryBreed',
-  'animalSecondaryBreed',
   'animalSex',
   'animalGeneralAge',
-  'animalBirthdate',
-  'animalGeneralSizePotential',
-  'animalColor',
 
-  // Description
-  'animalDescriptionPlain',
-  'animalDescription',
-
-  // Status and location
-  'animalStatus',
-  'animalLocation',
-  'animalLocationDistance',
+  // Location
   'animalLocationCitystate',
 
-  // Media
+  // Media (images)
   'animalPictures',
   'animalThumbnailUrl',
-
-  // Dates
-  'animalUpdatedDate',
-  'animalCreatedDate',
-
-  // Adoption info
-  'animalRescueID',
-  'animalAdoptionFee',
-  'animalUrl',
-
-  // Characteristics
-  'animalAltered',
-  'animalHousetrained',
-  'animalOKWithKids',
-  'animalOKWithCats',
-  'animalOKWithDogs',
-  'animalSpecialNeeds',
-  'animalSpecialNeedsDescription',
 ];
 
 /**

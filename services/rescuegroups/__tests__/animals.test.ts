@@ -114,7 +114,7 @@ describe('AnimalService', () => {
       expect(callArgs.search?.filters).toContainEqual({
         fieldName: 'animalSpecies',
         operation: 'equals',
-        criteria: 'dog', // API expects lowercase
+        criteria: 'Dog', // API expects proper case (Dog, Cat, etc.)
       });
     });
 
@@ -385,7 +385,9 @@ describe('AnimalService', () => {
 
       const callArgs = mockRequest.mock.calls[0][0];
       expect(callArgs.search?.filters).toHaveLength(9); // 8 filters + status
-      expect(callArgs.search?.filterProcessing).toBe('1 2 3 4 5 6 7 8 9');
+      expect(callArgs.search?.filterProcessing).toBe(
+        '1 and 2 and 3 and 4 and 5 and 6 and 7 and 8 and 9'
+      );
     });
 
     it('should calculate hasMore correctly when there are more results', async () => {

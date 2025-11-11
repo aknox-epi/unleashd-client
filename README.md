@@ -30,6 +30,126 @@ A cross-platform mobile application built with React Native, Expo, and TypeScrip
 - **Git Hooks:** [Husky](https://typicode.github.io/husky/) + [lint-staged](https://github.com/okonet/lint-staged)
 - **Versioning:** [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version)
 
+## RescueGroups API Integration
+
+This app integrates with the [RescueGroups.org API](https://userguide.rescuegroups.org/display/APIDG/API+Developers+Guide+Home) to fetch animal data for adoption.
+
+### Environment Setup
+
+1. **Get API Key:** Sign up at [RescueGroups.org](https://rescuegroups.org/) and obtain an API key
+
+2. **Configure Environment:**
+
+   ```bash
+   # Copy the example file
+   cp .env.example .env
+
+   # Edit .env and add your API key
+   EXPO_PUBLIC_RESCUEGROUPS_API_KEY=your_api_key_here
+   ```
+
+3. **Validation:** The API key is validated at build time and runtime:
+   - **Build-time:** `prebuild` script checks if key is configured
+   - **Runtime:** Service gracefully handles missing/invalid keys with user-friendly messages
+
+### Error Handling
+
+The RescueGroups service implements comprehensive error handling with environment-aware messaging:
+
+#### Error Types
+
+- **`ServiceConfigError`**: Configuration issues (missing/invalid API key)
+  - Development: Shows technical details and setup instructions
+  - Production: Shows user-friendly message to contact support
+- **`RescueGroupsAPIError`**: API errors (network, rate limits, validation)
+  - Includes status code, error messages, and validation details
+  - Automatically parsed from API responses
+
+#### Service Status
+
+The service tracks three states via `ServiceStatus` enum:
+
+- **`CONFIGURED`**: API key valid and service operational
+- **`NOT_CONFIGURED`**: No API key provided
+- **`ERROR`**: Configuration or connection error
+
+#### Usage Example
+
+```typescript
+import {
+  useRescueGroupsContext,
+  ServiceStatus,
+  isServiceConfigError,
+} from '@/contexts/RescueGroupsContext';
+
+function MyComponent() {
+  const { serviceStatus, checkServiceHealth, error } =
+    useRescueGroupsContext();
+
+  // Check service status
+  useEffect(() => {
+    if (serviceStatus === ServiceStatus.NOT_CONFIGURED) {
+      console.warn('RescueGroups API not configured');
+    }
+  }, [serviceStatus]);
+
+  // Handle errors
+  useEffect(() => {
+    if (error) {
+      if (isServiceConfigError(error)) {
+        // Show setup instructions in dev, contact support in prod
+        console.error('Configuration error:', error.message);
+      } else {
+        // Handle API errors
+        console.error('API error:', error.message);
+      }
+    }
+  }, [error]);
+
+  // Manual health check (forces fresh status check)
+  const handleRefresh = async () => {
+    await checkServiceHealth(true);
+  };
+
+  return <YourComponent />;
+}
+```
+
+#### Helper Functions
+
+```typescript
+import {
+  getErrorMessage,
+  isServiceConfigError,
+  isRescueGroupsAPIError,
+} from '@/services/rescuegroups';
+
+// Get environment-aware error message
+const message = getErrorMessage(error);
+
+// Type guards
+if (isServiceConfigError(error)) {
+  // Handle configuration errors
+}
+if (isRescueGroupsAPIError(error)) {
+  // Handle API errors (status code, validation, etc.)
+}
+```
+
+### Health Checking
+
+The `RescueGroupsContext` automatically checks service health on mount and caches the status for 60 seconds to reduce API calls:
+
+```typescript
+const { serviceStatus, checkServiceHealth } = useRescueGroupsContext();
+
+// Status is automatically checked on mount
+// Cached for 60 seconds
+
+// Force fresh check (bypasses cache)
+await checkServiceHealth(true);
+```
+
 ## Prerequisites
 
 - **Node.js** (v18 or higher recommended)
@@ -37,6 +157,7 @@ A cross-platform mobile application built with React Native, Expo, and TypeScrip
 - **iOS:** Xcode (for iOS development)
 - **Android:** Android Studio + Android SDK (for Android development)
 - **Expo CLI** (installed automatically with the project)
+- **RescueGroups API Key** (optional but recommended) - [Sign up](https://rescuegroups.org/)
 
 ## Getting Started
 

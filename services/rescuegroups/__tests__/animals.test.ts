@@ -114,7 +114,7 @@ describe('AnimalService', () => {
       expect(callArgs.search?.filters).toContainEqual({
         fieldName: 'animalSpecies',
         operation: 'equals',
-        criteria: RESCUEGROUPS_CONFIG.SPECIES.DOG,
+        criteria: 'dog', // API expects lowercase
       });
     });
 

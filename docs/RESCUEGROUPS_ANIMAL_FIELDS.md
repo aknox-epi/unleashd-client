@@ -1,7 +1,7 @@
 # RescueGroups API - Animal Fields Documentation
 
 > **Auto-generated documentation**
-> Last updated: 2025-11-10T23:35:40.886Z
+> Last updated: 2025-11-11T00:06:18.200Z
 > Total fields available: 141
 
 ## Overview

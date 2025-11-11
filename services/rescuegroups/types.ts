@@ -3,6 +3,26 @@
  * Documentation: https://userguide.rescuegroups.org/display/APIDG/API+Developer+Guide
  */
 
+import type {
+  AnimalSpecies,
+  Sex,
+  GeneralAge,
+  GeneralSizePotential,
+  Altered,
+  Declawed,
+  Housetrained,
+  OKWithKids,
+  OKWithCats,
+  OKWithDogs,
+  OKWithAdults,
+  Specialneeds,
+  EnergyLevel,
+  ExerciseNeeds,
+  GroomingNeeds,
+  Vocal,
+  Fence,
+} from './generated-types';
+
 /**
  * Base API request structure
  */
@@ -144,14 +164,14 @@ export interface Animal {
   animalID: string;
   animalOrgID: string;
   animalName: string;
-  animalSpecies: string;
+  animalSpecies: AnimalSpecies;
   animalBreed: string;
   animalPrimaryBreed?: string;
   animalSecondaryBreed?: string;
-  animalSex: string;
-  animalGeneralAge: string;
+  animalSex: Sex;
+  animalGeneralAge: GeneralAge;
   animalBirthdate?: string;
-  animalGeneralSizePotential?: string;
+  animalGeneralSizePotential?: GeneralSizePotential;
   animalColor?: string;
   animalPattern?: string;
   animalDescriptionPlain?: string;
@@ -168,20 +188,20 @@ export interface Animal {
   animalUpdatedDate?: string;
   animalCreatedDate?: string;
   animalRescueID?: string;
-  animalAltered?: string;
-  animalDeclawed?: string;
-  animalHousetrained?: string;
-  animalOKWithKids?: string;
-  animalOKWithCats?: string;
-  animalOKWithDogs?: string;
-  animalOKWithAdults?: string;
-  animalSpecialNeeds?: string;
+  animalAltered?: Altered;
+  animalDeclawed?: Declawed;
+  animalHousetrained?: Housetrained;
+  animalOKWithKids?: OKWithKids;
+  animalOKWithCats?: OKWithCats;
+  animalOKWithDogs?: OKWithDogs;
+  animalOKWithAdults?: OKWithAdults;
+  animalSpecialNeeds?: Specialneeds;
   animalSpecialNeedsDescription?: string;
-  animalEnergyLevel?: string;
-  animalExerciseNeeds?: string;
-  animalGroomingNeeds?: string;
-  animalVocal?: string;
-  animalFence?: string;
+  animalEnergyLevel?: EnergyLevel;
+  animalExerciseNeeds?: ExerciseNeeds;
+  animalGroomingNeeds?: GroomingNeeds;
+  animalVocal?: Vocal;
+  animalFence?: Fence;
   animalAdoptionFee?: string;
   animalUrl?: string;
 }
@@ -243,7 +263,7 @@ export interface AnimalSearchParams {
   /**
    * Species to search for (Dog, Cat, etc.)
    */
-  species?: string;
+  species?: AnimalSpecies;
 
   /**
    * Breed to search for
@@ -263,17 +283,17 @@ export interface AnimalSearchParams {
   /**
    * Animal sex (Male, Female)
    */
-  sex?: string;
+  sex?: Sex;
 
   /**
    * General age category (Baby, Young, Adult, Senior)
    */
-  age?: string;
+  age?: GeneralAge;
 
   /**
    * General size (Small, Medium, Large, Extra Large)
    */
-  size?: string;
+  size?: GeneralSizePotential;
 
   /**
    * Special needs filter

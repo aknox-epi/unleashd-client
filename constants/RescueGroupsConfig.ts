@@ -3,6 +3,8 @@
  * Documentation: https://userguide.rescuegroups.org/display/APIDG/API+Developer+Guide
  */
 
+import type { AnimalSpecies } from '@/services/rescuegroups/generated-types';
+
 export const RESCUEGROUPS_CONFIG = {
   /**
    * Base API endpoint for RescueGroups API v2
@@ -49,17 +51,17 @@ export const RESCUEGROUPS_CONFIG = {
   },
 
   /**
-   * Common species options
+   * Common species options (user-facing display values)
    */
   SPECIES: {
-    DOG: 'dog',
-    CAT: 'cat',
-    BIRD: 'bird',
-    RABBIT: 'rabbit',
-    SMALL_FURRY: 'small&furry',
-    HORSE: 'horse',
-    REPTILE: 'reptile',
-    BARNYARD: 'barnyard',
+    DOG: 'Dog' as AnimalSpecies,
+    CAT: 'Cat' as AnimalSpecies,
+    BIRD: 'Bird' as AnimalSpecies,
+    RABBIT: 'Rabbit' as AnimalSpecies,
+    SMALL_ANIMAL: 'Small Animal' as AnimalSpecies,
+    HORSE: 'Horse' as AnimalSpecies,
+    REPTILE: 'Reptile' as AnimalSpecies,
+    BARNYARD: 'Barnyard' as AnimalSpecies,
   },
 } as const;
 

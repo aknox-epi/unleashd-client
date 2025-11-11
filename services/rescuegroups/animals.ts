@@ -1,5 +1,6 @@
 import { RESCUEGROUPS_CONFIG } from '@/constants/RescueGroupsConfig';
 import { rescueGroupsClient } from './client';
+import { SPECIES_QUERY_MAP } from './generated-types';
 import type {
   Animal,
   AnimalSearchParams,
@@ -63,10 +64,12 @@ export class AnimalService {
     const filters: Filter[] = [];
 
     if (species) {
+      // Convert display species name to lowercase query value for API
+      const queryValue = SPECIES_QUERY_MAP[species] || species.toLowerCase();
       filters.push({
         fieldName: 'animalSpecies',
         operation: 'equals',
-        criteria: species,
+        criteria: queryValue,
       });
     }
 

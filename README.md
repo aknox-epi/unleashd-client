@@ -349,11 +349,21 @@ git push --no-verify    # Skip pre-push
 
 GitHub Actions automatically runs on all PRs and pushes to `dev` and `main`:
 
+- **Environment Validation:** Checks if RescueGroups API key is configured
 - **Lint & Test:** ESLint, Prettier check, Jest tests
 - **Build:** Web export to verify build process
 - **Commitlint:** Validates commit messages
 
 See `.github/workflows/ci.yml` for configuration.
+
+### GitHub Secrets
+
+To enable full functionality in CI/CD, configure the following secrets in your repository settings:
+
+- **`EXPO_PUBLIC_RESCUEGROUPS_API_KEY`**: Your RescueGroups API key (optional)
+- **`CODECOV_TOKEN`**: Codecov upload token for coverage reports (optional)
+
+The workflow will show a warning if the API key is not configured but will continue with limited functionality.
 
 ## Contributing
 

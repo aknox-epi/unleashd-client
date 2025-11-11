@@ -1,9 +1,14 @@
-import { RESCUEGROUPS_CONFIG, getApiKey } from '@/constants/RescueGroupsConfig';
+import {
+  RESCUEGROUPS_CONFIG,
+  getApiKey,
+  isConfigured,
+} from '@/constants/RescueGroupsConfig';
 import type {
   RescueGroupsRequest,
   RescueGroupsResponse,
   RescueGroupsAPIError,
 } from './types';
+import { ServiceConfigError } from './types';
 
 /**
  * Base client for RescueGroups API v2
@@ -19,15 +24,38 @@ export class RescueGroupsClient {
   }
 
   /**
+   * Checks if the service is properly configured
+   * @returns true if API key is set, false otherwise
+   */
+  isConfigured(): boolean {
+    return isConfigured();
+  }
+
+  /**
    * Makes a request to the RescueGroups API
    * @param request - The request payload
    * @returns The API response
+   * @throws ServiceConfigError if API key is not configured
    * @throws RescueGroupsAPIError if the request fails
    */
   async request<T>(
     request: Omit<RescueGroupsRequest, 'apikey'>
   ): Promise<RescueGroupsResponse<T>> {
-    const apiKey = getApiKey();
+    // Check configuration before making request
+    let apiKey: string;
+    try {
+      apiKey = getApiKey();
+    } catch (error) {
+      // Re-throw ServiceConfigError as-is
+      if (error instanceof ServiceConfigError) {
+        throw error;
+      }
+      // Wrap any other errors
+      throw new ServiceConfigError(
+        error instanceof Error ? error.message : 'Configuration error',
+        process.env.NODE_ENV === 'development'
+      );
+    }
 
     const payload: RescueGroupsRequest = {
       ...request,

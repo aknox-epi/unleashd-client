@@ -4,6 +4,15 @@
  */
 
 import type { AnimalSpecies } from '@/services/rescuegroups/generated-types';
+import { ServiceConfigError } from '@/services/rescuegroups/types';
+
+/**
+ * Detect if we're in development mode
+ * Uses NODE_ENV environment variable
+ */
+function isDevelopmentMode(): boolean {
+  return process.env.NODE_ENV === 'development';
+}
 
 export const RESCUEGROUPS_CONFIG = {
   /**
@@ -66,21 +75,33 @@ export const RESCUEGROUPS_CONFIG = {
 } as const;
 
 /**
+ * Checks if the RescueGroups API is properly configured
+ * @returns true if API key is set, false otherwise
+ */
+export function isConfigured(): boolean {
+  return !!RESCUEGROUPS_CONFIG.API_KEY;
+}
+
+/**
  * Validates that the API key is configured
- * @throws Error if API key is not set
+ * @throws ServiceConfigError if API key is not set
  */
 export function validateApiKey(): void {
   if (!RESCUEGROUPS_CONFIG.API_KEY) {
-    throw new Error(
-      'RescueGroups API key is not configured. Please set EXPO_PUBLIC_RESCUEGROUPS_API_KEY in your .env.local file.'
-    );
+    const isDev = isDevelopmentMode();
+
+    const message = isDev
+      ? 'RescueGroups API key is not configured. Please set EXPO_PUBLIC_RESCUEGROUPS_API_KEY in your .env.local file.'
+      : 'Animal search service is temporarily unavailable. Please try again later.';
+
+    throw new ServiceConfigError(message, isDev);
   }
 }
 
 /**
  * Gets the API key from the configuration
  * @returns The API key string
- * @throws Error if API key is not set
+ * @throws ServiceConfigError if API key is not set
  */
 export function getApiKey(): string {
   validateApiKey();

@@ -353,7 +353,31 @@ export interface SearchResult<T> {
 }
 
 /**
+ * Service status enum
+ */
+export enum ServiceStatus {
+  CONFIGURED = 'configured',
+  NOT_CONFIGURED = 'not_configured',
+  ERROR = 'error',
+}
+
+/**
+ * Service configuration error class
+ * Thrown when the service is not properly configured (e.g., missing API key)
+ */
+export class ServiceConfigError extends Error {
+  constructor(
+    message: string,
+    public isDevelopment: boolean
+  ) {
+    super(message);
+    this.name = 'ServiceConfigError';
+  }
+}
+
+/**
  * API error class
+ * Thrown when the API returns an error or request fails
  */
 export class RescueGroupsAPIError extends Error {
   constructor(
@@ -364,6 +388,19 @@ export class RescueGroupsAPIError extends Error {
     super(message);
     this.name = 'RescueGroupsAPIError';
   }
+}
+
+/**
+ * Type guard to check if error is a ServiceConfigError
+ */
+export function isServiceConfigError(
+  error: unknown
+): error is ServiceConfigError {
+  return (
+    error instanceof Error &&
+    error.name === 'ServiceConfigError' &&
+    'isDevelopment' in error
+  );
 }
 
 /**

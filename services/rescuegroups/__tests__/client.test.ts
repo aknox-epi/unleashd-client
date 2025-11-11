@@ -22,6 +22,7 @@ jest.mock('@/constants/RescueGroupsConfig', () => ({
     },
   },
   getApiKey: jest.fn(() => 'test-api-key'),
+  isConfigured: jest.fn(() => true),
 }));
 
 describe('RescueGroupsClient', () => {

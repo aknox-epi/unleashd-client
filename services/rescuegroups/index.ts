@@ -2,6 +2,9 @@
  * Public exports for RescueGroups API service
  */
 
+// Configuration
+export { isConfigured } from '@/constants/RescueGroupsConfig';
+
 // Client
 export { RescueGroupsClient, rescueGroupsClient } from './client';
 
@@ -25,5 +28,8 @@ export type {
 export {
   RescueGroupsAPIError,
   isRescueGroupsAPIError,
+  ServiceConfigError,
+  isServiceConfigError,
+  ServiceStatus,
   getErrorMessage,
 } from './types';

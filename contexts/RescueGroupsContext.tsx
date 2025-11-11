@@ -3,6 +3,7 @@ import React, {
   useContext,
   useState,
   useCallback,
+  useEffect,
   type ReactNode,
 } from 'react';
 import type {
@@ -11,6 +12,7 @@ import type {
   SearchResult,
   RescueGroupsAPIError,
 } from '@/services/rescuegroups';
+import { rescueGroupsClient, ServiceStatus } from '@/services/rescuegroups';
 
 /**
  * Context state for RescueGroups data
@@ -45,6 +47,11 @@ interface RescueGroupsContextState {
    * Current search parameters
    */
   searchParams: AnimalSearchParams | null;
+
+  /**
+   * Service status
+   */
+  serviceStatus: ServiceStatus;
 }
 
 /**
@@ -82,6 +89,11 @@ interface RescueGroupsContextActions {
   setSearchParams: (params: AnimalSearchParams | null) => void;
 
   /**
+   * Checks service health and updates status
+   */
+  checkServiceHealth: (forceRefresh?: boolean) => Promise<void>;
+
+  /**
    * Clears all state
    */
   clearState: () => void;
@@ -103,6 +115,7 @@ const defaultState: RescueGroupsContextState = {
   error: null,
   warnings: [],
   searchParams: null,
+  serviceStatus: ServiceStatus.NOT_CONFIGURED,
 };
 
 /**
@@ -139,6 +152,32 @@ export function RescueGroupsProvider({
   const [searchParams, setSearchParams] = useState<AnimalSearchParams | null>(
     defaultState.searchParams
   );
+  const [serviceStatus, setServiceStatus] = useState<ServiceStatus>(
+    defaultState.serviceStatus
+  );
+
+  // Check service health on mount
+  useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        const status = await rescueGroupsClient.getServiceStatus();
+        setServiceStatus(status);
+      } catch {
+        setServiceStatus(ServiceStatus.ERROR);
+      }
+    };
+
+    checkHealth();
+  }, []);
+
+  const checkServiceHealth = useCallback(async (forceRefresh = false) => {
+    try {
+      const status = await rescueGroupsClient.getServiceStatus(forceRefresh);
+      setServiceStatus(status);
+    } catch {
+      setServiceStatus(ServiceStatus.ERROR);
+    }
+  }, []);
 
   const clearState = useCallback(() => {
     setSearchResults(defaultState.searchResults);
@@ -157,6 +196,7 @@ export function RescueGroupsProvider({
     error,
     warnings,
     searchParams,
+    serviceStatus,
     // Actions
     setSearchResults,
     setSelectedAnimal,
@@ -164,6 +204,7 @@ export function RescueGroupsProvider({
     setError,
     setWarnings,
     setSearchParams,
+    checkServiceHealth,
     clearState,
   };
 

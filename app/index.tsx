@@ -28,7 +28,7 @@ export default function Home() {
             size="md"
             className="bg-primary-500 px-6 py-2 rounded-full"
             onPress={() => {
-              router.push('/tabs/tab1');
+              router.push('/tabs/explore');
             }}
           >
             <ButtonText>Explore Tab Navigation</ButtonText>

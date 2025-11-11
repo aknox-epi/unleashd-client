@@ -13,7 +13,7 @@ import { useRescueGroupsContext } from '@/contexts/RescueGroupsContext';
 import { ServiceStatus } from '@/services/rescuegroups';
 import { isDevelopment } from '@/utils/env';
 
-export default function Tab2() {
+export default function Status() {
   const { serviceStatus, checkServiceHealth } = useRescueGroupsContext();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -103,7 +103,7 @@ export default function Tab2() {
         <Text className="p-4">
           Example below to use gluestack-ui components.
         </Text>
-        <EditScreenInfo path="app/(app)/(tabs)/tab2.tsx" />
+        <EditScreenInfo path="app/tabs/(tabs)/status.tsx" />
       </VStack>
     </Center>
   );

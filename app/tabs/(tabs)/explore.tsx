@@ -41,7 +41,7 @@ function getAnimalImageUrl(animal: Animal): string | undefined {
   return undefined;
 }
 
-export default function Tab1() {
+export default function Explore() {
   const { search, results, total, isLoading, error } = useAnimalSearch();
   const { warnings } = useRescueGroupsContext();
   const [searchPerformed, setSearchPerformed] = useState(false);

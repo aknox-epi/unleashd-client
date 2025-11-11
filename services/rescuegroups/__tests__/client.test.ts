@@ -3,7 +3,11 @@ import {
   rescueGroupsClient,
 } from '@/services/rescuegroups/client';
 import type { RescueGroupsResponse } from '@/services/rescuegroups/types';
-import { RESCUEGROUPS_CONFIG } from '@/constants/RescueGroupsConfig';
+import { ServiceStatus } from '@/services/rescuegroups/types';
+import {
+  RESCUEGROUPS_CONFIG,
+  isConfigured,
+} from '@/constants/RescueGroupsConfig';
 
 // Mock the config module
 jest.mock('@/constants/RescueGroupsConfig', () => ({
@@ -399,6 +403,158 @@ describe('RescueGroupsClient', () => {
         name: 'RescueGroupsAPIError',
         message: 'API request failed with no error message',
       });
+    });
+  });
+
+  describe('isConfigured', () => {
+    it('should return true when API key is configured', () => {
+      expect(client.isConfigured()).toBe(true);
+    });
+  });
+
+  describe('healthCheck', () => {
+    it('should make a minimal API request for health check', async () => {
+      const mockResponseData: RescueGroupsResponse<Record<string, unknown>> = {
+        status: 'ok',
+        foundRows: 1,
+        data: {
+          '12345': {
+            animalID: '12345',
+          },
+        },
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => mockResponseData,
+      });
+
+      await expect(client.healthCheck()).resolves.not.toThrow();
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rescuegroups.org/http/v2.json',
+        expect.objectContaining({
+          method: 'POST',
+          body: expect.stringContaining('"resultLimit":1'),
+        })
+      );
+    });
+
+    it('should throw error when health check fails', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+      });
+
+      await expect(client.healthCheck()).rejects.toMatchObject({
+        name: 'RescueGroupsAPIError',
+        message: 'HTTP error: 500 Internal Server Error',
+      });
+    });
+  });
+
+  describe('getServiceStatus', () => {
+    it('should return NOT_CONFIGURED when API key is missing', async () => {
+      (isConfigured as jest.Mock).mockReturnValueOnce(false);
+
+      const status = await client.getServiceStatus();
+
+      expect(status).toBe(ServiceStatus.NOT_CONFIGURED);
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('should return CONFIGURED when health check succeeds', async () => {
+      const mockResponseData: RescueGroupsResponse<Record<string, unknown>> = {
+        status: 'ok',
+        foundRows: 1,
+        data: {
+          '12345': {
+            animalID: '12345',
+          },
+        },
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => mockResponseData,
+      });
+
+      const status = await client.getServiceStatus();
+
+      expect(status).toBe(ServiceStatus.CONFIGURED);
+      expect(mockFetch).toHaveBeenCalled();
+    });
+
+    it('should return ERROR when health check fails', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+      });
+
+      const status = await client.getServiceStatus();
+
+      expect(status).toBe(ServiceStatus.ERROR);
+      expect(mockFetch).toHaveBeenCalled();
+    });
+
+    it('should cache status for 60 seconds', async () => {
+      const mockResponseData: RescueGroupsResponse<Record<string, unknown>> = {
+        status: 'ok',
+        foundRows: 1,
+        data: {
+          '12345': {
+            animalID: '12345',
+          },
+        },
+      };
+
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => mockResponseData,
+      });
+
+      // First call
+      const status1 = await client.getServiceStatus();
+      expect(status1).toBe(ServiceStatus.CONFIGURED);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+
+      // Second call (should use cache)
+      const status2 = await client.getServiceStatus();
+      expect(status2).toBe(ServiceStatus.CONFIGURED);
+      expect(mockFetch).toHaveBeenCalledTimes(1); // No additional call
+    });
+
+    it('should bypass cache when forceRefresh is true', async () => {
+      const mockResponseData: RescueGroupsResponse<Record<string, unknown>> = {
+        status: 'ok',
+        foundRows: 1,
+        data: {
+          '12345': {
+            animalID: '12345',
+          },
+        },
+      };
+
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => mockResponseData,
+      });
+
+      // First call
+      const status1 = await client.getServiceStatus();
+      expect(status1).toBe(ServiceStatus.CONFIGURED);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+
+      // Second call with forceRefresh
+      const status2 = await client.getServiceStatus(true);
+      expect(status2).toBe(ServiceStatus.CONFIGURED);
+      expect(mockFetch).toHaveBeenCalledTimes(2); // Additional call made
     });
   });
 

@@ -3,12 +3,12 @@ import {
   getApiKey,
   isConfigured,
 } from '@/constants/RescueGroupsConfig';
+import { ServiceConfigError, ServiceStatus } from './types';
 import type {
   RescueGroupsRequest,
   RescueGroupsResponse,
   RescueGroupsAPIError,
 } from './types';
-import { ServiceConfigError } from './types';
 
 /**
  * Base client for RescueGroups API v2
@@ -17,6 +17,15 @@ import { ServiceConfigError } from './types';
 export class RescueGroupsClient {
   private readonly apiEndpoint: string;
   private readonly timeout: number;
+  private statusCache: {
+    status: ServiceStatus;
+    lastChecked: number;
+    ttl: number;
+  } = {
+    status: ServiceStatus.NOT_CONFIGURED,
+    lastChecked: 0,
+    ttl: 60000, // Cache for 60 seconds
+  };
 
   constructor() {
     this.apiEndpoint = RESCUEGROUPS_CONFIG.API_ENDPOINT;
@@ -29,6 +38,72 @@ export class RescueGroupsClient {
    */
   isConfigured(): boolean {
     return isConfigured();
+  }
+
+  /**
+   * Gets the current service status with caching
+   * @param forceRefresh - If true, bypasses cache and performs fresh check
+   * @returns The current service status
+   */
+  async getServiceStatus(forceRefresh = false): Promise<ServiceStatus> {
+    // Return cached status if still valid
+    const now = Date.now();
+    if (
+      !forceRefresh &&
+      this.statusCache.lastChecked > 0 &&
+      now - this.statusCache.lastChecked < this.statusCache.ttl
+    ) {
+      return this.statusCache.status;
+    }
+
+    // Check configuration
+    if (!this.isConfigured()) {
+      this.statusCache = {
+        status: ServiceStatus.NOT_CONFIGURED,
+        lastChecked: now,
+        ttl: this.statusCache.ttl,
+      };
+      return ServiceStatus.NOT_CONFIGURED;
+    }
+
+    // Perform health check
+    try {
+      await this.healthCheck();
+      this.statusCache = {
+        status: ServiceStatus.CONFIGURED,
+        lastChecked: now,
+        ttl: this.statusCache.ttl,
+      };
+      return ServiceStatus.CONFIGURED;
+    } catch {
+      this.statusCache = {
+        status: ServiceStatus.ERROR,
+        lastChecked: now,
+        ttl: this.statusCache.ttl,
+      };
+      return ServiceStatus.ERROR;
+    }
+  }
+
+  /**
+   * Performs a health check by making a minimal API request
+   * @throws ServiceConfigError if not configured
+   * @throws RescueGroupsAPIError if health check fails
+   */
+  async healthCheck(): Promise<void> {
+    // Minimal request to verify API connectivity
+    await this.request({
+      objectType: 'animals',
+      objectAction: 'publicSearch',
+      search: {
+        resultStart: 0,
+        resultLimit: 1,
+        resultSort: 'animalID',
+        resultOrder: 'asc',
+        filters: [],
+        fields: ['animalID'],
+      },
+    });
   }
 
   /**

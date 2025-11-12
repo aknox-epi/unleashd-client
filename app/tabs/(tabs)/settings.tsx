@@ -23,6 +23,12 @@ import {
   DrawerFooter,
 } from '@/components/ui/drawer';
 import {
+  Checkbox,
+  CheckboxIndicator,
+  CheckboxIcon,
+} from '@/components/ui/checkbox';
+import { CheckIcon, ChevronDownIcon } from '@/components/ui/icon';
+import {
   Select,
   SelectTrigger,
   SelectInput,
@@ -34,13 +40,6 @@ import {
   SelectDragIndicator,
   SelectItem,
 } from '@/components/ui/select';
-import { ChevronDownIcon } from '@/components/ui/icon';
-import {
-  Checkbox,
-  CheckboxIndicator,
-  CheckboxIcon,
-} from '@/components/ui/checkbox';
-import { CheckIcon } from '@/components/ui/icon';
 import {
   Accordion,
   AccordionItem,
@@ -117,7 +116,7 @@ export default function Settings() {
             <Heading className="font-bold text-2xl">Settings</Heading>
 
             <VStack className="gap-4">
-              {/* Dark Mode Toggle */}
+              {/* Theme Toggle */}
               <HStack className="justify-between items-center py-3 px-4 bg-background-50 rounded-lg">
                 <HStack className="items-center gap-3 flex-1">
                   <Icon

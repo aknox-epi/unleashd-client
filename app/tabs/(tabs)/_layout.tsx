@@ -15,7 +15,8 @@ function TabBarIcon(props: {
 }
 
 export default function TabLayout() {
-  const { hasNewVersion, openDrawer, markVersionAsSeen } = useWhatsNew();
+  const { isEnabled, hasNewVersion, openDrawer, markVersionAsSeen } =
+    useWhatsNew();
 
   const handleWhatsNewPress = () => {
     openDrawer();
@@ -50,19 +51,20 @@ export default function TabLayout() {
               showBadge={hasNewVersion}
             />
           ),
-          headerRight: () => (
-            <Pressable
-              onPress={handleWhatsNewPress}
-              style={{ marginRight: 15 }}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <AnimatedTabIcon
-                icon={Sparkles}
-                color={hasNewVersion ? '#3b82f6' : '#9ca3af'}
-                showBadge={hasNewVersion}
-              />
-            </Pressable>
-          ),
+          headerRight: () =>
+            isEnabled ? (
+              <Pressable
+                onPress={handleWhatsNewPress}
+                style={{ marginRight: 15 }}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <AnimatedTabIcon
+                  icon={Sparkles}
+                  color={hasNewVersion ? '#3b82f6' : '#9ca3af'}
+                  showBadge={hasNewVersion}
+                />
+              </Pressable>
+            ) : null,
         }}
       />
       <Tabs.Screen

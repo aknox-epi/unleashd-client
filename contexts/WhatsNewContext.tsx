@@ -4,14 +4,22 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useMemo,
   type ReactNode,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { parseLatestChangelog, isNewerVersion } from '@/utils/changelog-parser';
+import {
+  parseLatestChangelog,
+  parseAllChangelogs,
+  isNewerVersion,
+  filterByTimeline,
+  filterByTypes,
+} from '@/utils/changelog-parser';
 import type {
   WhatsNewContextState,
   WhatsNewPreferences,
   ChangelogEntry,
+  ChangelogFilters,
 } from '@/types/whats-new';
 
 // Storage keys
@@ -23,6 +31,12 @@ const STORAGE_KEYS = {
 const DEFAULT_PREFERENCES: WhatsNewPreferences = {
   enabled: false, // Opt-in by default
   lastSeenVersion: null,
+};
+
+// Default filters
+const DEFAULT_FILTERS: ChangelogFilters = {
+  timeline: 'latest',
+  types: [], // Empty = all types
 };
 
 // Create context
@@ -53,6 +67,8 @@ export function WhatsNewProvider({
   const [latestChangelog, setLatestChangelog] = useState<ChangelogEntry | null>(
     null
   );
+  const [allChangelogs, setAllChangelogs] = useState<ChangelogEntry[]>([]);
+  const [filters, setFilters] = useState<ChangelogFilters>(DEFAULT_FILTERS);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   /**
@@ -81,6 +97,10 @@ export function WhatsNewProvider({
     const parsed = parseLatestChangelog(changelogContent);
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLatestChangelog(parsed);
+
+    const allParsed = parseAllChangelogs(changelogContent);
+
+    setAllChangelogs(allParsed);
   }, [changelogContent]);
 
   /**
@@ -136,6 +156,21 @@ export function WhatsNewProvider({
   };
 
   /**
+   * Compute filtered changelogs based on current filters
+   */
+  const filteredChangelogs = useMemo(() => {
+    let filtered = allChangelogs;
+
+    // Apply timeline filter
+    filtered = filterByTimeline(filtered, filters.timeline);
+
+    // Apply type filter
+    filtered = filterByTypes(filtered, filters.types);
+
+    return filtered;
+  }, [allChangelogs, filters]);
+
+  /**
    * Determine if there's a new version
    * Only true if:
    * 1. Feature is enabled
@@ -152,11 +187,15 @@ export function WhatsNewProvider({
     currentVersion,
     lastSeenVersion: preferences.lastSeenVersion,
     latestChangelog,
+    allChangelogs,
+    filters,
+    filteredChangelogs,
     isDrawerOpen,
     toggleEnabled,
     markVersionAsSeen,
     openDrawer,
     closeDrawer,
+    setFilters,
   };
 
   return (

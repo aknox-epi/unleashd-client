@@ -15,6 +15,11 @@ import {
   ThemeProvider as CustomThemeProvider,
   useTheme,
 } from '@/contexts/ThemeContext';
+import { WhatsNewProvider } from '@/contexts/WhatsNewContext';
+import { CHANGELOG_CONTENT } from '@/constants/changelog';
+
+// Get version from package.json
+const APP_VERSION = '0.1.3';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -42,7 +47,12 @@ export default function RootLayout() {
 
   return (
     <CustomThemeProvider>
-      <RootLayoutNav />
+      <WhatsNewProvider
+        changelogContent={CHANGELOG_CONTENT}
+        currentVersion={APP_VERSION}
+      >
+        <RootLayoutNav />
+      </WhatsNewProvider>
     </CustomThemeProvider>
   );
 }

@@ -11,6 +11,11 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - Theme switcher (light/dark mode) in Settings tab
 - API health status monitoring
 - Basic project structure and development workflow
+- What's New / Changelog notification system with opt-in toggle
+- Animated sparkle badge for new version notifications
+- Version tracking and changelog parsing
+- Advanced changelog filtering (by timeline and section types)
+- Comprehensive test coverage for What's New feature (100% coverage)
 
 ## Planned Features
 

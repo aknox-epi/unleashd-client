@@ -8,11 +8,13 @@ import {
 } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect, useState } from 'react';
-import { Slot, usePathname } from 'expo-router';
-import { Fab, FabIcon } from '@/components/ui/fab';
-import { MoonIcon, SunIcon } from '@/components/ui/icon';
+import { useEffect } from 'react';
+import { Slot } from 'expo-router';
 import { RescueGroupsProvider } from '@/contexts/RescueGroupsContext';
+import {
+  ThemeProvider as CustomThemeProvider,
+  useTheme,
+} from '@/contexts/ThemeContext';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -37,29 +39,22 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
-  return <RootLayoutNav />;
+
+  return (
+    <CustomThemeProvider>
+      <RootLayoutNav />
+    </CustomThemeProvider>
+  );
 }
 
 function RootLayoutNav() {
-  const pathname = usePathname();
-  const [colorMode, setColorMode] = useState<'light' | 'dark'>('light');
+  const { colorMode } = useTheme();
 
   return (
     <RescueGroupsProvider>
       <GluestackUIProvider mode={colorMode}>
         <ThemeProvider value={colorMode === 'dark' ? DarkTheme : DefaultTheme}>
           <Slot />
-          {pathname === '/' && (
-            <Fab
-              onPress={() =>
-                setColorMode(colorMode === 'dark' ? 'light' : 'dark')
-              }
-              className="m-6"
-              size="lg"
-            >
-              <FabIcon as={colorMode === 'dark' ? MoonIcon : SunIcon} />
-            </Fab>
-          )}
         </ThemeProvider>
       </GluestackUIProvider>
     </RescueGroupsProvider>

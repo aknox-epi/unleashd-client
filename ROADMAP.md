@@ -75,6 +75,23 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - Privacy policy and terms of service links
 - Feedback/support contact
 
+#### What's New / Changelog Notifications
+
+**Current Implementation:**
+
+- ✅ Basic What's New drawer with opt-in toggle
+- ✅ Animated sparkle badge on Settings tab
+- ✅ Version tracking and notification system
+- ✅ Changelog parsing and display in drawer
+
+**Future Enhancements:**
+
+- 🔮 Push notifications for app updates (requires Expo Notifications setup)
+- 🔮 Changelog category filtering (Features only, Fixes only, All)
+- 🔮 Deep links from changelog items to specific features
+- 🔮 "What's New" auto-modal on first launch after update
+- 🔮 Share changelog feature (social media, email)
+
 ### 📊 Status Tab Enhancements
 
 #### API Health Monitoring

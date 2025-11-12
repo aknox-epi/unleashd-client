@@ -1,13 +1,6 @@
-import { useState } from 'react';
-import { ScrollView, Pressable } from 'react-native';
-import {
-  X,
-  Dog,
-  Cat,
-  Bird,
-  Rabbit,
-  Image as ImageIcon,
-} from 'lucide-react-native';
+import { useState, useEffect } from 'react';
+import { FlatList, RefreshControl, Pressable } from 'react-native';
+import { X, Search } from 'lucide-react-native';
 import { Button, ButtonText } from '@/components/ui/button';
 import { Center } from '@/components/ui/center';
 import { Heading } from '@/components/ui/heading';
@@ -16,273 +9,290 @@ import { VStack } from '@/components/ui/vstack';
 import { HStack } from '@/components/ui/hstack';
 import { Spinner } from '@/components/ui/spinner';
 import { Icon } from '@/components/ui/icon';
-import { Image } from '@/components/ui/image';
 import { Box } from '@/components/ui/box';
+import {
+  Select,
+  SelectTrigger,
+  SelectInput,
+  SelectPortal,
+  SelectBackdrop,
+  SelectContent,
+  SelectDragIndicatorWrapper,
+  SelectDragIndicator,
+  SelectItem,
+} from '@/components/ui/select';
+import { AnimalCard } from '@/components/AnimalCard';
 import { useAnimalSearch } from '@/hooks/useAnimals';
 import { useRescueGroupsContext } from '@/contexts/RescueGroupsContext';
 import { RESCUEGROUPS_CONFIG } from '@/constants/RescueGroupsConfig';
-import { getErrorMessage, type Animal } from '@/services/rescuegroups';
+import {
+  getErrorMessage,
+  type Animal,
+  type AnimalSpecies,
+} from '@/services/rescuegroups';
 import { isDevelopment } from '@/utils/env';
 import { useWarningToast } from '@/hooks/useWarningToast';
 import { useTheme } from '@/contexts/ThemeContext';
 
-/**
- * Get the best available image URL for an animal
- * Priority: animalThumbnailUrl > first picture's large URL > first picture's small URL
- */
-function getAnimalImageUrl(animal: Animal): string | undefined {
-  // Try direct thumbnail URL first (most reliable)
-  if (animal.animalThumbnailUrl) {
-    return animal.animalThumbnailUrl;
-  }
-
-  // Fallback to first picture in the array
-  if (animal.animalPictures && animal.animalPictures.length > 0) {
-    const firstPicture = animal.animalPictures[0];
-    // Try large URL first, then small
-    return (
-      firstPicture.urlSecureLarge ||
-      firstPicture.urlSecureSmall ||
-      firstPicture.urlSecureThumbnail
-    );
-  }
-
-  return undefined;
-}
-
-/**
- * Get the appropriate icon for an animal species
- */
-function getSpeciesIcon(species: string) {
-  const speciesLower = species.toLowerCase();
-  if (speciesLower.includes('dog')) return Dog;
-  if (speciesLower.includes('cat')) return Cat;
-  if (speciesLower.includes('bird')) return Bird;
-  if (speciesLower.includes('rabbit')) return Rabbit;
-  return ImageIcon; // Generic fallback
-}
-
-/**
- * Image fallback component for when no image is available or fails to load
- */
-function ImageFallback({
-  species,
-  isDarkMode,
-}: {
-  species: string;
-  isDarkMode: boolean;
-}) {
-  const SpeciesIcon = getSpeciesIcon(species);
-
-  return (
-    <Box
-      className={`h-32 w-32 rounded-lg border ${
-        isDarkMode
-          ? 'bg-background-100 border-outline-300'
-          : 'bg-background-50 border-outline-200'
-      } items-center justify-center`}
-    >
-      <Icon
-        as={SpeciesIcon}
-        size={64}
-        className={isDarkMode ? 'text-typography-400' : 'text-typography-300'}
-      />
-    </Box>
-  );
-}
-
 export default function Explore() {
-  const { search, results, total, isLoading, error } = useAnimalSearch();
+  const { search, loadMore, results, total, hasMore, isLoading, error } =
+    useAnimalSearch();
   const { warnings } = useRescueGroupsContext();
   const { colorMode } = useTheme();
+  const [selectedSpecies, setSelectedSpecies] = useState<AnimalSpecies>(
+    RESCUEGROUPS_CONFIG.SPECIES.DOG
+  );
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [errorDismissed, setErrorDismissed] = useState(false);
   const [warningsDismissed, setWarningsDismissed] = useState(false);
-  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const isDarkMode = colorMode === 'dark';
 
   // Show toast notifications in production
   useWarningToast(warnings, error);
 
-  const handleImageError = (animalId: string) => {
-    setImageErrors((prev) => ({ ...prev, [animalId]: true }));
-  };
+  // Auto-search on mount with dogs
+  useEffect(() => {
+    handleSearch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const handleSearchDogs = async () => {
+  const handleSearch = async () => {
     setSearchPerformed(true);
     setErrorDismissed(false);
     setWarningsDismissed(false);
-    setImageErrors({});
     await search({
-      species: RESCUEGROUPS_CONFIG.SPECIES.DOG,
-      limit: 10,
+      species: selectedSpecies,
+      limit: 20,
     });
   };
 
-  const handleSearchCats = async () => {
-    setSearchPerformed(true);
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
     setErrorDismissed(false);
     setWarningsDismissed(false);
-    setImageErrors({});
     await search({
-      species: RESCUEGROUPS_CONFIG.SPECIES.CAT,
-      limit: 10,
+      species: selectedSpecies,
+      limit: 20,
     });
+    setIsRefreshing(false);
+  };
+
+  const handleLoadMore = async () => {
+    if (!isLoading && hasMore) {
+      await loadMore();
+    }
+  };
+
+  const handleAnimalPress = (animal: Animal) => {
+    // TODO: Navigate to animal detail screen
+    // Placeholder for future navigation functionality
+    if (isDevelopment()) {
+      // eslint-disable-next-line no-console
+      console.log('Pressed animal:', animal.animalName);
+    }
+  };
+
+  const renderHeader = () => (
+    <VStack space="lg" className="w-full">
+      <Heading className="text-2xl font-bold">Explore Pets</Heading>
+
+      <VStack space="md">
+        <Select
+          selectedValue={selectedSpecies}
+          onValueChange={(value) => setSelectedSpecies(value as AnimalSpecies)}
+        >
+          <SelectTrigger variant="outline" size="md">
+            <SelectInput placeholder="Select Species" />
+          </SelectTrigger>
+          <SelectPortal>
+            <SelectBackdrop />
+            <SelectContent>
+              <SelectDragIndicatorWrapper>
+                <SelectDragIndicator />
+              </SelectDragIndicatorWrapper>
+              <SelectItem
+                label="Dogs"
+                value={RESCUEGROUPS_CONFIG.SPECIES.DOG}
+              />
+              <SelectItem
+                label="Cats"
+                value={RESCUEGROUPS_CONFIG.SPECIES.CAT}
+              />
+              <SelectItem
+                label="Birds"
+                value={RESCUEGROUPS_CONFIG.SPECIES.BIRD}
+              />
+              <SelectItem
+                label="Rabbits"
+                value={RESCUEGROUPS_CONFIG.SPECIES.RABBIT}
+              />
+              <SelectItem
+                label="Small Animals"
+                value={RESCUEGROUPS_CONFIG.SPECIES.SMALL_ANIMAL}
+              />
+              <SelectItem
+                label="Horses"
+                value={RESCUEGROUPS_CONFIG.SPECIES.HORSE}
+              />
+              <SelectItem
+                label="Reptiles"
+                value={RESCUEGROUPS_CONFIG.SPECIES.REPTILE}
+              />
+              <SelectItem
+                label="Barnyard"
+                value={RESCUEGROUPS_CONFIG.SPECIES.BARNYARD}
+              />
+            </SelectContent>
+          </SelectPortal>
+        </Select>
+
+        <Button onPress={handleSearch} isDisabled={isLoading}>
+          <Icon as={Search} className="text-typography-0 mr-2" />
+          <ButtonText>Search {selectedSpecies}s</ButtonText>
+        </Button>
+      </VStack>
+
+      {isDevelopment() && error && !errorDismissed && (
+        <HStack
+          space="md"
+          className="border-l-4 border-error-500 bg-error-50 p-4 rounded-r-lg"
+        >
+          <VStack space="sm" className="flex-1">
+            <Text className="font-semibold text-error-700">Error:</Text>
+            <Text className="text-error-700 text-sm">
+              {getErrorMessage(error)}
+            </Text>
+          </VStack>
+          <Pressable onPress={() => setErrorDismissed(true)} className="p-1">
+            <Icon as={X} className="text-error-700" size="sm" />
+          </Pressable>
+        </HStack>
+      )}
+
+      {isDevelopment() && warnings.length > 0 && !warningsDismissed && (
+        <HStack
+          space="md"
+          className="border-l-4 border-warning-500 bg-warning-50 p-4 rounded-r-lg"
+        >
+          <VStack space="sm" className="flex-1">
+            <Text className="font-semibold text-warning-700">
+              API Warnings ({warnings.length}):
+            </Text>
+            {warnings.map((warning, index) => (
+              <Text key={index} className="text-warning-700 text-sm">
+                • {warning}
+              </Text>
+            ))}
+          </VStack>
+          <Pressable onPress={() => setWarningsDismissed(true)} className="p-1">
+            <Icon as={X} className="text-warning-700" size="sm" />
+          </Pressable>
+        </HStack>
+      )}
+
+      {searchPerformed && results.length > 0 && (
+        <Text className="font-semibold text-center">
+          Found {total} pets (showing {results.length})
+        </Text>
+      )}
+    </VStack>
+  );
+
+  const renderEmpty = () => {
+    if (isLoading) {
+      return null;
+    }
+
+    if (!searchPerformed) {
+      return (
+        <Center className="py-12">
+          <VStack space="md" className="items-center">
+            <Text className="text-typography-500 text-center">
+              Select a species and search to find adoptable pets
+            </Text>
+          </VStack>
+        </Center>
+      );
+    }
+
+    if (error) {
+      return (
+        <Center className="py-12">
+          <VStack space="md" className="items-center max-w-md">
+            <Text className="text-error-600 font-semibold">
+              Unable to load pets
+            </Text>
+            <Text className="text-typography-500 text-center">
+              Please try again later
+            </Text>
+            <Button onPress={handleSearch} size="sm">
+              <ButtonText>Retry</ButtonText>
+            </Button>
+          </VStack>
+        </Center>
+      );
+    }
+
+    return (
+      <Center className="py-12">
+        <VStack space="md" className="items-center">
+          <Text className="text-typography-500 text-center">
+            No {selectedSpecies.toLowerCase()}s found
+          </Text>
+          <Text className="text-typography-400 text-sm text-center">
+            Try selecting a different species
+          </Text>
+        </VStack>
+      </Center>
+    );
+  };
+
+  const renderFooter = () => {
+    if (!hasMore) {
+      return results.length > 0 ? (
+        <Center className="py-6">
+          <Text className="text-typography-400 text-sm">
+            No more pets to load
+          </Text>
+        </Center>
+      ) : null;
+    }
+
+    if (isLoading && results.length > 0) {
+      return (
+        <Center className="py-6">
+          <Spinner size="small" />
+        </Center>
+      );
+    }
+
+    return null;
   };
 
   return (
-    <ScrollView className="flex-1">
-      <Center className="flex-1 p-6">
-        <VStack space="lg" className="w-full max-w-2xl">
-          <Heading className="text-2xl font-bold text-center">
-            RescueGroups API Test
-          </Heading>
-
-          <Text className="text-center text-typography-500">
-            Test the RescueGroups API integration by searching for adoptable
-            pets.
-          </Text>
-
-          <HStack space="md" className="justify-center">
-            <Button onPress={handleSearchDogs} isDisabled={isLoading}>
-              <ButtonText>Search Dogs</ButtonText>
-            </Button>
-            <Button onPress={handleSearchCats} isDisabled={isLoading}>
-              <ButtonText>Search Cats</ButtonText>
-            </Button>
-          </HStack>
-
-          {isLoading && (
-            <Center className="py-8">
-              <Spinner size="large" />
-              <Text className="mt-4 text-typography-500">Searching...</Text>
-            </Center>
-          )}
-
-          {isDevelopment() && error && !errorDismissed && (
-            <HStack
-              space="md"
-              className="border-l-4 border-error-500 bg-error-50 p-4 rounded-r-lg"
-            >
-              <VStack space="sm" className="flex-1">
-                <Text className="font-semibold text-error-700">Error:</Text>
-                <Text className="text-error-700 text-sm">
-                  {getErrorMessage(error)}
-                </Text>
-              </VStack>
-              <Pressable
-                onPress={() => setErrorDismissed(true)}
-                className="p-1"
-              >
-                <Icon as={X} className="text-error-700" size="sm" />
-              </Pressable>
-            </HStack>
-          )}
-
-          {isDevelopment() && warnings.length > 0 && !warningsDismissed && (
-            <HStack
-              space="md"
-              className="border-l-4 border-warning-500 bg-warning-50 p-4 rounded-r-lg"
-            >
-              <VStack space="sm" className="flex-1">
-                <Text className="font-semibold text-warning-700">
-                  API Warnings ({warnings.length}):
-                </Text>
-                {warnings.map((warning, index) => (
-                  <Text key={index} className="text-warning-700 text-sm">
-                    • {warning}
-                  </Text>
-                ))}
-              </VStack>
-              <Pressable
-                onPress={() => setWarningsDismissed(true)}
-                className="p-1"
-              >
-                <Icon as={X} className="text-warning-700" size="sm" />
-              </Pressable>
-            </HStack>
-          )}
-
-          {!isLoading && searchPerformed && results.length === 0 && !error && (
-            <Center className="py-4">
-              <Text className="text-typography-500">No results found</Text>
-            </Center>
-          )}
-
-          {!isLoading && results.length > 0 && (
-            <VStack space="md" className="w-full">
-              <Text className="text-center font-semibold">
-                Found {total} animals (showing {results.length})
-              </Text>
-
-              {results.map((animal) => {
-                const imageUrl = getAnimalImageUrl(animal);
-                const hasImageError = imageErrors[animal.animalID];
-                const shouldShowFallback = !imageUrl || hasImageError;
-
-                return (
-                  <VStack
-                    key={animal.animalID}
-                    className="border border-outline-200 rounded-lg p-4 bg-background-0"
-                    space="sm"
-                  >
-                    <HStack space="md">
-                      {shouldShowFallback ? (
-                        <ImageFallback
-                          species={animal.animalSpecies}
-                          isDarkMode={isDarkMode}
-                        />
-                      ) : (
-                        <Image
-                          source={{ uri: imageUrl }}
-                          size="xl"
-                          alt={animal.animalName}
-                          className="rounded-lg"
-                          onError={() => handleImageError(animal.animalID)}
-                        />
-                      )}
-                      <VStack space="sm" className="flex-1">
-                        <Heading size="sm" className="font-semibold">
-                          {animal.animalName}
-                        </Heading>
-                        <HStack space="sm">
-                          <Text className="text-typography-500">
-                            {animal.animalSpecies}
-                          </Text>
-                          {animal.animalBreed && (
-                            <>
-                              <Text className="text-typography-500">•</Text>
-                              <Text className="text-typography-500">
-                                {animal.animalBreed}
-                              </Text>
-                            </>
-                          )}
-                        </HStack>
-                        {animal.animalGeneralAge && (
-                          <Text className="text-typography-500">
-                            Age: {animal.animalGeneralAge}
-                          </Text>
-                        )}
-                        {animal.animalSex && (
-                          <Text className="text-typography-500">
-                            Sex: {animal.animalSex}
-                          </Text>
-                        )}
-                        {animal.animalLocationCitystate && (
-                          <Text className="text-typography-400 text-sm">
-                            Location: {animal.animalLocationCitystate}
-                          </Text>
-                        )}
-                      </VStack>
-                    </HStack>
-                  </VStack>
-                );
-              })}
-            </VStack>
-          )}
-        </VStack>
-      </Center>
-    </ScrollView>
+    <Box className="flex-1">
+      <FlatList
+        data={results}
+        renderItem={({ item }) => (
+          <AnimalCard
+            animal={item}
+            onPress={handleAnimalPress}
+            isDarkMode={isDarkMode}
+          />
+        )}
+        keyExtractor={(item) => item.animalID}
+        contentContainerStyle={{ padding: 24, gap: 16 }}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={renderEmpty}
+        ListFooterComponent={renderFooter}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+        }
+      />
+    </Box>
   );
 }

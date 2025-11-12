@@ -32,14 +32,42 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed workflow.
 
 ## Commit Workflow
 
-When changes need to be committed:
+**⚠️ CRITICAL: AGENTS MUST NEVER EXECUTE `git commit` COMMANDS ⚠️**
+
+**This applies to ALL operational modes (Build, Plan, etc.). No exceptions.**
+
+### Proper Commit Workflow
+
+When changes are ready to be committed, agents must follow this exact workflow:
 
 1. **Stage files**: Agent stages relevant files with `git add`
-2. **Suggest commit message**: Agent suggests a message following Conventional Commits format
-3. **Manual commit**: User manually runs `git commit` with their chosen message
-4. **Continue**: Agent continues execution after user commits
+2. **Suggest commit message**: Agent provides a commit message following Conventional Commits format
+3. **STOP**: Agent MUST NOT run `git commit` - wait for user to commit manually
+4. **User commits**: User runs `git commit` with their chosen message
+5. **Continue**: After user confirms commit, agent may continue with next tasks
 
-This workflow gives the user full control over commits while the agent handles staging and provides commit message guidance.
+### Why Agents Don't Commit
+
+- **User control**: User maintains full control over commit history
+- **GPG signing**: Many users require GPG-signed commits (requires interactive passphrase)
+- **Review opportunity**: User can review staged changes before committing
+- **Flexibility**: User can modify the suggested commit message if needed
+
+### What Agents Should Do
+
+✅ Run `git add <files>` to stage changes
+✅ Run `git status` to show what will be committed
+✅ Run `git diff --cached` to show staged changes
+✅ Suggest a properly formatted commit message
+✅ Inform user that files are staged and ready to commit
+
+### What Agents Must NEVER Do
+
+❌ Run `git commit` in any form
+❌ Run `git commit -m "message"`
+❌ Run `git commit --no-verify`
+❌ Run `git commit --amend`
+❌ Attempt to work around commit restrictions
 
 **Important:** Feature branches should be created from `dev` and pull requests should target `dev`, not `main`.
 
@@ -48,6 +76,8 @@ This workflow gives the user full control over commits while the agent handles s
 - **Start dev**: `bun run start` (or `npm start` for iOS/Android/web)
 - **Run tests**: `bun run test` or `jest --watchAll`
 - **Run single test**: `jest path/to/test.spec.ts` or `jest -t "test name"`
+- **Run tests with coverage**: `bun run test:coverage` (generates coverage report in `coverage/`)
+- **Run staged tests**: `bun run test:staged` (runs tests on staged test files only)
 - **Build**: `bun run build` (exports web platform to dist/)
 - **Lint**: `bun run lint` (check for code quality issues)
 - **Lint fix**: `bun run lint:fix` (auto-fix linting issues)
@@ -55,6 +85,11 @@ This workflow gives the user full control over commits while the agent handles s
 - **Format check**: `bun run format:check` (check formatting without changes)
 - **Release**: `bun run release` (generate changelog and bump version)
 - **Release dry run**: `bun run release:dry` (preview release without changes)
+
+**Note:** Tests run automatically via Git hooks:
+
+- Pre-commit: Runs `test:staged` on staged test files
+- Pre-push: Runs `test:coverage` on full test suite before push
 
 ## Project Structure
 
@@ -68,9 +103,14 @@ This workflow gives the user full control over commits while the agent handles s
   - Formatting rules in ESLint are disabled to avoid conflicts
 - **Pre-commit hooks**: Husky + lint-staged configured
   - Automatically runs ESLint and Prettier on staged files before commit
+  - Runs tests on staged test files (if committing `.test.ts` files)
   - Auto-fixes linting issues and formats code
-  - Blocks commits if unfixable linting errors exist
+  - Blocks commits if unfixable linting errors exist or tests fail
   - Bypass with `git commit --no-verify` (not recommended)
+- **Pre-push hooks**: Husky configured
+  - Runs full test suite with coverage before push
+  - Blocks push if any tests fail or coverage drops
+  - Bypass with `git push --no-verify` (not recommended)
 - **Commit message validation**: commitlint enforces Conventional Commits standard
   - Runs automatically via commit-msg hook
   - Blocks commits with invalid message format

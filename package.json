@@ -7,10 +7,13 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "build": "expo export --platform web --output-dir dist",
+    "validate:env": "node scripts/validate-env.js",
+    "prebuild": "bun run validate:env",
+    "build": "bun run validate:env && expo export --platform web --output-dir dist",
     "build:preview": "expo export --platform web --output-dir dist",
     "test": "jest --watchAll",
     "test:ci": "jest --ci --coverage --maxWorkers=2 --passWithNoTests",
+    "test:staged": "jest --bail --findRelatedTests",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
@@ -30,10 +33,27 @@
     ],
     "*.{json,css,md}": [
       "prettier --write"
+    ],
+    "**/__tests__/**/*.{ts,tsx}": [
+      "jest --bail --findRelatedTests"
     ]
   },
   "jest": {
-    "preset": "jest-expo"
+    "preset": "jest-expo",
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest-setup.ts"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)"
+    ],
+    "collectCoverageFrom": [
+      "**/*.{ts,tsx}",
+      "!**/*.d.ts",
+      "!**/node_modules/**",
+      "!**/.expo/**",
+      "!**/dist/**",
+      "!**/coverage/**"
+    ]
   },
   "dependencies": {
     "@expo/html-elements": "^0.12.5",
@@ -47,6 +67,7 @@
     "babel-plugin-module-resolver": "^5.0.2",
     "dom-helpers": "^5.2.1",
     "expo": "^54.0.7",
+    "expo-constants": "^18.0.10",
     "expo-font": "~14.0.8",
     "expo-linking": "~8.0.8",
     "expo-router": "~6.0.4",
@@ -75,6 +96,9 @@
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
     "@eslint/js": "^9.39.1",
+    "@testing-library/jest-native": "^5.4.3",
+    "@testing-library/react-native": "^13.3.3",
+    "@types/jest": "^30.0.0",
     "@types/react": "~19.1.10",
     "@typescript-eslint/eslint-plugin": "^8.46.3",
     "@typescript-eslint/parser": "^8.46.3",

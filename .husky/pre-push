@@ -1,0 +1,1 @@
+bunx jest --ci --coverage --maxWorkers=2 --forceExit

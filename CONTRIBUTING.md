@@ -247,9 +247,28 @@ When you commit, the following happens automatically:
 
 - **ESLint** checks and auto-fixes code quality issues
 - **Prettier** formats your code
+- **Tests** run on staged test files (in `__tests__/` directories)
 - **commitlint** validates your commit message format
 
-If there are unfixable errors, the commit will be blocked.
+If there are unfixable errors or failing tests, the commit will be blocked.
+
+### Pre-push automation
+
+When you push to remote, the following happens automatically:
+
+- **Full test suite** runs with coverage reporting
+- **Push is blocked** if any tests fail
+
+This ensures only tested, working code reaches the remote repository.
+
+#### Bypassing Hooks
+
+You can bypass hooks with `--no-verify` (not recommended):
+
+```bash
+git commit --no-verify  # Skip pre-commit hooks
+git push --no-verify    # Skip pre-push hooks
+```
 
 ## Pull Requests
 
@@ -322,7 +341,51 @@ jest path/to/test.spec.ts
 
 # Run tests with coverage
 jest --coverage
+
+# Run tests on staged test files only
+bun run test:staged
 ```
+
+#### Test Coverage Standards
+
+This project maintains high test coverage standards:
+
+- **API Integrations**: 99%+ coverage required (RescueGroups API services)
+- **Critical Services**: 95%+ coverage recommended
+- **View coverage reports**: After running tests with coverage, open `coverage/lcov-report/index.html` in your browser
+
+#### Automated Testing via Git Hooks
+
+Tests are automatically enforced through Git hooks:
+
+**Pre-commit Hook**: Runs tests on staged test files only
+
+- Uses `test:staged` script via lint-staged
+- Only runs if you're committing test files (e.g., `.test.ts`)
+- Faster feedback loop - only tests what you're committing
+- Auto-runs when you `git commit`
+
+**Pre-push Hook**: Runs full test suite with coverage
+
+- Uses `test:coverage` script
+- Runs **all** tests before pushing to remote
+- Blocks push if tests fail or coverage drops
+- Auto-runs when you `git push`
+
+These hooks ensure code quality and prevent broken tests from entering the codebase.
+
+#### Writing Tests
+
+When adding new functionality:
+
+1. **Write tests first** (TDD approach recommended)
+2. **Test file naming**: Match source file with `.test.ts` suffix
+   - Source: `services/animals.ts`
+   - Tests: `services/__tests__/animals.test.ts`
+3. **Coverage targets**: Aim for 95%+ on new code
+4. **Test behavior, not implementation**: Focus on what the code does, not how
+5. **Use descriptive test names**: `it('should return empty array when no animals found')`
+6. **Mock external dependencies**: Use Jest mocks for API calls, third-party libraries
 
 ### Building
 

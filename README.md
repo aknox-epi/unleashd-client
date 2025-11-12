@@ -30,6 +30,126 @@ A cross-platform mobile application built with React Native, Expo, and TypeScrip
 - **Git Hooks:** [Husky](https://typicode.github.io/husky/) + [lint-staged](https://github.com/okonet/lint-staged)
 - **Versioning:** [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version)
 
+## RescueGroups API Integration
+
+This app integrates with the [RescueGroups.org API](https://userguide.rescuegroups.org/display/APIDG/API+Developers+Guide+Home) to fetch animal data for adoption.
+
+### Environment Setup
+
+1. **Get API Key:** Sign up at [RescueGroups.org](https://rescuegroups.org/) and obtain an API key
+
+2. **Configure Environment:**
+
+   ```bash
+   # Copy the example file
+   cp .env.example .env
+
+   # Edit .env and add your API key
+   EXPO_PUBLIC_RESCUEGROUPS_API_KEY=your_api_key_here
+   ```
+
+3. **Validation:** The API key is validated at build time and runtime:
+   - **Build-time:** `prebuild` script checks if key is configured
+   - **Runtime:** Service gracefully handles missing/invalid keys with user-friendly messages
+
+### Error Handling
+
+The RescueGroups service implements comprehensive error handling with environment-aware messaging:
+
+#### Error Types
+
+- **`ServiceConfigError`**: Configuration issues (missing/invalid API key)
+  - Development: Shows technical details and setup instructions
+  - Production: Shows user-friendly message to contact support
+- **`RescueGroupsAPIError`**: API errors (network, rate limits, validation)
+  - Includes status code, error messages, and validation details
+  - Automatically parsed from API responses
+
+#### Service Status
+
+The service tracks three states via `ServiceStatus` enum:
+
+- **`CONFIGURED`**: API key valid and service operational
+- **`NOT_CONFIGURED`**: No API key provided
+- **`ERROR`**: Configuration or connection error
+
+#### Usage Example
+
+```typescript
+import {
+  useRescueGroupsContext,
+  ServiceStatus,
+  isServiceConfigError,
+} from '@/contexts/RescueGroupsContext';
+
+function MyComponent() {
+  const { serviceStatus, checkServiceHealth, error } =
+    useRescueGroupsContext();
+
+  // Check service status
+  useEffect(() => {
+    if (serviceStatus === ServiceStatus.NOT_CONFIGURED) {
+      console.warn('RescueGroups API not configured');
+    }
+  }, [serviceStatus]);
+
+  // Handle errors
+  useEffect(() => {
+    if (error) {
+      if (isServiceConfigError(error)) {
+        // Show setup instructions in dev, contact support in prod
+        console.error('Configuration error:', error.message);
+      } else {
+        // Handle API errors
+        console.error('API error:', error.message);
+      }
+    }
+  }, [error]);
+
+  // Manual health check (forces fresh status check)
+  const handleRefresh = async () => {
+    await checkServiceHealth(true);
+  };
+
+  return <YourComponent />;
+}
+```
+
+#### Helper Functions
+
+```typescript
+import {
+  getErrorMessage,
+  isServiceConfigError,
+  isRescueGroupsAPIError,
+} from '@/services/rescuegroups';
+
+// Get environment-aware error message
+const message = getErrorMessage(error);
+
+// Type guards
+if (isServiceConfigError(error)) {
+  // Handle configuration errors
+}
+if (isRescueGroupsAPIError(error)) {
+  // Handle API errors (status code, validation, etc.)
+}
+```
+
+### Health Checking
+
+The `RescueGroupsContext` automatically checks service health on mount and caches the status for 60 seconds to reduce API calls:
+
+```typescript
+const { serviceStatus, checkServiceHealth } = useRescueGroupsContext();
+
+// Status is automatically checked on mount
+// Cached for 60 seconds
+
+// Force fresh check (bypasses cache)
+await checkServiceHealth(true);
+```
+
 ## Prerequisites
 
 - **Node.js** (v18 or higher recommended)
@@ -37,6 +157,7 @@ A cross-platform mobile application built with React Native, Expo, and TypeScrip
 - **iOS:** Xcode (for iOS development)
 - **Android:** Android Studio + Android SDK (for Android development)
 - **Expo CLI** (installed automatically with the project)
+- **RescueGroups API Key** (optional but recommended) - [Sign up](https://rescuegroups.org/)
 
 ## Getting Started
 
@@ -79,6 +200,21 @@ Scan the QR code with Expo Go (Android) or Camera app (iOS) to run on a physical
 - `bun run test` - Run tests in watch mode
 - `jest` - Run tests once
 - `jest --coverage` - Run tests with coverage report
+- `bun run test:staged` - Run tests for staged files (used by pre-commit hook)
+
+#### Test Automation
+
+Tests run automatically via Git hooks:
+
+- **Pre-commit:** Runs tests on staged test files for fast feedback
+- **Pre-push:** Runs full test suite with coverage to ensure quality
+
+Coverage reports are generated in `coverage/` (git-ignored). View by opening `coverage/lcov-report/index.html`.
+
+**Coverage Standards:**
+
+- API integrations: 99%+ coverage required
+- Critical services: 95%+ coverage recommended
 
 ### Code Quality
 
@@ -176,29 +312,58 @@ This project uses a **modified GitHub Flow** for development. See [CONTRIBUTING.
    - Delete the feature branch
    - Pull latest `dev`: `git checkout dev && git pull origin dev`
 
-## Pre-commit Hooks
+## Git Hooks
 
-This project uses Husky and lint-staged to automatically:
+This project uses Husky and lint-staged to automate quality checks:
 
-- Run ESLint and auto-fix issues
-- Format code with Prettier
-- Validate commit messages with commitlint
+### Pre-commit Hook
 
-Hooks run automatically on `git commit`. To bypass (not recommended):
+Runs automatically on `git commit`:
+
+- **ESLint:** Checks and auto-fixes code quality issues
+- **Prettier:** Formats code to project standards
+- **Tests:** Runs tests on staged test files (in `__tests__/` directories)
+- **commitlint:** Validates commit message format
+
+If there are unfixable errors or failing tests, the commit will be blocked.
+
+### Pre-push Hook
+
+Runs automatically on `git push`:
+
+- **Full test suite:** Runs all tests with coverage reporting
+- **Push is blocked** if any tests fail
+
+This ensures only tested, working code reaches the remote repository.
+
+### Bypassing Hooks
+
+To bypass hooks (not recommended):
 
 ```bash
-git commit --no-verify
+git commit --no-verify  # Skip pre-commit
+git push --no-verify    # Skip pre-push
 ```
 
 ## CI/CD
 
 GitHub Actions automatically runs on all PRs and pushes to `dev` and `main`:
 
+- **Environment Validation:** Checks if RescueGroups API key is configured
 - **Lint & Test:** ESLint, Prettier check, Jest tests
 - **Build:** Web export to verify build process
 - **Commitlint:** Validates commit messages
 
 See `.github/workflows/ci.yml` for configuration.
+
+### GitHub Secrets
+
+To enable full functionality in CI/CD, configure the following secrets in your repository settings:
+
+- **`EXPO_PUBLIC_RESCUEGROUPS_API_KEY`**: Your RescueGroups API key (optional)
+- **`CODECOV_TOKEN`**: Codecov upload token for coverage reports (optional)
+
+The workflow will show a warning if the API key is not configured but will continue with limited functionality.
 
 ## Contributing
 

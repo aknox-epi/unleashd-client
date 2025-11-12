@@ -1,10 +1,8 @@
 import { useState } from 'react';
-import EditScreenInfo from '@/components/EditScreenInfo';
 import { Badge, BadgeText } from '@/components/ui/badge';
 import { Button, ButtonText } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Center } from '@/components/ui/center';
-import { Divider } from '@/components/ui/divider';
 import { Heading } from '@/components/ui/heading';
 import { HStack } from '@/components/ui/hstack';
 import { Text } from '@/components/ui/text';
@@ -67,7 +65,7 @@ export default function Status() {
   const statusConfig = getStatusConfig();
 
   return (
-    <Center className="flex-1">
+    <Center>
       <VStack className="w-full max-w-md gap-6 p-4">
         <Heading className="font-bold text-2xl">Service Status</Heading>
 
@@ -98,12 +96,6 @@ export default function Status() {
             </VStack>
           </Card>
         )}
-
-        <Divider className="my-[30px] w-[80%]" />
-        <Text className="p-4">
-          Example below to use gluestack-ui components.
-        </Text>
-        <EditScreenInfo path="app/tabs/(tabs)/status.tsx" />
       </VStack>
     </Center>
   );

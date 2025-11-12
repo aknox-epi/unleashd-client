@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import { ScrollView, Pressable } from 'react-native';
-import { X } from 'lucide-react-native';
+import {
+  X,
+  Dog,
+  Cat,
+  Bird,
+  Rabbit,
+  Image as ImageIcon,
+} from 'lucide-react-native';
 import { Button, ButtonText } from '@/components/ui/button';
 import { Center } from '@/components/ui/center';
 import { Heading } from '@/components/ui/heading';
@@ -10,12 +17,14 @@ import { HStack } from '@/components/ui/hstack';
 import { Spinner } from '@/components/ui/spinner';
 import { Icon } from '@/components/ui/icon';
 import { Image } from '@/components/ui/image';
+import { Box } from '@/components/ui/box';
 import { useAnimalSearch } from '@/hooks/useAnimals';
 import { useRescueGroupsContext } from '@/contexts/RescueGroupsContext';
 import { RESCUEGROUPS_CONFIG } from '@/constants/RescueGroupsConfig';
 import { getErrorMessage, type Animal } from '@/services/rescuegroups';
 import { isDevelopment } from '@/utils/env';
 import { useWarningToast } from '@/hooks/useWarningToast';
+import { useTheme } from '@/contexts/ThemeContext';
 
 /**
  * Get the best available image URL for an animal
@@ -41,20 +50,70 @@ function getAnimalImageUrl(animal: Animal): string | undefined {
   return undefined;
 }
 
+/**
+ * Get the appropriate icon for an animal species
+ */
+function getSpeciesIcon(species: string) {
+  const speciesLower = species.toLowerCase();
+  if (speciesLower.includes('dog')) return Dog;
+  if (speciesLower.includes('cat')) return Cat;
+  if (speciesLower.includes('bird')) return Bird;
+  if (speciesLower.includes('rabbit')) return Rabbit;
+  return ImageIcon; // Generic fallback
+}
+
+/**
+ * Image fallback component for when no image is available or fails to load
+ */
+function ImageFallback({
+  species,
+  isDarkMode,
+}: {
+  species: string;
+  isDarkMode: boolean;
+}) {
+  const SpeciesIcon = getSpeciesIcon(species);
+
+  return (
+    <Box
+      className={`h-32 w-32 rounded-lg border ${
+        isDarkMode
+          ? 'bg-background-100 border-outline-300'
+          : 'bg-background-50 border-outline-200'
+      } items-center justify-center`}
+    >
+      <Icon
+        as={SpeciesIcon}
+        size={64}
+        className={isDarkMode ? 'text-typography-400' : 'text-typography-300'}
+      />
+    </Box>
+  );
+}
+
 export default function Explore() {
   const { search, results, total, isLoading, error } = useAnimalSearch();
   const { warnings } = useRescueGroupsContext();
+  const { colorMode } = useTheme();
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [errorDismissed, setErrorDismissed] = useState(false);
   const [warningsDismissed, setWarningsDismissed] = useState(false);
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+
+  const isDarkMode = colorMode === 'dark';
 
   // Show toast notifications in production
   useWarningToast(warnings, error);
+
+  const handleImageError = (animalId: string) => {
+    setImageErrors((prev) => ({ ...prev, [animalId]: true }));
+  };
 
   const handleSearchDogs = async () => {
     setSearchPerformed(true);
     setErrorDismissed(false);
     setWarningsDismissed(false);
+    setImageErrors({});
     await search({
       species: RESCUEGROUPS_CONFIG.SPECIES.DOG,
       limit: 10,
@@ -65,6 +124,7 @@ export default function Explore() {
     setSearchPerformed(true);
     setErrorDismissed(false);
     setWarningsDismissed(false);
+    setImageErrors({});
     await search({
       species: RESCUEGROUPS_CONFIG.SPECIES.CAT,
       limit: 10,
@@ -158,6 +218,8 @@ export default function Explore() {
 
               {results.map((animal) => {
                 const imageUrl = getAnimalImageUrl(animal);
+                const hasImageError = imageErrors[animal.animalID];
+                const shouldShowFallback = !imageUrl || hasImageError;
 
                 return (
                   <VStack
@@ -166,12 +228,18 @@ export default function Explore() {
                     space="sm"
                   >
                     <HStack space="md">
-                      {imageUrl && (
+                      {shouldShowFallback ? (
+                        <ImageFallback
+                          species={animal.animalSpecies}
+                          isDarkMode={isDarkMode}
+                        />
+                      ) : (
                         <Image
                           source={{ uri: imageUrl }}
                           size="xl"
                           alt={animal.animalName}
                           className="rounded-lg"
+                          onError={() => handleImageError(animal.animalID)}
                         />
                       )}
                       <VStack space="sm" className="flex-1">

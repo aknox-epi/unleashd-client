@@ -74,6 +74,47 @@ import {
   getBaseZipCode,
 } from '@/utils/zipCodeValidation';
 
+/**
+ * Get the appropriate icon for an animal species
+ */
+function getSpeciesIcon(species: string) {
+  const speciesLower = species.toLowerCase();
+  if (speciesLower.includes('dog')) return Dog;
+  if (speciesLower.includes('cat')) return Cat;
+  if (speciesLower.includes('bird')) return Bird;
+  if (speciesLower.includes('rabbit')) return Rabbit;
+  return ImageIcon; // Generic fallback
+}
+
+/**
+ * Image fallback component for when no image is available or fails to load
+ */
+function ImageFallback({
+  species,
+  isDarkMode,
+}: {
+  species: string;
+  isDarkMode: boolean;
+}) {
+  const SpeciesIcon = getSpeciesIcon(species);
+
+  return (
+    <Box
+      className={`h-32 w-32 rounded-lg border ${
+        isDarkMode
+          ? 'bg-background-100 border-outline-300'
+          : 'bg-background-50 border-outline-200'
+      } items-center justify-center`}
+    >
+      <Icon
+        as={SpeciesIcon}
+        size={64}
+        className={isDarkMode ? 'text-typography-400' : 'text-typography-300'}
+      />
+    </Box>
+  );
+}
+
 export default function Explore() {
   const { search, loadMore, results, total, hasMore, isLoading, error } =
     useAnimalSearch();

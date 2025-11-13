@@ -1,9 +1,11 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react-native';
+import { render, waitFor, fireEvent } from '@testing-library/react-native';
 import { useLocalSearchParams } from 'expo-router';
+import { Linking } from 'react-native';
 import PetDetailScreen from '../[id]';
 import { animalService, organizationService } from '@/services/rescuegroups';
 import type { Animal, Organization } from '@/services/rescuegroups';
+import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
 
 // Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () => ({
@@ -41,6 +43,29 @@ jest.mock('@/contexts/ThemeContext', () => ({
   })),
 }));
 
+// Mock Linking.openURL using jest.spyOn before tests run
+const mockOpenURL = jest.fn();
+jest.spyOn(Linking, 'openURL').mockImplementation(mockOpenURL);
+
+// Mock nativewind's setColorScheme
+jest.mock('nativewind', () => ({
+  ...jest.requireActual('nativewind'),
+  setColorScheme: jest.fn(),
+  useColorScheme: jest.fn(() => ({
+    colorScheme: 'light',
+    setColorScheme: jest.fn(),
+    toggleColorScheme: jest.fn(),
+  })),
+  cssInterop: jest.requireActual('nativewind').cssInterop,
+}));
+
+// Helper function to render with providers
+const renderWithProviders = (component: React.ReactElement) => {
+  return render(
+    <GluestackUIProvider mode="light">{component}</GluestackUIProvider>
+  );
+};
+
 describe('PetDetailScreen', () => {
   const mockAnimal: Animal = {
     animalID: '123',
@@ -77,6 +102,7 @@ describe('PetDetailScreen', () => {
     orgName: 'Happy Tails Rescue',
     orgAbout: 'Dedicated to finding loving homes for animals in need',
     orgAboutAdopt: 'We require a home visit and application process',
+    orgAddress: '123 Main St',
     orgCity: 'San Francisco',
     orgState: 'CA',
     orgPhone: '555-0123',
@@ -101,7 +127,7 @@ describe('PetDetailScreen', () => {
         () => new Promise(() => {})
       );
 
-      const { UNSAFE_queryByType } = render(<PetDetailScreen />);
+      const { UNSAFE_queryByType } = renderWithProviders(<PetDetailScreen />);
 
       // Check for spinner (using type since we don't have testID)
       expect(UNSAFE_queryByType).toBeTruthy();
@@ -112,7 +138,7 @@ describe('PetDetailScreen', () => {
     it('displays animal details when loaded successfully', async () => {
       (animalService.getAnimalById as jest.Mock).mockResolvedValue(mockAnimal);
 
-      const { getByText } = render(<PetDetailScreen />);
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
 
       await waitFor(() => {
         expect(getByText('Buddy')).toBeTruthy();
@@ -126,7 +152,7 @@ describe('PetDetailScreen', () => {
     it('displays animal description', async () => {
       (animalService.getAnimalById as jest.Mock).mockResolvedValue(mockAnimal);
 
-      const { getByText } = render(<PetDetailScreen />);
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
 
       await waitFor(() => {
         expect(getByText('Friendly and energetic dog')).toBeTruthy();
@@ -136,7 +162,7 @@ describe('PetDetailScreen', () => {
     it('displays adoption fee', async () => {
       (animalService.getAnimalById as jest.Mock).mockResolvedValue(mockAnimal);
 
-      const { getByText } = render(<PetDetailScreen />);
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
 
       await waitFor(() => {
         expect(getByText('$250')).toBeTruthy();
@@ -152,7 +178,7 @@ describe('PetDetailScreen', () => {
         animalWithNumericFee
       );
 
-      const { getByText } = render(<PetDetailScreen />);
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
 
       await waitFor(() => {
         expect(getByText('$150')).toBeTruthy();
@@ -168,7 +194,7 @@ describe('PetDetailScreen', () => {
         animalWithDollarSignFee
       );
 
-      const { getByText } = render(<PetDetailScreen />);
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
 
       await waitFor(() => {
         expect(getByText('$300.00')).toBeTruthy();
@@ -184,7 +210,7 @@ describe('PetDetailScreen', () => {
         animalWithFreeFee
       );
 
-      const { getByText } = render(<PetDetailScreen />);
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
 
       await waitFor(() => {
         expect(getByText('Free')).toBeTruthy();
@@ -200,7 +226,7 @@ describe('PetDetailScreen', () => {
         animalWithoutFee
       );
 
-      const { queryByText } = render(<PetDetailScreen />);
+      const { queryByText } = renderWithProviders(<PetDetailScreen />);
 
       await waitFor(() => {
         expect(queryByText('Adoption Fee')).toBeNull();
@@ -213,7 +239,7 @@ describe('PetDetailScreen', () => {
       const error = new Error('Network error');
       (animalService.getAnimalById as jest.Mock).mockRejectedValue(error);
 
-      const { getByText } = render(<PetDetailScreen />);
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
 
       await waitFor(() => {
         expect(getByText('Unable to load pet details')).toBeTruthy();
@@ -223,7 +249,7 @@ describe('PetDetailScreen', () => {
     it('displays error message when animal is not found', async () => {
       (animalService.getAnimalById as jest.Mock).mockResolvedValue(null);
 
-      const { getByText } = render(<PetDetailScreen />);
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
 
       await waitFor(() => {
         expect(getByText('Unable to load pet details')).toBeTruthy();
@@ -235,7 +261,7 @@ describe('PetDetailScreen', () => {
     it('displays physical characteristics', async () => {
       (animalService.getAnimalById as jest.Mock).mockResolvedValue(mockAnimal);
 
-      const { getByText } = render(<PetDetailScreen />);
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
 
       await waitFor(() => {
         expect(getByText(/Sex:/)).toBeTruthy();
@@ -248,7 +274,7 @@ describe('PetDetailScreen', () => {
     it('displays compatibility badges', async () => {
       (animalService.getAnimalById as jest.Mock).mockResolvedValue(mockAnimal);
 
-      const { getByText } = render(<PetDetailScreen />);
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
 
       await waitFor(() => {
         expect(getByText('Kids')).toBeTruthy();
@@ -261,7 +287,7 @@ describe('PetDetailScreen', () => {
     it('displays primary image when available', async () => {
       (animalService.getAnimalById as jest.Mock).mockResolvedValue(mockAnimal);
 
-      const { getByText } = render(<PetDetailScreen />);
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
 
       await waitFor(() => {
         // Verify the screen loaded by checking for the animal name
@@ -282,7 +308,7 @@ describe('PetDetailScreen', () => {
         animalWithoutImages
       );
 
-      const { getByText } = render(<PetDetailScreen />);
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
 
       await waitFor(() => {
         expect(getByText('No photo available')).toBeTruthy();
@@ -294,7 +320,7 @@ describe('PetDetailScreen', () => {
     it('fetches organization data when animal has orgID', async () => {
       (animalService.getAnimalById as jest.Mock).mockResolvedValue(mockAnimal);
 
-      render(<PetDetailScreen />);
+      renderWithProviders(<PetDetailScreen />);
 
       await waitFor(() => {
         expect(organizationService.getOrganizationById).toHaveBeenCalledWith(
@@ -306,7 +332,7 @@ describe('PetDetailScreen', () => {
     it('displays organization name and description', async () => {
       (animalService.getAnimalById as jest.Mock).mockResolvedValue(mockAnimal);
 
-      const { getByText } = render(<PetDetailScreen />);
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
 
       await waitFor(() => {
         expect(getByText('Happy Tails Rescue')).toBeTruthy();
@@ -319,7 +345,7 @@ describe('PetDetailScreen', () => {
     it('displays organization contact information', async () => {
       (animalService.getAnimalById as jest.Mock).mockResolvedValue(mockAnimal);
 
-      const { getByText } = render(<PetDetailScreen />);
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
 
       await waitFor(() => {
         expect(getByText('555-0123')).toBeTruthy();
@@ -331,7 +357,9 @@ describe('PetDetailScreen', () => {
     it('displays organization location', async () => {
       (animalService.getAnimalById as jest.Mock).mockResolvedValue(mockAnimal);
 
-      const { getByText, getAllByText } = render(<PetDetailScreen />);
+      const { getByText, getAllByText } = renderWithProviders(
+        <PetDetailScreen />
+      );
 
       await waitFor(() => {
         // Organization location appears in the "About the Organization" section
@@ -345,7 +373,7 @@ describe('PetDetailScreen', () => {
     it('displays social media links when available', async () => {
       (animalService.getAnimalById as jest.Mock).mockResolvedValue(mockAnimal);
 
-      const { getByText } = render(<PetDetailScreen />);
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
 
       await waitFor(() => {
         expect(getByText('Facebook')).toBeTruthy();
@@ -363,7 +391,7 @@ describe('PetDetailScreen', () => {
         .spyOn(console, 'warn')
         .mockImplementation(() => {});
 
-      const { getByText } = render(<PetDetailScreen />);
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
 
       // Animal details should still render
       await waitFor(() => {
@@ -387,7 +415,9 @@ describe('PetDetailScreen', () => {
         null
       );
 
-      const { getByText, queryByText } = render(<PetDetailScreen />);
+      const { getByText, queryByText } = renderWithProviders(
+        <PetDetailScreen />
+      );
 
       await waitFor(() => {
         expect(getByText('Buddy')).toBeTruthy();
@@ -405,7 +435,7 @@ describe('PetDetailScreen', () => {
         animalWithoutOrg
       );
 
-      render(<PetDetailScreen />);
+      renderWithProviders(<PetDetailScreen />);
 
       await waitFor(() => {
         expect(organizationService.getOrganizationById).not.toHaveBeenCalled();
@@ -423,7 +453,7 @@ describe('PetDetailScreen', () => {
         animalWithFence
       );
 
-      const { getByText } = render(<PetDetailScreen />);
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
 
       await waitFor(() => {
         expect(getByText('Fenced yard required')).toBeTruthy();
@@ -433,7 +463,7 @@ describe('PetDetailScreen', () => {
     it('displays organization adoption requirements when available', async () => {
       (animalService.getAnimalById as jest.Mock).mockResolvedValue(mockAnimal);
 
-      const { getByText } = render(<PetDetailScreen />);
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
 
       await waitFor(() => {
         expect(getByText('Adoption Requirements')).toBeTruthy();
@@ -456,7 +486,7 @@ describe('PetDetailScreen', () => {
         orgAboutAdopt: undefined,
       });
 
-      const { getByText } = render(<PetDetailScreen />);
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
 
       await waitFor(() => {
         expect(getByText('Complete adoption application')).toBeTruthy();
@@ -474,7 +504,7 @@ describe('PetDetailScreen', () => {
         animalWithFence
       );
 
-      const { getByText } = render(<PetDetailScreen />);
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
 
       await waitFor(() => {
         expect(
@@ -496,10 +526,181 @@ describe('PetDetailScreen', () => {
         orgAboutAdopt: undefined,
       });
 
-      const { queryByText } = render(<PetDetailScreen />);
+      const { queryByText } = renderWithProviders(<PetDetailScreen />);
 
       await waitFor(() => {
         expect(queryByText('Adoption Requirements')).toBeNull();
+      });
+    });
+  });
+
+  describe('Contact Action Sheet', () => {
+    it('opens action sheet when contact button is pressed', async () => {
+      (animalService.getAnimalById as jest.Mock).mockResolvedValue(mockAnimal);
+
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
+
+      await waitFor(() => {
+        expect(getByText('Contact Shelter')).toBeTruthy();
+      });
+
+      const contactButton = getByText('Contact Shelter');
+      fireEvent.press(contactButton);
+
+      await waitFor(() => {
+        expect(getByText('Call Shelter')).toBeTruthy();
+        expect(getByText('Send Email')).toBeTruthy();
+        expect(getByText('Visit Website')).toBeTruthy();
+        expect(getByText('View Listing')).toBeTruthy();
+        expect(getByText('Get Directions')).toBeTruthy();
+      });
+    });
+
+    it('calls phone number when call action is pressed', async () => {
+      (animalService.getAnimalById as jest.Mock).mockResolvedValue(mockAnimal);
+
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
+
+      await waitFor(() => {
+        expect(getByText('Contact Shelter')).toBeTruthy();
+      });
+
+      const contactButton = getByText('Contact Shelter');
+      fireEvent.press(contactButton);
+
+      await waitFor(() => {
+        expect(getByText('Call Shelter')).toBeTruthy();
+      });
+
+      const callButton = getByText('Call Shelter');
+      fireEvent.press(callButton);
+
+      expect(mockOpenURL).toHaveBeenCalledWith('tel:555-0123');
+    });
+
+    it('opens email client when email action is pressed', async () => {
+      (animalService.getAnimalById as jest.Mock).mockResolvedValue(mockAnimal);
+
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
+
+      await waitFor(() => {
+        expect(getByText('Contact Shelter')).toBeTruthy();
+      });
+
+      const contactButton = getByText('Contact Shelter');
+      fireEvent.press(contactButton);
+
+      await waitFor(() => {
+        expect(getByText('Send Email')).toBeTruthy();
+      });
+
+      const emailButton = getByText('Send Email');
+      fireEvent.press(emailButton);
+
+      expect(mockOpenURL).toHaveBeenCalledWith('mailto:adopt@happytails.org');
+    });
+
+    it('opens website when website action is pressed', async () => {
+      (animalService.getAnimalById as jest.Mock).mockResolvedValue(mockAnimal);
+
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
+
+      await waitFor(() => {
+        expect(getByText('Contact Shelter')).toBeTruthy();
+      });
+
+      const contactButton = getByText('Contact Shelter');
+      fireEvent.press(contactButton);
+
+      await waitFor(() => {
+        expect(getByText('Visit Website')).toBeTruthy();
+      });
+
+      const websiteButton = getByText('Visit Website');
+      fireEvent.press(websiteButton);
+
+      expect(mockOpenURL).toHaveBeenCalledWith('https://happytails.org');
+    });
+
+    it('opens listing when view listing action is pressed', async () => {
+      (animalService.getAnimalById as jest.Mock).mockResolvedValue(mockAnimal);
+
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
+
+      await waitFor(() => {
+        expect(getByText('Contact Shelter')).toBeTruthy();
+      });
+
+      const contactButton = getByText('Contact Shelter');
+      fireEvent.press(contactButton);
+
+      await waitFor(() => {
+        expect(getByText('View Listing')).toBeTruthy();
+      });
+
+      const listingButton = getByText('View Listing');
+      fireEvent.press(listingButton);
+
+      expect(mockOpenURL).toHaveBeenCalledWith(
+        'https://example.com/adopt/buddy'
+      );
+    });
+
+    it('opens maps when get directions action is pressed', async () => {
+      (animalService.getAnimalById as jest.Mock).mockResolvedValue(mockAnimal);
+
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
+
+      await waitFor(() => {
+        expect(getByText('Contact Shelter')).toBeTruthy();
+      });
+
+      const contactButton = getByText('Contact Shelter');
+      fireEvent.press(contactButton);
+
+      await waitFor(() => {
+        expect(getByText('Get Directions')).toBeTruthy();
+      });
+
+      const directionsButton = getByText('Get Directions');
+      fireEvent.press(directionsButton);
+
+      // Should open maps with organization address (URL format varies by platform)
+      const callArg = mockOpenURL.mock.calls[0][0];
+      expect(callArg).toMatch(/123.*Main.*St/);
+      expect(callArg).toContain('San%20Francisco');
+    });
+
+    it('displays all contact actions even when data is unavailable', async () => {
+      const animalWithPartialContact = {
+        ...mockAnimal,
+        animalUrl: undefined,
+      };
+      (animalService.getAnimalById as jest.Mock).mockResolvedValue(
+        animalWithPartialContact
+      );
+      (organizationService.getOrganizationById as jest.Mock).mockResolvedValue({
+        ...mockOrganization,
+        orgPhone: undefined,
+        orgEmail: undefined,
+      });
+
+      const { getByText } = renderWithProviders(<PetDetailScreen />);
+
+      await waitFor(() => {
+        expect(getByText('Contact Shelter')).toBeTruthy();
+      });
+
+      const contactButton = getByText('Contact Shelter');
+      fireEvent.press(contactButton);
+
+      await waitFor(() => {
+        // All action buttons should be present
+        expect(getByText('Call Shelter')).toBeTruthy();
+        expect(getByText('Send Email')).toBeTruthy();
+        expect(getByText('Visit Website')).toBeTruthy();
+        expect(getByText('View Listing')).toBeTruthy();
+        expect(getByText('Get Directions')).toBeTruthy();
       });
     });
   });

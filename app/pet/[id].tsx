@@ -23,6 +23,11 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  Phone,
+  Mail,
+  Globe,
+  ExternalLink,
+  MapPin,
 } from 'lucide-react-native';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
@@ -35,6 +40,16 @@ import { Spinner } from '@/components/ui/spinner';
 import { Badge, BadgeText } from '@/components/ui/badge';
 import { Divider } from '@/components/ui/divider';
 import { Image } from '@/components/ui/image';
+import {
+  Actionsheet,
+  ActionsheetBackdrop,
+  ActionsheetContent,
+  ActionsheetDragIndicatorWrapper,
+  ActionsheetDragIndicator,
+  ActionsheetItem,
+  ActionsheetItemText,
+  ActionsheetIcon,
+} from '@/components/ui/actionsheet';
 import { SpeciesBadge } from '@/components/SpeciesBadge';
 import { animalService, organizationService } from '@/services/rescuegroups';
 import {
@@ -54,6 +69,8 @@ export default function PetDetailScreen() {
   const [isFullscreenModalVisible, setIsFullscreenModalVisible] =
     useState(false);
   const [fullscreenImageIndex, setFullscreenImageIndex] = useState(0);
+  const [isContactActionSheetOpen, setIsContactActionSheetOpen] =
+    useState(false);
   const flatListRef = useRef<FlatList>(null);
   const fullscreenFlatListRef = useRef<FlatList>(null);
   const modalTranslateY = useRef(new Animated.Value(0)).current;
@@ -112,11 +129,58 @@ export default function PetDetailScreen() {
     }
   };
 
-  const handleContactShelter = () => {
-    // TODO: Get organization details and contact info
-    // For now, open the animal's URL if available
+  const getMapsUrl = () => {
+    if (!organization) return null;
+
+    const address = [
+      organization.orgAddress,
+      organization.orgCity,
+      organization.orgState,
+    ]
+      .filter(Boolean)
+      .join(', ');
+
+    if (!address) return null;
+
+    const encodedAddress = encodeURIComponent(address);
+
+    if (Platform.OS === 'ios') {
+      return `maps://maps.apple.com/?q=${encodedAddress}`;
+    } else if (Platform.OS === 'android') {
+      return `geo:0,0?q=${encodedAddress}`;
+    } else {
+      return `https://www.google.com/maps/search/${encodedAddress}`;
+    }
+  };
+
+  const handleCall = () => {
+    if (organization?.orgPhone) {
+      Linking.openURL(`tel:${organization.orgPhone}`);
+    }
+  };
+
+  const handleEmail = () => {
+    if (organization?.orgEmail) {
+      Linking.openURL(`mailto:${organization.orgEmail}`);
+    }
+  };
+
+  const handleWebsite = () => {
+    if (organization?.orgWebsite) {
+      Linking.openURL(organization.orgWebsite);
+    }
+  };
+
+  const handleViewListing = () => {
     if (animal?.animalUrl) {
       Linking.openURL(animal.animalUrl);
+    }
+  };
+
+  const handleGetDirections = () => {
+    const mapsUrl = getMapsUrl();
+    if (mapsUrl) {
+      Linking.openURL(mapsUrl);
     }
   };
 
@@ -865,12 +929,84 @@ export default function PetDetailScreen() {
           {/* Contact Button */}
           <Button
             size="lg"
-            onPress={handleContactShelter}
+            onPress={() => setIsContactActionSheetOpen(true)}
             className="mt-4"
-            isDisabled={!animal.animalUrl}
           >
             <ButtonText>Contact Shelter</ButtonText>
           </Button>
+
+          {/* Contact Action Sheet */}
+          <Actionsheet
+            isOpen={isContactActionSheetOpen}
+            onClose={() => setIsContactActionSheetOpen(false)}
+          >
+            <ActionsheetBackdrop />
+            <ActionsheetContent>
+              <ActionsheetDragIndicatorWrapper>
+                <ActionsheetDragIndicator />
+              </ActionsheetDragIndicatorWrapper>
+
+              {/* Call */}
+              <ActionsheetItem
+                onPress={() => {
+                  handleCall();
+                  setIsContactActionSheetOpen(false);
+                }}
+                isDisabled={!organization?.orgPhone}
+              >
+                <ActionsheetIcon as={Phone} />
+                <ActionsheetItemText>Call Shelter</ActionsheetItemText>
+              </ActionsheetItem>
+
+              {/* Email */}
+              <ActionsheetItem
+                onPress={() => {
+                  handleEmail();
+                  setIsContactActionSheetOpen(false);
+                }}
+                isDisabled={!organization?.orgEmail}
+              >
+                <ActionsheetIcon as={Mail} />
+                <ActionsheetItemText>Send Email</ActionsheetItemText>
+              </ActionsheetItem>
+
+              {/* Website */}
+              <ActionsheetItem
+                onPress={() => {
+                  handleWebsite();
+                  setIsContactActionSheetOpen(false);
+                }}
+                isDisabled={!organization?.orgWebsite}
+              >
+                <ActionsheetIcon as={Globe} />
+                <ActionsheetItemText>Visit Website</ActionsheetItemText>
+              </ActionsheetItem>
+
+              {/* View Listing */}
+              <ActionsheetItem
+                onPress={() => {
+                  handleViewListing();
+                  setIsContactActionSheetOpen(false);
+                }}
+                isDisabled={!animal?.animalUrl}
+              >
+                <ActionsheetIcon as={ExternalLink} />
+                <ActionsheetItemText>View Listing</ActionsheetItemText>
+              </ActionsheetItem>
+
+              {/* Get Directions */}
+              <ActionsheetItem
+                onPress={() => {
+                  handleGetDirections();
+                  setIsContactActionSheetOpen(false);
+                }}
+                isDisabled={!getMapsUrl()}
+              >
+                <ActionsheetIcon as={MapPin} />
+                <ActionsheetItemText>Get Directions</ActionsheetItemText>
+              </ActionsheetItem>
+            </ActionsheetContent>
+          </Actionsheet>
 
           {/* Last Updated */}
           {animal.animalUpdatedDate && (

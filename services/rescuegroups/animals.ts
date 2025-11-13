@@ -75,8 +75,9 @@ const ANIMAL_DETAIL_FIELDS = [
   // Media
   'animalVideos',
 
-  // Organization
+  // Organization & Contact
   'animalOrgID',
+  'animalUrl',
 
   // Additional details
   'animalBirthdate',
@@ -193,7 +194,6 @@ export class AnimalService {
         resultOrder: order,
         calcFoundRows: 'Yes',
         filters,
-        filterProcessing: filters.map((_, i) => i + 1).join(' and '),
         fields: ANIMAL_FIELDS,
       },
     });

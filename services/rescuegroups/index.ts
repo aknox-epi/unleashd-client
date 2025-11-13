@@ -25,6 +25,9 @@ export type {
   SearchResult,
 } from './types';
 
+// Generated types
+export type { AnimalSpecies } from './generated-types';
+
 export {
   RescueGroupsAPIError,
   isRescueGroupsAPIError,

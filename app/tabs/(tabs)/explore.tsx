@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FlatList, RefreshControl, Pressable } from 'react-native';
 import { X, Search } from 'lucide-react-native';
+import { router } from 'expo-router';
 import { Button, ButtonText } from '@/components/ui/button';
 import { Center } from '@/components/ui/center';
 import { Heading } from '@/components/ui/heading';
@@ -86,12 +87,7 @@ export default function Explore() {
   };
 
   const handleAnimalPress = (animal: Animal) => {
-    // TODO: Navigate to animal detail screen
-    // Placeholder for future navigation functionality
-    if (isDevelopment()) {
-      // eslint-disable-next-line no-console
-      console.log('Pressed animal:', animal.animalName);
-    }
+    router.push(`/pet/${animal.animalID}`);
   };
 
   const renderHeader = () => (

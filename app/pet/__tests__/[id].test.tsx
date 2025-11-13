@@ -121,6 +121,70 @@ describe('PetDetailScreen', () => {
         expect(getByText('$250')).toBeTruthy();
       });
     });
+
+    it('adds dollar sign to numeric adoption fee without one', async () => {
+      const animalWithNumericFee = {
+        ...mockAnimal,
+        animalAdoptionFee: '150',
+      };
+      (animalService.getAnimalById as jest.Mock).mockResolvedValue(
+        animalWithNumericFee
+      );
+
+      const { getByText } = render(<PetDetailScreen />);
+
+      await waitFor(() => {
+        expect(getByText('$150')).toBeTruthy();
+      });
+    });
+
+    it('preserves adoption fee with existing dollar sign', async () => {
+      const animalWithDollarSignFee = {
+        ...mockAnimal,
+        animalAdoptionFee: '$300.00',
+      };
+      (animalService.getAnimalById as jest.Mock).mockResolvedValue(
+        animalWithDollarSignFee
+      );
+
+      const { getByText } = render(<PetDetailScreen />);
+
+      await waitFor(() => {
+        expect(getByText('$300.00')).toBeTruthy();
+      });
+    });
+
+    it('displays non-numeric adoption fee text as-is', async () => {
+      const animalWithFreeFee = {
+        ...mockAnimal,
+        animalAdoptionFee: 'Free',
+      };
+      (animalService.getAnimalById as jest.Mock).mockResolvedValue(
+        animalWithFreeFee
+      );
+
+      const { getByText } = render(<PetDetailScreen />);
+
+      await waitFor(() => {
+        expect(getByText('Free')).toBeTruthy();
+      });
+    });
+
+    it('hides adoption fee section when fee is empty', async () => {
+      const animalWithoutFee = {
+        ...mockAnimal,
+        animalAdoptionFee: undefined,
+      };
+      (animalService.getAnimalById as jest.Mock).mockResolvedValue(
+        animalWithoutFee
+      );
+
+      const { queryByText } = render(<PetDetailScreen />);
+
+      await waitFor(() => {
+        expect(queryByText('Adoption Fee')).toBeNull();
+      });
+    });
   });
 
   describe('Error State', () => {

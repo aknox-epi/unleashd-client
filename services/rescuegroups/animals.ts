@@ -9,7 +9,7 @@ import type {
 } from './types';
 
 /**
- * Animal fields to request from the API
+ * Animal fields to request from the API for list/search views
  * Only requesting fields that are displayed in the UI to optimize payload size
  * Reference: https://userguide.rescuegroups.org/display/APIDG/Animals
  */
@@ -30,6 +30,57 @@ const ANIMAL_FIELDS = [
   // Media (images)
   'animalPictures',
   'animalThumbnailUrl',
+];
+
+/**
+ * Extended animal fields for detail view
+ * Includes all list fields plus additional detail information
+ */
+const ANIMAL_DETAIL_FIELDS = [
+  ...ANIMAL_FIELDS,
+  // Description
+  'animalDescriptionPlain',
+
+  // Physical attributes
+  'animalColor',
+  'animalGeneralSizePotential',
+  'animalPrimaryBreed',
+  'animalSecondaryBreed',
+
+  // Health & behavior
+  'animalAltered',
+  'animalDeclawed',
+  'animalHousetrained',
+
+  // Compatibility
+  'animalOKWithKids',
+  'animalOKWithCats',
+  'animalOKWithDogs',
+  'animalOKWithAdults',
+
+  // Special needs
+  'animalSpecialNeeds',
+  'animalSpecialNeedsDescription',
+
+  // Temperament
+  'animalEnergyLevel',
+  'animalExerciseNeeds',
+  'animalGroomingNeeds',
+  'animalVocal',
+  'animalFence',
+
+  // Adoption info
+  'animalAdoptionFee',
+
+  // Media
+  'animalVideos',
+
+  // Organization
+  'animalOrgID',
+
+  // Additional details
+  'animalBirthdate',
+  'animalUpdatedDate',
 ];
 
 /**
@@ -151,7 +202,7 @@ export class AnimalService {
   }
 
   /**
-   * Gets a single animal by ID
+   * Gets a single animal by ID with full detail fields
    * @param animalId - The animal ID
    * @returns The animal object or null if not found
    */
@@ -170,7 +221,7 @@ export class AnimalService {
             criteria: animalId,
           },
         ],
-        fields: ANIMAL_FIELDS,
+        fields: ANIMAL_DETAIL_FIELDS,
       },
     });
 

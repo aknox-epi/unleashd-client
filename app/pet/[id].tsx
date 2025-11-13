@@ -1,7 +1,23 @@
-import { useEffect, useState } from 'react';
-import { ScrollView, Linking, Share, Platform } from 'react-native';
+import { useEffect, useState, useRef } from 'react';
+import {
+  ScrollView,
+  Linking,
+  Share,
+  Platform,
+  FlatList,
+  Dimensions,
+  Pressable,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
-import { ArrowLeft, Share2, Heart } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  Share2,
+  Heart,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react-native';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
 import { HStack } from '@/components/ui/hstack';
@@ -25,6 +41,9 @@ export default function PetDetailScreen() {
   const [animal, setAnimal] = useState<Animal | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
+  const { width: screenWidth } = Dimensions.get('window');
 
   useEffect(() => {
     loadAnimalDetails();
@@ -69,7 +88,63 @@ export default function PetDetailScreen() {
     }
   };
 
-  const renderPrimaryImage = () => {
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(offsetX / screenWidth);
+    setCurrentImageIndex(index);
+  };
+
+  const navigateToImage = (index: number) => {
+    flatListRef.current?.scrollToOffset({
+      offset: index * screenWidth,
+      animated: true,
+    });
+    setCurrentImageIndex(index);
+  };
+
+  const goToPreviousImage = () => {
+    if (currentImageIndex > 0) {
+      navigateToImage(currentImageIndex - 1);
+    }
+  };
+
+  const goToNextImage = () => {
+    const validImages =
+      animal?.animalPictures?.filter((pic) => getImageUrl(pic)) || [];
+    if (currentImageIndex < validImages.length - 1) {
+      navigateToImage(currentImageIndex + 1);
+    }
+  };
+
+  const getImageUrl = (picture: Animal['animalPictures'][0]) => {
+    return (
+      picture.urlSecureLarge ||
+      picture.urlSecureFullsize ||
+      picture.urlSecureSmall ||
+      picture.urlSecureThumbnail
+    );
+  };
+
+  const formatAdoptionFee = (fee: string | undefined): string | null => {
+    if (!fee) return null;
+
+    const trimmedFee = fee.trim();
+
+    // Already has dollar sign
+    if (trimmedFee.startsWith('$')) {
+      return trimmedFee;
+    }
+
+    // Check if it's a numeric value (with optional decimal)
+    if (/^\d+(\.\d{0,2})?$/.test(trimmedFee)) {
+      return `$${trimmedFee}`;
+    }
+
+    // Non-numeric values like "Free", "Contact shelter", etc.
+    return trimmedFee;
+  };
+
+  const renderImageGallery = () => {
     if (!animal?.animalPictures || animal.animalPictures.length === 0) {
       return (
         <Box className="w-full h-80 bg-background-200 items-center justify-center">
@@ -78,13 +153,10 @@ export default function PetDetailScreen() {
       );
     }
 
-    const primaryImage = animal.animalPictures[0];
-    const imageUrl =
-      primaryImage.urlSecureLarge ||
-      primaryImage.urlSecureFullsize ||
-      animal.animalThumbnailUrl;
+    // Filter out images without valid URLs
+    const validImages = animal.animalPictures.filter((pic) => getImageUrl(pic));
 
-    if (!imageUrl) {
+    if (validImages.length === 0) {
       return (
         <Box className="w-full h-80 bg-background-200 items-center justify-center">
           <Text className="text-typography-400">No photo available</Text>
@@ -92,15 +164,125 @@ export default function PetDetailScreen() {
       );
     }
 
+    // If only one image, render it directly without FlatList to avoid gesture conflicts
+    if (validImages.length === 1) {
+      const imageUrl = getImageUrl(validImages[0]);
+      return (
+        <Box className="w-full h-80 bg-background-200">
+          <Image
+            source={{ uri: imageUrl }}
+            alt={`${animal.animalName} photo`}
+            className="w-full h-full"
+            style={{ width: '100%', height: '100%' }}
+            resizeMode="cover"
+          />
+        </Box>
+      );
+    }
+
     return (
       <Box className="w-full h-80 bg-background-200">
-        <Image
-          source={{ uri: imageUrl }}
-          alt={animal.animalName}
-          className="w-full h-full"
-          style={{ width: '100%', height: '100%' }}
-          resizeMode="cover"
+        <FlatList
+          ref={flatListRef}
+          data={validImages}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          directionalLockEnabled
+          keyExtractor={(item) => item.mediaID}
+          renderItem={({ item }) => {
+            const imageUrl = getImageUrl(item);
+            return (
+              <Box
+                className="bg-background-200 items-center justify-center"
+                style={{ width: screenWidth, height: 320 }}
+              >
+                <Image
+                  source={{ uri: imageUrl }}
+                  alt={`${animal.animalName} photo`}
+                  className="w-full h-full"
+                  style={{ width: '100%', height: '100%' }}
+                  resizeMode="cover"
+                />
+              </Box>
+            );
+          }}
         />
+
+        {/* Pagination Indicators */}
+        <HStack
+          space="xs"
+          className="absolute bottom-4 left-0 right-0 justify-center"
+        >
+          {validImages.map((_, index) => {
+            return (
+              <Box
+                key={index}
+                className={`rounded-full ${
+                  index === currentImageIndex
+                    ? 'w-2 h-2 bg-white'
+                    : 'w-1.5 h-1.5 bg-white/50'
+                }`}
+              />
+            );
+          })}
+        </HStack>
+
+        {/* Photo Counter */}
+        <Box className="absolute top-4 right-4 bg-black/60 px-3 py-1.5 rounded-full">
+          <Text className="text-white text-xs font-medium">
+            {currentImageIndex + 1} / {validImages.length}
+          </Text>
+        </Box>
+
+        {/* Navigation Buttons (Web Only) */}
+        {Platform.OS === 'web' && (
+          <>
+            {/* Previous Button */}
+            {currentImageIndex > 0 && (
+              <Pressable
+                onPress={goToPreviousImage}
+                style={{
+                  position: 'absolute',
+                  left: 16,
+                  top: '50%',
+                  transform: [{ translateY: -20 }],
+                  backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                  borderRadius: 9999,
+                  width: 40,
+                  height: 40,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <ChevronLeft size={24} color="white" />
+              </Pressable>
+            )}
+
+            {/* Next Button */}
+            {currentImageIndex < validImages.length - 1 && (
+              <Pressable
+                onPress={goToNextImage}
+                style={{
+                  position: 'absolute',
+                  right: 16,
+                  top: '50%',
+                  transform: [{ translateY: -20 }],
+                  backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                  borderRadius: 9999,
+                  width: 40,
+                  height: 40,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <ChevronRight size={24} color="white" />
+              </Pressable>
+            )}
+          </>
+        )}
       </Box>
     );
   };
@@ -191,6 +373,7 @@ export default function PetDetailScreen() {
       <Stack.Screen
         options={{
           title: animal.animalName,
+          gestureEnabled: true,
           headerLeft: () => (
             <Button variant="link" size="sm" onPress={() => router.back()}>
               <ButtonIcon as={ArrowLeft} />
@@ -210,7 +393,7 @@ export default function PetDetailScreen() {
       />
 
       <ScrollView className="bg-background-0">
-        {renderPrimaryImage()}
+        {renderImageGallery()}
 
         <VStack space="lg" className="p-6">
           {/* Header */}
@@ -336,7 +519,7 @@ export default function PetDetailScreen() {
           )}
 
           {/* Adoption Fee */}
-          {animal.animalAdoptionFee && (
+          {formatAdoptionFee(animal.animalAdoptionFee) && (
             <>
               <Divider />
               <VStack space="sm">
@@ -344,7 +527,7 @@ export default function PetDetailScreen() {
                   Adoption Fee
                 </Heading>
                 <Text className="text-typography-600 text-lg">
-                  {animal.animalAdoptionFee}
+                  {formatAdoptionFee(animal.animalAdoptionFee)}
                 </Text>
               </VStack>
             </>

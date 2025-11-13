@@ -36,8 +36,12 @@ import { Badge, BadgeText } from '@/components/ui/badge';
 import { Divider } from '@/components/ui/divider';
 import { Image } from '@/components/ui/image';
 import { SpeciesBadge } from '@/components/SpeciesBadge';
-import { animalService } from '@/services/rescuegroups';
-import { getErrorMessage, type Animal } from '@/services/rescuegroups';
+import { animalService, organizationService } from '@/services/rescuegroups';
+import {
+  getErrorMessage,
+  type Animal,
+  type Organization,
+} from '@/services/rescuegroups';
 
 export default function PetDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -45,6 +49,7 @@ export default function PetDetailScreen() {
   const [animal, setAnimal] = useState<Animal | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [organization, setOrganization] = useState<Organization | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFullscreenModalVisible, setIsFullscreenModalVisible] =
     useState(false);
@@ -60,6 +65,13 @@ export default function PetDetailScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  // Fetch organization details after animal loads
+  useEffect(() => {
+    if (animal?.animalOrgID) {
+      loadOrganizationDetails(animal.animalOrgID);
+    }
+  }, [animal?.animalOrgID]);
+
   const loadAnimalDetails = async () => {
     if (!id) return;
 
@@ -72,6 +84,16 @@ export default function PetDetailScreen() {
       setError(err instanceof Error ? err : new Error('Failed to load pet'));
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadOrganizationDetails = async (orgId: string) => {
+    try {
+      const data = await organizationService.getOrganizationById(orgId);
+      setOrganization(data);
+    } catch (err) {
+      // Don't block the UI if org fetch fails - just log the error
+      console.warn('Failed to load organization details:', err);
     }
   };
 
@@ -662,6 +684,180 @@ export default function PetDetailScreen() {
                 <Text className="text-typography-600 text-lg">
                   {formatAdoptionFee(animal.animalAdoptionFee)}
                 </Text>
+              </VStack>
+            </>
+          )}
+
+          {/* Adoption Requirements */}
+          {(animal.animalFence || organization?.orgAboutAdopt) && (
+            <>
+              <Divider />
+              <VStack space="md">
+                <Heading className="text-xl font-semibold">
+                  Adoption Requirements
+                </Heading>
+                <VStack space="sm">
+                  {animal.animalFence && (
+                    <HStack space="sm" className="items-start">
+                      <Text className="text-typography-700">•</Text>
+                      <Text className="text-typography-600 flex-1">
+                        Fenced yard required
+                      </Text>
+                    </HStack>
+                  )}
+                  {organization?.orgAboutAdopt ? (
+                    <Text className="text-typography-600 leading-6">
+                      {organization.orgAboutAdopt}
+                    </Text>
+                  ) : (
+                    <>
+                      <HStack space="sm" className="items-start">
+                        <Text className="text-typography-700">•</Text>
+                        <Text className="text-typography-600 flex-1">
+                          Complete adoption application
+                        </Text>
+                      </HStack>
+                      <HStack space="sm" className="items-start">
+                        <Text className="text-typography-700">•</Text>
+                        <Text className="text-typography-600 flex-1">
+                          Provide references
+                        </Text>
+                      </HStack>
+                      <HStack space="sm" className="items-start">
+                        <Text className="text-typography-700">•</Text>
+                        <Text className="text-typography-600 flex-1">
+                          Home visit may be required
+                        </Text>
+                      </HStack>
+                    </>
+                  )}
+                  {organization?.orgWebsite && (
+                    <Text className="text-typography-500 text-sm">
+                      Visit the organization&apos;s website for complete
+                      adoption requirements
+                    </Text>
+                  )}
+                </VStack>
+              </VStack>
+            </>
+          )}
+
+          {/* Organization Info */}
+          {organization && (
+            <>
+              <Divider />
+              <VStack space="md">
+                <Heading className="text-xl font-semibold">
+                  About the Organization
+                </Heading>
+
+                {/* Organization Name */}
+                {organization.orgName && (
+                  <Text className="text-typography-700 font-semibold text-lg">
+                    {organization.orgName}
+                  </Text>
+                )}
+
+                {/* Organization Description */}
+                {organization.orgAbout && (
+                  <Text className="text-typography-600 leading-6">
+                    {organization.orgAbout}
+                  </Text>
+                )}
+
+                {/* Location */}
+                {(organization.orgCity || organization.orgState) && (
+                  <HStack space="sm" className="items-center">
+                    <Text className="font-semibold text-typography-700">
+                      Location:
+                    </Text>
+                    <Text className="text-typography-600">
+                      {[organization.orgCity, organization.orgState]
+                        .filter(Boolean)
+                        .join(', ')}
+                    </Text>
+                  </HStack>
+                )}
+
+                {/* Contact Info */}
+                <VStack space="xs">
+                  {organization.orgPhone && (
+                    <Pressable
+                      onPress={() =>
+                        Linking.openURL(`tel:${organization.orgPhone}`)
+                      }
+                    >
+                      <HStack space="sm" className="items-center">
+                        <Text className="font-semibold text-typography-700">
+                          Phone:
+                        </Text>
+                        <Text className="text-info-600">
+                          {organization.orgPhone}
+                        </Text>
+                      </HStack>
+                    </Pressable>
+                  )}
+                  {organization.orgEmail && (
+                    <Pressable
+                      onPress={() =>
+                        Linking.openURL(`mailto:${organization.orgEmail}`)
+                      }
+                    >
+                      <HStack space="sm" className="items-center">
+                        <Text className="font-semibold text-typography-700">
+                          Email:
+                        </Text>
+                        <Text className="text-info-600">
+                          {organization.orgEmail}
+                        </Text>
+                      </HStack>
+                    </Pressable>
+                  )}
+                  {organization.orgWebsite && (
+                    <Pressable
+                      onPress={() => Linking.openURL(organization.orgWebsite!)}
+                    >
+                      <HStack space="sm" className="items-center">
+                        <Text className="font-semibold text-typography-700">
+                          Website:
+                        </Text>
+                        <Text className="text-info-600">
+                          {organization.orgWebsite}
+                        </Text>
+                      </HStack>
+                    </Pressable>
+                  )}
+                </VStack>
+
+                {/* Social Media Links */}
+                {(organization.orgFacebook || organization.orgTwitter) && (
+                  <HStack space="sm" className="items-center">
+                    <Text className="font-semibold text-typography-700">
+                      Connect:
+                    </Text>
+                    {organization.orgFacebook && (
+                      <Pressable
+                        onPress={() =>
+                          Linking.openURL(organization.orgFacebook!)
+                        }
+                      >
+                        <Text className="text-info-600">Facebook</Text>
+                      </Pressable>
+                    )}
+                    {organization.orgFacebook && organization.orgTwitter && (
+                      <Text className="text-typography-500">•</Text>
+                    )}
+                    {organization.orgTwitter && (
+                      <Pressable
+                        onPress={() =>
+                          Linking.openURL(organization.orgTwitter!)
+                        }
+                      >
+                        <Text className="text-info-600">Twitter</Text>
+                      </Pressable>
+                    )}
+                  </HStack>
+                )}
               </VStack>
             </>
           )}

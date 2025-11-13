@@ -9,6 +9,11 @@ import {
   Pressable,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
+  Modal as RNModal,
+  StatusBar,
+  Image as RNImage,
+  PanResponder,
+  Animated,
 } from 'react-native';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
 import {
@@ -17,6 +22,7 @@ import {
   Heart,
   ChevronLeft,
   ChevronRight,
+  X,
 } from 'lucide-react-native';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
@@ -29,21 +35,25 @@ import { Spinner } from '@/components/ui/spinner';
 import { Badge, BadgeText } from '@/components/ui/badge';
 import { Divider } from '@/components/ui/divider';
 import { Image } from '@/components/ui/image';
+import { SpeciesBadge } from '@/components/SpeciesBadge';
 import { animalService } from '@/services/rescuegroups';
 import { getErrorMessage, type Animal } from '@/services/rescuegroups';
-import { useTheme } from '@/contexts/ThemeContext';
 
 export default function PetDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   // Subscribe to theme changes to ensure component re-renders when theme updates
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { colorMode } = useTheme();
   const [animal, setAnimal] = useState<Animal | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isFullscreenModalVisible, setIsFullscreenModalVisible] =
+    useState(false);
+  const [fullscreenImageIndex, setFullscreenImageIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
-  const { width: screenWidth } = Dimensions.get('window');
+  const fullscreenFlatListRef = useRef<FlatList>(null);
+  const modalTranslateY = useRef(new Animated.Value(0)).current;
+  const modalOpacity = useRef(new Animated.Value(1)).current;
+  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
   useEffect(() => {
     loadAnimalDetails();
@@ -144,6 +154,122 @@ export default function PetDetailScreen() {
     return trimmedFee;
   };
 
+  const openFullscreenImage = (index: number) => {
+    setFullscreenImageIndex(index);
+    setIsFullscreenModalVisible(true);
+    // Reset animation values
+    modalTranslateY.setValue(0);
+    modalOpacity.setValue(1);
+  };
+
+  const closeFullscreenModal = () => {
+    // Animate the modal out
+    Animated.parallel([
+      Animated.timing(modalTranslateY, {
+        toValue: screenHeight,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.timing(modalOpacity, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setIsFullscreenModalVisible(false);
+      // Reset values for next open
+      modalTranslateY.setValue(0);
+      modalOpacity.setValue(1);
+    });
+  };
+
+  // PanResponder for swipe-to-dismiss gesture (mobile only)
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Only respond to vertical swipes that are significantly more vertical than horizontal
+        // Require 2x more vertical movement to avoid interfering with horizontal scrolling
+        const isVertical =
+          Math.abs(gestureState.dy) > Math.abs(gestureState.dx) * 2;
+        const hasMinVerticalMovement = Math.abs(gestureState.dy) > 20;
+
+        return (
+          Platform.OS !== 'web' &&
+          isVertical &&
+          hasMinVerticalMovement &&
+          gestureState.dy > 0 // Only downward swipes
+        );
+      },
+      onPanResponderGrant: () => {
+        // User started dragging
+      },
+      onPanResponderMove: (_, gestureState) => {
+        // Only allow downward swipes
+        if (gestureState.dy > 0) {
+          modalTranslateY.setValue(gestureState.dy);
+          // Fade out as user swipes down
+          const opacity = 1 - gestureState.dy / (screenHeight * 0.5);
+          modalOpacity.setValue(Math.max(0, opacity));
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        // If swiped down more than 150px or with sufficient velocity, dismiss
+        if (
+          gestureState.dy > 150 ||
+          (gestureState.dy > 50 && gestureState.vy > 0.5)
+        ) {
+          closeFullscreenModal();
+        } else {
+          // Snap back to original position
+          Animated.parallel([
+            Animated.spring(modalTranslateY, {
+              toValue: 0,
+              useNativeDriver: true,
+              tension: 65,
+              friction: 10,
+            }),
+            Animated.timing(modalOpacity, {
+              toValue: 1,
+              duration: 200,
+              useNativeDriver: true,
+            }),
+          ]).start();
+        }
+      },
+    })
+  ).current;
+
+  const handleFullscreenScroll = (
+    event: NativeSyntheticEvent<NativeScrollEvent>
+  ) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(offsetX / screenWidth);
+    setFullscreenImageIndex(index);
+  };
+
+  const navigateFullscreenImage = (index: number) => {
+    fullscreenFlatListRef.current?.scrollToOffset({
+      offset: index * screenWidth,
+      animated: true,
+    });
+    setFullscreenImageIndex(index);
+  };
+
+  const goToPreviousFullscreenImage = () => {
+    if (fullscreenImageIndex > 0) {
+      navigateFullscreenImage(fullscreenImageIndex - 1);
+    }
+  };
+
+  const goToNextFullscreenImage = () => {
+    const validImages =
+      animal?.animalPictures?.filter((pic) => getImageUrl(pic)) || [];
+    if (fullscreenImageIndex < validImages.length - 1) {
+      navigateFullscreenImage(fullscreenImageIndex + 1);
+    }
+  };
+
   const renderImageGallery = () => {
     if (!animal?.animalPictures || animal.animalPictures.length === 0) {
       return (
@@ -169,13 +295,15 @@ export default function PetDetailScreen() {
       const imageUrl = getImageUrl(validImages[0]);
       return (
         <Box className="w-full h-80 bg-background-200">
-          <Image
-            source={{ uri: imageUrl }}
-            alt={`${animal.animalName} photo`}
-            className="w-full h-full"
-            style={{ width: '100%', height: '100%' }}
-            resizeMode="cover"
-          />
+          <Pressable onPress={() => openFullscreenImage(0)}>
+            <Image
+              source={{ uri: imageUrl }}
+              alt={`${animal.animalName} photo`}
+              className="w-full h-full"
+              style={{ width: '100%', height: 320 }}
+              resizeMode="cover"
+            />
+          </Pressable>
         </Box>
       );
     }
@@ -192,21 +320,23 @@ export default function PetDetailScreen() {
           scrollEventThrottle={16}
           directionalLockEnabled
           keyExtractor={(item) => item.mediaID}
-          renderItem={({ item }) => {
+          renderItem={({ item, index }) => {
             const imageUrl = getImageUrl(item);
             return (
-              <Box
-                className="bg-background-200 items-center justify-center"
-                style={{ width: screenWidth, height: 320 }}
-              >
-                <Image
-                  source={{ uri: imageUrl }}
-                  alt={`${animal.animalName} photo`}
-                  className="w-full h-full"
-                  style={{ width: '100%', height: '100%' }}
-                  resizeMode="cover"
-                />
-              </Box>
+              <Pressable onPress={() => openFullscreenImage(index)}>
+                <Box
+                  className="bg-background-200 items-center justify-center"
+                  style={{ width: screenWidth, height: 320 }}
+                >
+                  <Image
+                    source={{ uri: imageUrl }}
+                    alt={`${animal.animalName} photo`}
+                    className="w-full h-full"
+                    style={{ width: '100%', height: '100%' }}
+                    resizeMode="cover"
+                  />
+                </Box>
+              </Pressable>
             );
           }}
         />
@@ -307,6 +437,11 @@ export default function PetDetailScreen() {
     const isPositive = value === 'Yes' || value === '1';
     const variant = isPositive ? 'solid' : 'outline';
 
+    // Use SpeciesBadge for Dogs and Cats to maintain consistent species colors
+    if ((label === 'Dogs' || label === 'Cats') && isPositive) {
+      return <SpeciesBadge species={label} size="sm" variant={variant} />;
+    }
+
     return (
       <Badge
         action={isPositive ? 'success' : 'muted'}
@@ -402,9 +537,7 @@ export default function PetDetailScreen() {
               {animal.animalName}
             </Heading>
             <HStack space="sm" className="flex-wrap">
-              <Badge action="info" variant="solid" size="md">
-                <BadgeText>{animal.animalSpecies}</BadgeText>
-              </Badge>
+              <SpeciesBadge species={animal.animalSpecies} size="md" />
               <Badge action="muted" variant="outline" size="md">
                 <BadgeText>{animal.animalBreed}</BadgeText>
               </Badge>
@@ -552,6 +685,164 @@ export default function PetDetailScreen() {
           )}
         </VStack>
       </ScrollView>
+
+      {/* Fullscreen Image Modal */}
+      <RNModal
+        visible={isFullscreenModalVisible}
+        transparent={false}
+        animationType="none"
+        onRequestClose={closeFullscreenModal}
+      >
+        <Animated.View
+          style={{
+            flex: 1,
+            backgroundColor: 'black',
+            transform: [{ translateY: modalTranslateY }],
+            opacity: modalOpacity,
+          }}
+          {...panResponder.panHandlers}
+        >
+          <StatusBar barStyle="light-content" />
+
+          {/* Close Button */}
+          <Pressable
+            onPress={closeFullscreenModal}
+            style={{
+              position: 'absolute',
+              top: Platform.OS === 'ios' ? 50 : 20,
+              right: 20,
+              zIndex: 10,
+              backgroundColor: 'rgba(0, 0, 0, 0.6)',
+              borderRadius: 9999,
+              width: 40,
+              height: 40,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <X size={24} color="white" />
+          </Pressable>
+
+          {animal?.animalPictures &&
+            (() => {
+              const validImages = animal.animalPictures.filter((pic) =>
+                getImageUrl(pic)
+              );
+
+              return (
+                <Box className="flex-1 justify-center">
+                  <FlatList
+                    ref={fullscreenFlatListRef}
+                    data={validImages}
+                    horizontal
+                    pagingEnabled
+                    showsHorizontalScrollIndicator={false}
+                    onScroll={handleFullscreenScroll}
+                    scrollEventThrottle={16}
+                    initialScrollIndex={fullscreenImageIndex}
+                    getItemLayout={(_, index) => ({
+                      length: screenWidth,
+                      offset: screenWidth * index,
+                      index,
+                    })}
+                    keyExtractor={(item) => item.mediaID}
+                    renderItem={({ item }) => {
+                      const imageUrl = getImageUrl(item);
+                      return (
+                        <Box
+                          style={{ width: screenWidth, height: screenHeight }}
+                        >
+                          <RNImage
+                            source={{ uri: imageUrl }}
+                            style={{ width: screenWidth, height: screenHeight }}
+                            resizeMode="contain"
+                          />
+                        </Box>
+                      );
+                    }}
+                  />
+
+                  {/* Pagination Indicators */}
+                  {validImages.length > 1 && (
+                    <HStack
+                      space="xs"
+                      className="absolute bottom-8 left-0 right-0 justify-center"
+                    >
+                      {validImages.map((_, index) => (
+                        <Box
+                          key={index}
+                          className={`rounded-full ${
+                            index === fullscreenImageIndex
+                              ? 'w-2 h-2 bg-white'
+                              : 'w-1.5 h-1.5 bg-white/50'
+                          }`}
+                        />
+                      ))}
+                    </HStack>
+                  )}
+
+                  {/* Photo Counter */}
+                  {validImages.length > 1 && (
+                    <Box className="absolute top-20 left-0 right-0 items-center">
+                      <Box className="bg-black/60 px-3 py-1.5 rounded-full">
+                        <Text className="text-white text-xs font-medium">
+                          {fullscreenImageIndex + 1} / {validImages.length}
+                        </Text>
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* Navigation Buttons (Web Only) */}
+                  {Platform.OS === 'web' && validImages.length > 1 && (
+                    <>
+                      {/* Previous Button */}
+                      {fullscreenImageIndex > 0 && (
+                        <Pressable
+                          onPress={goToPreviousFullscreenImage}
+                          style={{
+                            position: 'absolute',
+                            left: 16,
+                            top: '50%',
+                            transform: [{ translateY: -20 }],
+                            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                            borderRadius: 9999,
+                            width: 40,
+                            height: 40,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <ChevronLeft size={24} color="white" />
+                        </Pressable>
+                      )}
+
+                      {/* Next Button */}
+                      {fullscreenImageIndex < validImages.length - 1 && (
+                        <Pressable
+                          onPress={goToNextFullscreenImage}
+                          style={{
+                            position: 'absolute',
+                            right: 16,
+                            top: '50%',
+                            transform: [{ translateY: -20 }],
+                            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                            borderRadius: 9999,
+                            width: 40,
+                            height: 40,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <ChevronRight size={24} color="white" />
+                        </Pressable>
+                      )}
+                    </>
+                  )}
+                </Box>
+              );
+            })()}
+        </Animated.View>
+      </RNModal>
     </Box>
   );
 }

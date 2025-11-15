@@ -82,68 +82,19 @@ git push origin feature/your-feature-name
 
 ### 6. Merge and clean up
 
-After initial approval:
+After approval:
 
-#### Release Process
-
-Releases are managed using [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) based on conventional commits.
-
-##### Creating a release
-
-```bash
-# 1. Squash commits for your feature branch
-git rebase -i dev
-
-# 2. Preview the release (recommended)
-bun run release:dry
-
-# 3. Create the release
-bun run release
-
-# 4. Push with tags
-git push --follow-tags origin dev
-```
-
-###### Version bumps
-
-Version is automatically determined by commit types since last release:
-
-- `feat:` commits → **minor** version bump (0.1.0 → 0.2.0)
-- `fix:` commits → **patch** version bump (0.1.0 → 0.1.1)
-- `BREAKING CHANGE:` footer → **major** version bump (0.1.0 → 1.0.0)
-
-###### Manual version bump
-
-If needed, you can force a specific bump:
-
-```bash
-bun run release:major  # 1.0.0 → 2.0.0
-bun run release:minor  # 1.0.0 → 1.1.0
-bun run release:patch  # 1.0.0 → 1.0.1
-```
-
-###### What happens during release
-
-1. Analyzes commits since last release
-2. Determines version bump
-3. Updates `CHANGELOG.md`
-4. Updates `package.json` version
-5. Creates a git commit
-6. Creates a git tag
-7. You push to remote
-
-#### Lastly
-
-1. Get last approval
-2. Merge via GitHub
-3. Delete the remote branch (GitHub offers this option)
-4. Clean up locally:
+1. **Merge via GitHub** using **"Create a merge commit"** (NOT squash merge)
+2. Delete the remote branch (GitHub offers this option)
+3. Clean up locally:
 
 ```bash
 git checkout dev
 git pull origin dev
 git branch -d feature/your-feature-name
 ```
+
+**Important**: Always use "Create a merge commit" when merging PRs. Squash merging breaks commit history and causes conflicts when syncing branches.
 
 ## Branch Naming
 
@@ -308,6 +259,112 @@ When opening a PR, ensure:
 2. All CI checks must pass
 3. No unresolved conversations
 4. Branch must be up to date with `dev`
+
+### Merge Strategy
+
+**CRITICAL**: Always use **"Create a merge commit"** when merging PRs to `dev` or `main`.
+
+- ✅ **DO**: Use "Create a merge commit" button on GitHub
+- ❌ **DON'T**: Use "Squash and merge" or "Rebase and merge"
+
+**Why?** Squash merging creates new commit hashes that break the git history chain. This causes merge conflicts when syncing `dev` ↔ `main`. Regular merge commits preserve history and allow clean branch synchronization.
+
+## Release Process
+
+Releases are managed using [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) based on conventional commits. The release process uses a dedicated release branch that merges to `dev` first, then `dev` merges to `main` for production deployment.
+
+### Version Bumps
+
+Version is automatically determined by commit types since last release:
+
+- `feat:` commits → **minor** version bump (0.1.0 → 0.2.0)
+- `fix:` commits → **patch** version bump (0.1.0 → 0.1.1)
+- `BREAKING CHANGE:` footer → **major** version bump (0.1.0 → 1.0.0)
+
+### Creating a Release (dev → main)
+
+```bash
+# 1. Create release branch from dev
+git checkout dev
+git pull origin dev
+git checkout -b release/0.x.x
+
+# 2. Preview the release (recommended)
+bun run release:dry
+
+# 3. Create the release
+bun run release        # Auto-detect version bump
+# OR force specific bump:
+# bun run release:minor   # 0.1.0 → 0.2.0
+# bun run release:major   # 0.1.0 → 1.0.0
+# bun run release:patch   # 0.1.0 → 0.1.1
+
+# 4. Push release branch with tags
+git push --follow-tags origin release/0.x.x
+```
+
+### Merging the Release
+
+#### Step 1: Merge release branch to dev
+
+```bash
+# Create PR from release branch to dev
+gh pr create --base dev --head release/0.x.x \
+  --title "chore(release): 0.x.x" \
+  --body "Release preparation - updates changelog and version"
+```
+
+**On GitHub:**
+
+- Get approval from team
+- **Use "Create a merge commit"** (NOT squash merge!)
+- Merge to `dev`
+
+#### Step 2: Merge dev to main (production release)
+
+```bash
+# Create PR from dev to main
+gh pr create --base main --head dev \
+  --title "Release v0.x.x" \
+  --body "Production release v0.x.x - see CHANGELOG.md for details"
+```
+
+**On GitHub:**
+
+- Get approval from team
+- **Use "Create a merge commit"** (NOT squash merge!)
+- Merge to `main`
+
+#### Step 3: Sync and clean up
+
+```bash
+# Sync local branches
+git checkout dev && git pull origin dev
+git checkout main && git pull origin main
+
+# Clean up release branch
+git branch -d release/0.x.x
+git push origin --delete release/0.x.x
+```
+
+### What Happens During Release
+
+1. Analyzes commits since last release tag
+2. Determines version bump based on commit types
+3. Updates `CHANGELOG.md` with grouped changes
+4. Updates `package.json` version
+5. Creates a git commit: `chore(release): x.x.x`
+6. Creates a git tag: `vx.x.x`
+
+### Manual Version Override
+
+If auto-detection isn't working correctly, force a specific bump:
+
+```bash
+bun run release:major  # Force major: 1.0.0 → 2.0.0
+bun run release:minor  # Force minor: 1.0.0 → 1.1.0
+bun run release:patch  # Force patch: 1.0.0 → 1.0.1
+```
 
 ## Code Quality
 

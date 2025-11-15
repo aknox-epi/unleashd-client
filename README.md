@@ -230,13 +230,15 @@ Coverage reports are generated in `coverage/` (git-ignored). View by opening `co
 
 ### Release
 
-Releases are created as part of the merge to `dev` branch:
+Releases use a dedicated release branch workflow:
 
 - `bun run release` - Auto-detect version bump and generate changelog
 - `bun run release:major` - Force major version bump (breaking changes)
 - `bun run release:minor` - Force minor version bump (new features)
 - `bun run release:patch` - Force patch version bump (bug fixes)
 - `bun run release:dry` - Preview release without making changes
+
+Release branches merge to `dev` first, then `dev` merges to `main` for production. Always use "Create a merge commit" (not squash merge) to preserve commit history.
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed release workflow.
 
@@ -307,10 +309,11 @@ This project uses a **modified GitHub Flow** for development. See [CONTRIBUTING.
 4. **Review and merge:**
    - Wait for CI checks to pass
    - Get review approval (if required)
-   - Create and get release approval
-   - Merge via GitHub into `dev`
+   - Merge via GitHub into `dev` using **"Create a merge commit"** (NOT squash merge)
    - Delete the feature branch
    - Pull latest `dev`: `git checkout dev && git pull origin dev`
+
+**Important**: Always use "Create a merge commit" when merging PRs. Squash merging breaks commit history and causes conflicts when syncing branches.
 
 ## Git Hooks
 

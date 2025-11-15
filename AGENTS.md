@@ -201,52 +201,73 @@ This project uses [commit-and-tag-version](https://github.com/absolute-version/c
 
 ### Release Workflow
 
-1. **Make changes** using conventional commits:
+Releases are created using a dedicated release branch that merges to `dev` first, then `dev` merges to `main` for production.
+
+**CRITICAL**: Always use **"Create a merge commit"** when merging PRs. Never use squash merge, as it breaks commit history and causes conflicts when syncing branches.
+
+1. **Create release branch from dev**:
 
    ```bash
-   git commit -m "feat: add user authentication"
-   git commit -m "fix: resolve crash on startup"
+   git checkout dev
+   git pull origin dev
+   git checkout -b release/0.x.x
    ```
 
-2. **Push changes to origin**
-
-   ```bash
-   git push origin feature/branch
-   ```
-
-3. **Create PR to dev and get approvals**
-
-4. **Squash commits** (optional but recommended):
-
-   ```bash
-   git rebase -i dev
-
-   ```
-
-5. **Preview release** (recommended first step):
+2. **Preview release** (recommended first step):
 
    ```bash
    bun run release:dry
    ```
 
-6. **Generate release**:
+3. **Generate release**:
 
    ```bash
-   bun run release
+   bun run release        # Auto-detect version bump
+   # OR force specific bump:
+   # bun run release:minor
+   # bun run release:major
+   # bun run release:patch
    ```
 
-7. **Review changes**:
+4. **Review changes**:
    - Check `CHANGELOG.md` for accuracy
    - Verify version bump in `package.json`
    - Review the git commit and tag
 
-8. **Push to remote**:
+5. **Push release branch with tags**:
 
    ```bash
-   git push --follow-tags origin dev
+   git push --follow-tags origin release/0.x.x
    ```
 
-9. **Complete PR**
+6. **Create PR from release branch to dev**:
+
+   ```bash
+   gh pr create --base dev --head release/0.x.x \
+     --title "chore(release): 0.x.x" \
+     --body "Release preparation - updates changelog and version"
+   ```
+
+7. **Get approval and merge to dev using "Create a merge commit"** (NOT squash merge!)
+
+8. **Create PR from dev to main**:
+
+   ```bash
+   gh pr create --base main --head dev \
+     --title "Release v0.x.x" \
+     --body "Production release v0.x.x - see CHANGELOG.md"
+   ```
+
+9. **Get approval and merge to main using "Create a merge commit"** (NOT squash merge!)
+
+10. **Sync local branches and clean up**:
+
+    ```bash
+    git checkout dev && git pull origin dev
+    git checkout main && git pull origin main
+    git branch -d release/0.x.x
+    git push origin --delete release/0.x.x
+    ```
 
 ### What Appears in CHANGELOG
 
@@ -275,6 +296,7 @@ Release behavior is configured in `.versionrc.json`:
 - **Use semantic commits consistently**: Ensures accurate version bumps
 - **Review before pushing**: Check changelog and version are correct
 - **Push with tags**: Use `git push --follow-tags` to include version tags
+- **Always use "Create a merge commit"**: Never squash merge PRs to avoid history conflicts
 
 ## Development Workflow
 
@@ -293,10 +315,11 @@ Release behavior is configured in `.versionrc.json`:
    - Blocks commits with invalid message format
    - Use proper type prefix (feat, fix, docs, chore, etc.)
 4. **Pull requests**: Open PRs against `dev` branch, not `main`
-5. **Manual checks**: Run `bun run lint:fix` to fix all code quality issues in the project
-6. **Manual formatting**: Run `bun run format` to format all files (Prettier runs on commit automatically)
-7. **Code quality**: ESLint checks logic, best practices, React rules, TypeScript issues
-8. **Formatting**: Prettier ensures consistent code style across all files
+5. **Merge strategy**: Always use "Create a merge commit" on GitHub (never squash merge)
+6. **Manual checks**: Run `bun run lint:fix` to fix all code quality issues in the project
+7. **Manual formatting**: Run `bun run format` to format all files (Prettier runs on commit automatically)
+8. **Code quality**: ESLint checks logic, best practices, React rules, TypeScript issues
+9. **Formatting**: Prettier ensures consistent code style across all files
 
 ## React Native + Expo
 

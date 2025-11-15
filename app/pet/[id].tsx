@@ -23,6 +23,11 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  Phone,
+  Mail,
+  Globe,
+  ExternalLink,
+  MapPin,
 } from 'lucide-react-native';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
@@ -35,9 +40,23 @@ import { Spinner } from '@/components/ui/spinner';
 import { Badge, BadgeText } from '@/components/ui/badge';
 import { Divider } from '@/components/ui/divider';
 import { Image } from '@/components/ui/image';
+import {
+  Actionsheet,
+  ActionsheetBackdrop,
+  ActionsheetContent,
+  ActionsheetDragIndicatorWrapper,
+  ActionsheetDragIndicator,
+  ActionsheetItem,
+  ActionsheetItemText,
+  ActionsheetIcon,
+} from '@/components/ui/actionsheet';
 import { SpeciesBadge } from '@/components/SpeciesBadge';
-import { animalService } from '@/services/rescuegroups';
-import { getErrorMessage, type Animal } from '@/services/rescuegroups';
+import { animalService, organizationService } from '@/services/rescuegroups';
+import {
+  getErrorMessage,
+  type Animal,
+  type Organization,
+} from '@/services/rescuegroups';
 
 export default function PetDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -45,10 +64,13 @@ export default function PetDetailScreen() {
   const [animal, setAnimal] = useState<Animal | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [organization, setOrganization] = useState<Organization | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFullscreenModalVisible, setIsFullscreenModalVisible] =
     useState(false);
   const [fullscreenImageIndex, setFullscreenImageIndex] = useState(0);
+  const [isContactActionSheetOpen, setIsContactActionSheetOpen] =
+    useState(false);
   const flatListRef = useRef<FlatList>(null);
   const fullscreenFlatListRef = useRef<FlatList>(null);
   const modalTranslateY = useRef(new Animated.Value(0)).current;
@@ -59,6 +81,13 @@ export default function PetDetailScreen() {
     loadAnimalDetails();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  // Fetch organization details after animal loads
+  useEffect(() => {
+    if (animal?.animalOrgID) {
+      loadOrganizationDetails(animal.animalOrgID);
+    }
+  }, [animal?.animalOrgID]);
 
   const loadAnimalDetails = async () => {
     if (!id) return;
@@ -72,6 +101,16 @@ export default function PetDetailScreen() {
       setError(err instanceof Error ? err : new Error('Failed to load pet'));
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadOrganizationDetails = async (orgId: string) => {
+    try {
+      const data = await organizationService.getOrganizationById(orgId);
+      setOrganization(data);
+    } catch (err) {
+      // Don't block the UI if org fetch fails - just log the error
+      console.warn('Failed to load organization details:', err);
     }
   };
 
@@ -90,11 +129,58 @@ export default function PetDetailScreen() {
     }
   };
 
-  const handleContactShelter = () => {
-    // TODO: Get organization details and contact info
-    // For now, open the animal's URL if available
+  const getMapsUrl = () => {
+    if (!organization) return null;
+
+    const address = [
+      organization.orgAddress,
+      organization.orgCity,
+      organization.orgState,
+    ]
+      .filter(Boolean)
+      .join(', ');
+
+    if (!address) return null;
+
+    const encodedAddress = encodeURIComponent(address);
+
+    if (Platform.OS === 'ios') {
+      return `maps://maps.apple.com/?q=${encodedAddress}`;
+    } else if (Platform.OS === 'android') {
+      return `geo:0,0?q=${encodedAddress}`;
+    } else {
+      return `https://www.google.com/maps/search/${encodedAddress}`;
+    }
+  };
+
+  const handleCall = () => {
+    if (organization?.orgPhone) {
+      Linking.openURL(`tel:${organization.orgPhone}`);
+    }
+  };
+
+  const handleEmail = () => {
+    if (organization?.orgEmail) {
+      Linking.openURL(`mailto:${organization.orgEmail}`);
+    }
+  };
+
+  const handleWebsite = () => {
+    if (organization?.orgWebsite) {
+      Linking.openURL(organization.orgWebsite);
+    }
+  };
+
+  const handleViewListing = () => {
     if (animal?.animalUrl) {
       Linking.openURL(animal.animalUrl);
+    }
+  };
+
+  const handleGetDirections = () => {
+    const mapsUrl = getMapsUrl();
+    if (mapsUrl) {
+      Linking.openURL(mapsUrl);
     }
   };
 
@@ -666,15 +752,261 @@ export default function PetDetailScreen() {
             </>
           )}
 
+          {/* Adoption Requirements */}
+          {(animal.animalFence || organization?.orgAboutAdopt) && (
+            <>
+              <Divider />
+              <VStack space="md">
+                <Heading className="text-xl font-semibold">
+                  Adoption Requirements
+                </Heading>
+                <VStack space="sm">
+                  {animal.animalFence && (
+                    <HStack space="sm" className="items-start">
+                      <Text className="text-typography-700">•</Text>
+                      <Text className="text-typography-600 flex-1">
+                        Fenced yard required
+                      </Text>
+                    </HStack>
+                  )}
+                  {organization?.orgAboutAdopt ? (
+                    <Text className="text-typography-600 leading-6">
+                      {organization.orgAboutAdopt}
+                    </Text>
+                  ) : (
+                    <>
+                      <HStack space="sm" className="items-start">
+                        <Text className="text-typography-700">•</Text>
+                        <Text className="text-typography-600 flex-1">
+                          Complete adoption application
+                        </Text>
+                      </HStack>
+                      <HStack space="sm" className="items-start">
+                        <Text className="text-typography-700">•</Text>
+                        <Text className="text-typography-600 flex-1">
+                          Provide references
+                        </Text>
+                      </HStack>
+                      <HStack space="sm" className="items-start">
+                        <Text className="text-typography-700">•</Text>
+                        <Text className="text-typography-600 flex-1">
+                          Home visit may be required
+                        </Text>
+                      </HStack>
+                    </>
+                  )}
+                  {organization?.orgWebsite && (
+                    <Text className="text-typography-500 text-sm">
+                      Visit the organization&apos;s website for complete
+                      adoption requirements
+                    </Text>
+                  )}
+                </VStack>
+              </VStack>
+            </>
+          )}
+
+          {/* Organization Info */}
+          {organization && (
+            <>
+              <Divider />
+              <VStack space="md">
+                <Heading className="text-xl font-semibold">
+                  About the Organization
+                </Heading>
+
+                {/* Organization Name */}
+                {organization.orgName && (
+                  <Text className="text-typography-700 font-semibold text-lg">
+                    {organization.orgName}
+                  </Text>
+                )}
+
+                {/* Organization Description */}
+                {organization.orgAbout && (
+                  <Text className="text-typography-600 leading-6">
+                    {organization.orgAbout}
+                  </Text>
+                )}
+
+                {/* Location */}
+                {(organization.orgCity || organization.orgState) && (
+                  <HStack space="sm" className="items-center">
+                    <Text className="font-semibold text-typography-700">
+                      Location:
+                    </Text>
+                    <Text className="text-typography-600">
+                      {[organization.orgCity, organization.orgState]
+                        .filter(Boolean)
+                        .join(', ')}
+                    </Text>
+                  </HStack>
+                )}
+
+                {/* Contact Info */}
+                <VStack space="xs">
+                  {organization.orgPhone && (
+                    <Pressable
+                      onPress={() =>
+                        Linking.openURL(`tel:${organization.orgPhone}`)
+                      }
+                    >
+                      <HStack space="sm" className="items-center">
+                        <Text className="font-semibold text-typography-700">
+                          Phone:
+                        </Text>
+                        <Text className="text-info-600">
+                          {organization.orgPhone}
+                        </Text>
+                      </HStack>
+                    </Pressable>
+                  )}
+                  {organization.orgEmail && (
+                    <Pressable
+                      onPress={() =>
+                        Linking.openURL(`mailto:${organization.orgEmail}`)
+                      }
+                    >
+                      <HStack space="sm" className="items-center">
+                        <Text className="font-semibold text-typography-700">
+                          Email:
+                        </Text>
+                        <Text className="text-info-600">
+                          {organization.orgEmail}
+                        </Text>
+                      </HStack>
+                    </Pressable>
+                  )}
+                  {organization.orgWebsite && (
+                    <Pressable
+                      onPress={() => Linking.openURL(organization.orgWebsite!)}
+                    >
+                      <HStack space="sm" className="items-center">
+                        <Text className="font-semibold text-typography-700">
+                          Website:
+                        </Text>
+                        <Text className="text-info-600">
+                          {organization.orgWebsite}
+                        </Text>
+                      </HStack>
+                    </Pressable>
+                  )}
+                </VStack>
+
+                {/* Social Media Links */}
+                {(organization.orgFacebook || organization.orgTwitter) && (
+                  <HStack space="sm" className="items-center">
+                    <Text className="font-semibold text-typography-700">
+                      Connect:
+                    </Text>
+                    {organization.orgFacebook && (
+                      <Pressable
+                        onPress={() =>
+                          Linking.openURL(organization.orgFacebook!)
+                        }
+                      >
+                        <Text className="text-info-600">Facebook</Text>
+                      </Pressable>
+                    )}
+                    {organization.orgFacebook && organization.orgTwitter && (
+                      <Text className="text-typography-500">•</Text>
+                    )}
+                    {organization.orgTwitter && (
+                      <Pressable
+                        onPress={() =>
+                          Linking.openURL(organization.orgTwitter!)
+                        }
+                      >
+                        <Text className="text-info-600">Twitter</Text>
+                      </Pressable>
+                    )}
+                  </HStack>
+                )}
+              </VStack>
+            </>
+          )}
+
           {/* Contact Button */}
           <Button
             size="lg"
-            onPress={handleContactShelter}
+            onPress={() => setIsContactActionSheetOpen(true)}
             className="mt-4"
-            isDisabled={!animal.animalUrl}
           >
             <ButtonText>Contact Shelter</ButtonText>
           </Button>
+
+          {/* Contact Action Sheet */}
+          <Actionsheet
+            isOpen={isContactActionSheetOpen}
+            onClose={() => setIsContactActionSheetOpen(false)}
+          >
+            <ActionsheetBackdrop />
+            <ActionsheetContent>
+              <ActionsheetDragIndicatorWrapper>
+                <ActionsheetDragIndicator />
+              </ActionsheetDragIndicatorWrapper>
+
+              {/* Call */}
+              <ActionsheetItem
+                onPress={() => {
+                  handleCall();
+                  setIsContactActionSheetOpen(false);
+                }}
+                isDisabled={!organization?.orgPhone}
+              >
+                <ActionsheetIcon as={Phone} />
+                <ActionsheetItemText>Call Shelter</ActionsheetItemText>
+              </ActionsheetItem>
+
+              {/* Email */}
+              <ActionsheetItem
+                onPress={() => {
+                  handleEmail();
+                  setIsContactActionSheetOpen(false);
+                }}
+                isDisabled={!organization?.orgEmail}
+              >
+                <ActionsheetIcon as={Mail} />
+                <ActionsheetItemText>Send Email</ActionsheetItemText>
+              </ActionsheetItem>
+
+              {/* Website */}
+              <ActionsheetItem
+                onPress={() => {
+                  handleWebsite();
+                  setIsContactActionSheetOpen(false);
+                }}
+                isDisabled={!organization?.orgWebsite}
+              >
+                <ActionsheetIcon as={Globe} />
+                <ActionsheetItemText>Visit Website</ActionsheetItemText>
+              </ActionsheetItem>
+
+              {/* View Listing */}
+              <ActionsheetItem
+                onPress={() => {
+                  handleViewListing();
+                  setIsContactActionSheetOpen(false);
+                }}
+                isDisabled={!animal?.animalUrl}
+              >
+                <ActionsheetIcon as={ExternalLink} />
+                <ActionsheetItemText>View Listing</ActionsheetItemText>
+              </ActionsheetItem>
+
+              {/* Get Directions */}
+              <ActionsheetItem
+                onPress={() => {
+                  handleGetDirections();
+                  setIsContactActionSheetOpen(false);
+                }}
+                isDisabled={!getMapsUrl()}
+              >
+                <ActionsheetIcon as={MapPin} />
+                <ActionsheetItemText>Get Directions</ActionsheetItemText>
+              </ActionsheetItem>
+            </ActionsheetContent>
+          </Actionsheet>
 
           {/* Last Updated */}
           {animal.animalUpdatedDate && (

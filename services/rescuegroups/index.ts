@@ -10,6 +10,7 @@ export { RescueGroupsClient, rescueGroupsClient } from './client';
 
 // Services
 export { AnimalService, animalService } from './animals';
+export { OrganizationService, organizationService } from './organizations';
 
 // Types
 export type {

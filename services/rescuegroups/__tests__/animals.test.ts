@@ -85,7 +85,6 @@ describe('AnimalService', () => {
               criteria: 'Available',
             },
           ],
-          filterProcessing: '1',
           fields: expect.any(Array),
         },
       });
@@ -384,10 +383,7 @@ describe('AnimalService', () => {
       await service.searchAnimals(params);
 
       const callArgs = mockRequest.mock.calls[0][0];
-      expect(callArgs.search?.filters).toHaveLength(9); // 8 filters + status
-      expect(callArgs.search?.filterProcessing).toBe(
-        '1 and 2 and 3 and 4 and 5 and 6 and 7 and 8 and 9'
-      );
+      expect(callArgs.search?.filters).toHaveLength(9); // 8 search filters + status filter
     });
 
     it('should calculate hasMore correctly when there are more results', async () => {

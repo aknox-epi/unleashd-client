@@ -213,13 +213,28 @@ Releases are created using a dedicated release branch that merges to `dev` first
    git checkout -b release/0.x.x
    ```
 
-2. **Preview release** (recommended first step):
+2. **Push changes to origin**
+
+   ```bash
+   git push origin feature/branch
+   ```
+
+3. **Create PR to dev and get approvals**
+
+4. **Squash commits** (optional but recommended):
+
+   ```bash
+   git rebase -i dev
+
+   ```
+
+5. **Preview release** (recommended first step):
 
    ```bash
    bun run release:dry
    ```
 
-3. **Generate release**:
+6. **Generate release**:
 
    ```bash
    bun run release        # Auto-detect version bump
@@ -229,7 +244,7 @@ Releases are created using a dedicated release branch that merges to `dev` first
    # bun run release:patch
    ```
 
-4. **Review changes**:
+7. **Review changes**:
    - Check `CHANGELOG.md` for accuracy
    - Verify version bump in `package.json`
    - Review the git commit and tag

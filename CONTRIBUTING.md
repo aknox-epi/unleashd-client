@@ -78,7 +78,7 @@ git push origin feature/your-feature-name
 
 ### 6. Merge and clean up
 
-After approval:
+After initial approval:
 
 1. **Merge via GitHub** using **"Create a merge commit"** (NOT squash merge)
 2. Delete the remote branch (GitHub offers this option)

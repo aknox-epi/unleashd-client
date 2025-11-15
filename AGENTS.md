@@ -2,18 +2,20 @@
 
 ## Branching Strategy
 
-This project uses **GitHub Flow** for development:
+This project uses a modified **GitHub Flow** for development:
 
-- **`main`** - Production-ready code, always stable and deployable
-- **Feature branches** - Short-lived branches for features, fixes, or improvements
+- **`main`** - Production code, receives updates from `dev` only
+- **`dev`** - Current source of truth, all feature work branches from here
+- **Feature branches** - Short-lived branches created from `dev`, merged back to `dev`
 
 ### Key Principles
 
 1. **`main` is sacred** - Always keep it stable and deployable
-2. **Branch often** - Create a new branch for each feature or fix
-3. **Merge fast** - Keep branches short-lived (hours to days, not weeks)
-4. **Review everything** - All changes go through pull requests
-5. **Delete after merge** - Clean up branches after merging
+2. **`dev` is the working branch** - All features branch from `dev` and merge to `dev`
+3. **Branch often** - Create a new branch for each feature or fix
+4. **Merge fast** - Keep branches short-lived (hours to days, not weeks)
+5. **Review everything** - All changes go through pull requests
+6. **Delete after merge** - Clean up branches after merging
 
 ### Branch Naming
 
@@ -30,20 +32,52 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed workflow.
 
 ## Commit Workflow
 
-When changes need to be committed:
+**⚠️ CRITICAL: AGENTS MUST NEVER EXECUTE `git commit` COMMANDS ⚠️**
+
+**This applies to ALL operational modes (Build, Plan, etc.). No exceptions.**
+
+### Proper Commit Workflow
+
+When changes are ready to be committed, agents must follow this exact workflow:
 
 1. **Stage files**: Agent stages relevant files with `git add`
-2. **Suggest commit message**: Agent suggests a message following Conventional Commits format
-3. **Manual commit**: User manually runs `git commit` with their chosen message
-4. **Continue**: Agent continues execution after user commits
+2. **Suggest commit message**: Agent provides a commit message following Conventional Commits format
+3. **STOP**: Agent MUST NOT run `git commit` - wait for user to commit manually
+4. **User commits**: User runs `git commit` with their chosen message
+5. **Continue**: After user confirms commit, agent may continue with next tasks
 
-This workflow gives the user full control over commits while the agent handles staging and provides commit message guidance.
+### Why Agents Don't Commit
+
+- **User control**: User maintains full control over commit history
+- **GPG signing**: Many users require GPG-signed commits (requires interactive passphrase)
+- **Review opportunity**: User can review staged changes before committing
+- **Flexibility**: User can modify the suggested commit message if needed
+
+### What Agents Should Do
+
+✅ Run `git add <files>` to stage changes
+✅ Run `git status` to show what will be committed
+✅ Run `git diff --cached` to show staged changes
+✅ Suggest a properly formatted commit message
+✅ Inform user that files are staged and ready to commit
+
+### What Agents Must NEVER Do
+
+❌ Run `git commit` in any form
+❌ Run `git commit -m "message"`
+❌ Run `git commit --no-verify`
+❌ Run `git commit --amend`
+❌ Attempt to work around commit restrictions
+
+**Important:** Feature branches should be created from `dev` and pull requests should target `dev`, not `main`.
 
 ## Build/Test Commands
 
 - **Start dev**: `bun run start` (or `npm start` for iOS/Android/web)
 - **Run tests**: `bun run test` or `jest --watchAll`
 - **Run single test**: `jest path/to/test.spec.ts` or `jest -t "test name"`
+- **Run tests with coverage**: `bun run test:coverage` (generates coverage report in `coverage/`)
+- **Run staged tests**: `bun run test:staged` (runs tests on staged test files only)
 - **Build**: `bun run build` (exports web platform to dist/)
 - **Lint**: `bun run lint` (check for code quality issues)
 - **Lint fix**: `bun run lint:fix` (auto-fix linting issues)
@@ -51,6 +85,11 @@ This workflow gives the user full control over commits while the agent handles s
 - **Format check**: `bun run format:check` (check formatting without changes)
 - **Release**: `bun run release` (generate changelog and bump version)
 - **Release dry run**: `bun run release:dry` (preview release without changes)
+
+**Note:** Tests run automatically via Git hooks:
+
+- Pre-commit: Runs `test:staged` on staged test files
+- Pre-push: Runs `test:coverage` on full test suite before push
 
 ## Project Structure
 
@@ -64,9 +103,14 @@ This workflow gives the user full control over commits while the agent handles s
   - Formatting rules in ESLint are disabled to avoid conflicts
 - **Pre-commit hooks**: Husky + lint-staged configured
   - Automatically runs ESLint and Prettier on staged files before commit
+  - Runs tests on staged test files (if committing `.test.ts` files)
   - Auto-fixes linting issues and formats code
-  - Blocks commits if unfixable linting errors exist
+  - Blocks commits if unfixable linting errors exist or tests fail
   - Bypass with `git commit --no-verify` (not recommended)
+- **Pre-push hooks**: Husky configured
+  - Runs full test suite with coverage before push
+  - Blocks push if any tests fail or coverage drops
+  - Bypass with `git push --no-verify` (not recommended)
 - **Commit message validation**: commitlint enforces Conventional Commits standard
   - Runs automatically via commit-msg hook
   - Blocks commits with invalid message format
@@ -164,27 +208,45 @@ This project uses [commit-and-tag-version](https://github.com/absolute-version/c
    git commit -m "fix: resolve crash on startup"
    ```
 
-2. **Preview release** (recommended first step):
+2. **Push changes to origin**
+
+   ```bash
+   git push origin feature/branch
+   ```
+
+3. **Create PR to dev and get approvals**
+
+4. **Squash commits** (optional but recommended):
+
+   ```bash
+   git rebase -i dev
+
+   ```
+
+5. **Preview release** (recommended first step):
 
    ```bash
    bun run release:dry
    ```
 
-3. **Generate release**:
+6. **Generate release**:
 
    ```bash
    bun run release
    ```
 
-4. **Review changes**:
+7. **Review changes**:
    - Check `CHANGELOG.md` for accuracy
    - Verify version bump in `package.json`
    - Review the git commit and tag
 
-5. **Push to remote**:
+8. **Push to remote**:
+
    ```bash
-   git push --follow-tags origin main
+   git push --follow-tags origin dev
    ```
+
+9. **Complete PR**
 
 ### What Appears in CHANGELOG
 
@@ -216,18 +278,25 @@ Release behavior is configured in `.versionrc.json`:
 
 ## Development Workflow
 
-1. **Pre-commit automation**: ESLint and Prettier run automatically on staged files when you commit
+1. **Start from dev**: Always create feature branches from the latest `dev` branch
+   ```bash
+   git checkout dev
+   git pull origin dev
+   git checkout -b feature/your-feature-name
+   ```
+2. **Pre-commit automation**: ESLint and Prettier run automatically on staged files when you commit
    - Linting errors are auto-fixed when possible
    - Code is automatically formatted to match project style
    - Commit is blocked if unfixable errors exist
-2. **Commit message validation**: commitlint validates commit messages automatically
+3. **Commit message validation**: commitlint validates commit messages automatically
    - Enforces Conventional Commits format (type: subject)
    - Blocks commits with invalid message format
    - Use proper type prefix (feat, fix, docs, chore, etc.)
-3. **Manual checks**: Run `bun run lint:fix` to fix all code quality issues in the project
-4. **Manual formatting**: Run `bun run format` to format all files (Prettier runs on commit automatically)
-5. **Code quality**: ESLint checks logic, best practices, React rules, TypeScript issues
-6. **Formatting**: Prettier ensures consistent code style across all files
+4. **Pull requests**: Open PRs against `dev` branch, not `main`
+5. **Manual checks**: Run `bun run lint:fix` to fix all code quality issues in the project
+6. **Manual formatting**: Run `bun run format` to format all files (Prettier runs on commit automatically)
+7. **Code quality**: ESLint checks logic, best practices, React rules, TypeScript issues
+8. **Formatting**: Prettier ensures consistent code style across all files
 
 ## React Native + Expo
 

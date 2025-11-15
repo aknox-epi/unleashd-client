@@ -8,10 +8,18 @@ import {
 } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect, useState } from 'react';
-import { Slot, usePathname } from 'expo-router';
-import { Fab, FabIcon } from '@/components/ui/fab';
-import { MoonIcon, SunIcon } from '@/components/ui/icon';
+import { useEffect } from 'react';
+import { Slot } from 'expo-router';
+import { RescueGroupsProvider } from '@/contexts/RescueGroupsContext';
+import {
+  ThemeProvider as CustomThemeProvider,
+  useTheme,
+} from '@/contexts/ThemeContext';
+import { WhatsNewProvider } from '@/contexts/WhatsNewContext';
+import { CHANGELOG_CONTENT } from '@/constants/changelog';
+
+// Get version from package.json
+const APP_VERSION = '0.1.3';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -36,29 +44,29 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
-  return <RootLayoutNav />;
+
+  return (
+    <CustomThemeProvider>
+      <WhatsNewProvider
+        changelogContent={CHANGELOG_CONTENT}
+        currentVersion={APP_VERSION}
+      >
+        <RootLayoutNav />
+      </WhatsNewProvider>
+    </CustomThemeProvider>
+  );
 }
 
 function RootLayoutNav() {
-  const pathname = usePathname();
-  const [colorMode, setColorMode] = useState<'light' | 'dark'>('light');
+  const { colorMode } = useTheme();
 
   return (
-    <GluestackUIProvider mode={colorMode}>
-      <ThemeProvider value={colorMode === 'dark' ? DarkTheme : DefaultTheme}>
-        <Slot />
-        {pathname === '/' && (
-          <Fab
-            onPress={() =>
-              setColorMode(colorMode === 'dark' ? 'light' : 'dark')
-            }
-            className="m-6"
-            size="lg"
-          >
-            <FabIcon as={colorMode === 'dark' ? MoonIcon : SunIcon} />
-          </Fab>
-        )}
-      </ThemeProvider>
-    </GluestackUIProvider>
+    <RescueGroupsProvider>
+      <GluestackUIProvider mode={colorMode}>
+        <ThemeProvider value={colorMode === 'dark' ? DarkTheme : DefaultTheme}>
+          <Slot />
+        </ThemeProvider>
+      </GluestackUIProvider>
+    </RescueGroupsProvider>
   );
 }

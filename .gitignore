@@ -35,3 +35,11 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+<<<<<<< Updated upstream
+# test coverage
+coverage/
+=======
+# test artifacts
+coverage/
+>>>>>>> Stashed changes

@@ -1,7 +1,11 @@
 import React from 'react';
+import { Pressable } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Tabs } from 'expo-router';
+import { Settings, Sparkles } from 'lucide-react-native';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import { AnimatedTabIcon } from '@/components/ui/animated-tab-icon';
+import { useWhatsNew } from '@/contexts/WhatsNewContext';
 
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>['name'];
@@ -11,6 +15,16 @@ function TabBarIcon(props: {
 }
 
 export default function TabLayout() {
+  const { isEnabled, hasNewVersion, openDrawer, markVersionAsSeen } =
+    useWhatsNew();
+
+  const handleWhatsNewPress = () => {
+    openDrawer();
+    if (hasNewVersion) {
+      markVersionAsSeen();
+    }
+  };
+
   return (
     <Tabs
       screenOptions={{
@@ -20,17 +34,46 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="tab1"
+        name="explore"
         options={{
-          title: 'Tab 1',
-          tabBarIcon: ({ color }) => <TabBarIcon name="star-o" color={color} />,
+          title: 'Explore',
+          tabBarIcon: ({ color }) => <TabBarIcon name="search" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="tab2"
+        name="settings"
         options={{
-          title: 'Tab 2',
-          tabBarIcon: ({ color }) => <TabBarIcon name="star-o" color={color} />,
+          title: 'Settings',
+          tabBarIcon: ({ color }) => (
+            <AnimatedTabIcon
+              icon={Settings}
+              color={color}
+              showBadge={hasNewVersion}
+            />
+          ),
+          headerRight: () =>
+            isEnabled ? (
+              <Pressable
+                onPress={handleWhatsNewPress}
+                style={{ marginRight: 15 }}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <AnimatedTabIcon
+                  icon={Sparkles}
+                  color={hasNewVersion ? '#3b82f6' : '#9ca3af'}
+                  showBadge={hasNewVersion}
+                />
+              </Pressable>
+            ) : null,
+        }}
+      />
+      <Tabs.Screen
+        name="status"
+        options={{
+          title: 'Status',
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="heartbeat" color={color} />
+          ),
         }}
       />
     </Tabs>

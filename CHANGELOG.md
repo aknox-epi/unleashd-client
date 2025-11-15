@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 0.2.0 (2025-11-15)
+
+### Features
+
+- add pet search with infinite scroll to explore tab ([#8](https://github.com/aknox-epi/unleashd-client/issues/8)) ([0193552](https://github.com/aknox-epi/unleashd-client/commit/0193552cde457e16a0bf985cab1fecb460faecfe))
+- default theme to system preference on first launch ([#7](https://github.com/aknox-epi/unleashd-client/issues/7)) ([b84f131](https://github.com/aknox-epi/unleashd-client/commit/b84f131ec2a10db8d672b6b3d298ca2eaa251fb6))
+- **pet-detail:** add fullscreen image modal and species-specific badge colors ([#11](https://github.com/aknox-epi/unleashd-client/issues/11)) ([d5a89db](https://github.com/aknox-epi/unleashd-client/commit/d5a89db6fc4028700371fa1c7330cb10a9f35ab5))
+- **pet-detail:** add pet detail screen with theme support and proper text rendering ([#9](https://github.com/aknox-epi/unleashd-client/issues/9)) ([f0b4a1c](https://github.com/aknox-epi/unleashd-client/commit/f0b4a1c73ebcdb4d07079b262e300e3785e19d77))
+- **pet-detail:** add photo gallery and adoption fee formatting ([#10](https://github.com/aknox-epi/unleashd-client/issues/10)) ([399b493](https://github.com/aknox-epi/unleashd-client/commit/399b493b2a01dde5192dd28f44a78f04665b0287))
+
+### Documentation
+
+- add comprehensive README.md ([#1](https://github.com/aknox-epi/unleashd-client/issues/1)) ([1466f9d](https://github.com/aknox-epi/unleashd-client/commit/1466f9da3be6d06b8d16771d0fdcd9b5ee31da48))
+- update AGENTS.md with pre-commit hook information ([5a105e7](https://github.com/aknox-epi/unleashd-client/commit/5a105e7e0f089fdec2c348f301997abaa2e30bfd))
+
+### Build System
+
+- add changelog automation and agent workflow documentation ([778d8a5](https://github.com/aknox-epi/unleashd-client/commit/778d8a52d73246ec513c6fde27c435aec5fbf8ff))
+- add commitlint with conventional commits validation ([bd0612e](https://github.com/aknox-epi/unleashd-client/commit/bd0612e74abaa9c99937cac34f15b8eb1583065d))
+- add GitHub Flow workflow with CI/CD pipeline ([faa9fb6](https://github.com/aknox-epi/unleashd-client/commit/faa9fb681ca9c25992501f309bb677ed0f6d8fdf))
+
 ## 0.1.3 (2025-11-12)
 
 ### Features

@@ -1,33 +1,29 @@
 # Contributing to unleashd-client
 
-Thank you for your interest in contributing to unleashd-client! This document provides guidelines and workflows for contributing to this project.
+Thank you for your interest in contributing to unleashd-client! This guide covers the development workflow, coding standards, and release process for contributors making code changes.
 
 ## Table of Contents
 
-- [Branching Strategy](#branching-strategy)
+- [Prerequisites](#prerequisites)
 - [Development Workflow](#development-workflow)
 - [Branch Naming](#branch-naming)
 - [Commit Messages](#commit-messages)
 - [Pull Requests](#pull-requests)
-- [Code Quality](#code-quality)
 - [Release Process](#release-process)
+- [Code Quality](#code-quality)
+- [Code of Conduct](#code-of-conduct)
+- [Getting Help](#getting-help)
 
-## Branching Strategy
+## Prerequisites
 
-We use a modified **GitHub Flow** for our development workflow:
+Before contributing, ensure you have the development environment set up.
 
-- **`main`** - Production-ready code, always deployable
-- ** `dev` ** - Used as a staging area for main given current deployment limits with Netlify
-- **Feature branches** - Short-lived branches for new features, fixes, or improvements
+**See [README.md - Prerequisites](./README.md#prerequisites) and [README.md - Getting Started](./README.md#getting-started)** for:
 
-### Key Principles
-
-1. **`main` is sacred** - Always keep it stable and deployable
-2. **`dev`** - Current source of truth, all feature work should branch of dev and merge to dev
-3. **Branch often** - Create a new branch for each feature or fix
-4. **Merge fast** - Keep branches short-lived (hours to days, not weeks)
-5. **Review everything** - All changes go through pull requests
-6. **Delete after merge** - Clean up branches after merging
+- Node.js, Bun, and other required tools
+- Installation instructions
+- RescueGroups API key setup
+- Running the development server
 
 ## Development Workflow
 
@@ -194,21 +190,25 @@ git commit -m "chore: update expo-router to v4"
 
 ### Pre-commit automation
 
-When you commit, the following happens automatically:
+**Git hooks run automatically when you commit.** For details on what hooks do and how to bypass them, see [README.md - Git Hooks](./README.md#git-hooks).
 
-- **ESLint** checks and auto-fixes code quality issues
-- **Prettier** formats your code
-- **Tests** run on staged test files (in `__tests__/` directories)
-- **commitlint** validates your commit message format
+**Summary:**
+
+- ESLint checks and auto-fixes code quality issues
+- Prettier formats your code automatically
+- Tests run on staged test files (in `__tests__/` directories)
+- commitlint validates your commit message format
 
 If there are unfixable errors or failing tests, the commit will be blocked.
 
 ### Pre-push automation
 
-When you push to remote, the following happens automatically:
+**Full test suite runs automatically when you push.** For details, see [README.md - Git Hooks](./README.md#git-hooks).
 
-- **Full test suite** runs with coverage reporting
-- **Push is blocked** if any tests fail
+**Summary:**
+
+- Full test suite runs with coverage reporting
+- Push is blocked if any tests fail
 
 This ensures only tested, working code reaches the remote repository.
 
@@ -370,37 +370,35 @@ bun run release:patch  # Force patch: 1.0.0 → 1.0.1
 
 ### Linting and Formatting
 
+**For available commands, see [README.md - Code Quality](./README.md#code-quality).**
+
+**Commands:**
+
 ```bash
-# Check for linting issues
-bun run lint
-
-# Auto-fix linting issues
-bun run lint:fix
-
-# Format all code
-bun run format
-
-# Check formatting without changes
-bun run format:check
+bun run lint          # Check for linting errors
+bun run lint:fix      # Auto-fix linting errors
+bun run format        # Format all files with Prettier
+bun run format:check  # Check formatting without changes
 ```
+
+**Standards:**
+
+- ESLint checks code quality, best practices, React rules, TypeScript issues
+- Prettier ensures consistent code style (2-space indents, single quotes, semicolons)
+- Both run automatically on commit via pre-commit hooks
 
 ### Testing
 
+**For test commands, see [README.md - Testing](./README.md#testing).**
+
+**Commands:**
+
 ```bash
-# Run all tests
-bun run test
-
-# Run tests in watch mode
-jest --watchAll
-
-# Run a specific test
-jest path/to/test.spec.ts
-
-# Run tests with coverage
-jest --coverage
-
-# Run tests on staged test files only
-bun run test:staged
+bun run test          # Run all tests
+jest --watchAll       # Run tests in watch mode
+jest path/to/test     # Run a specific test
+bun run test:coverage # Run tests with coverage report
+bun run test:staged   # Run tests on staged test files only
 ```
 
 #### Test Coverage Standards
@@ -413,7 +411,7 @@ This project maintains high test coverage standards:
 
 #### Automated Testing via Git Hooks
 
-Tests are automatically enforced through Git hooks:
+**Tests run automatically via Git hooks.** For details, see [README.md - Git Hooks](./README.md#git-hooks).
 
 **Pre-commit Hook**: Runs tests on staged test files only
 
@@ -446,26 +444,26 @@ When adding new functionality:
 
 ### Building
 
+**For build commands, see [README.md - Build](./README.md#build).**
+
+**Commands:**
+
 ```bash
-# Start development server
-bun run start
-
-# Build for web
-bun run build
-
-# iOS
-npm run ios
-
-# Android
-npm run android
+bun run start    # Start development server
+bun run build    # Build for web (exports to dist/)
+npm run ios      # Run on iOS simulator
+npm run android  # Run on Android emulator
 ```
 
 ## Getting Help
 
-- Check the [README.md](./README.md) for project setup
-- Review [AGENTS.md](./AGENTS.md) for AI agent guidelines
-- Open an issue for bugs or questions
-- Ask in pull request comments for code-specific questions
+- **Project setup and installation**: See [README.md](./README.md)
+- **API integration**: See [README.md - RescueGroups API Integration](./README.md#rescuegroups-api-integration)
+- **Available scripts and commands**: See [README.md - Available Scripts](./README.md#available-scripts)
+- **Git hooks and automation**: See [README.md - Git Hooks](./README.md#git-hooks)
+- **CI/CD pipeline**: See [README.md - CI/CD](./README.md#cicd)
+- **Bug reports or questions**: Open an issue on GitHub
+- **Code-specific questions**: Ask in pull request comments
 
 ## Code of Conduct
 

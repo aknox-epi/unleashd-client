@@ -230,7 +230,9 @@ Coverage reports are generated in `coverage/` (git-ignored). View by opening `co
 
 ### Release
 
-Releases use a dedicated release branch workflow:
+This project uses automated changelog generation and semantic versioning based on conventional commits.
+
+**Release Commands:**
 
 - `bun run release` - Auto-detect version bump and generate changelog
 - `bun run release:major` - Force major version bump (breaking changes)
@@ -238,9 +240,7 @@ Releases use a dedicated release branch workflow:
 - `bun run release:patch` - Force patch version bump (bug fixes)
 - `bun run release:dry` - Preview release without making changes
 
-Release branches merge to `dev` first, then `dev` merges to `main` for production. Always use "Create a merge commit" (not squash merge) to preserve commit history.
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed release workflow.
+**For the complete release workflow** (creating release branches, merging to dev and main), see [CONTRIBUTING.md - Release Process](./CONTRIBUTING.md#release-process).
 
 ## Project Structure
 
@@ -263,7 +263,7 @@ unleashd-client/
 
 ## Development Workflow
 
-This project uses a **modified GitHub Flow** for development. See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed workflow.
+This project uses a **modified GitHub Flow** for development.
 
 ### Branch Structure
 
@@ -271,49 +271,27 @@ This project uses a **modified GitHub Flow** for development. See [CONTRIBUTING.
 - **`dev`** - Current source of truth, all feature work branches from here
 - **Feature branches** - Short-lived branches created from `dev`, merged back to `dev`
 
-### Quick Start
+### Key Principles
 
-1. **Start from dev:**
+1. **`main` is sacred** - Always keep it stable and deployable
+2. **`dev` is the working branch** - All features branch from `dev` and merge to `dev`
+3. **Branch often** - Create a new branch for each feature or fix
+4. **Merge fast** - Keep branches short-lived (hours to days, not weeks)
+5. **Review everything** - All changes go through pull requests
+6. **Delete after merge** - Clean up branches after merging
 
-   ```bash
-   git checkout dev
-   git pull origin dev
-   git checkout -b feature/your-feature-name
-   ```
+### Contributing Code
 
-2. **Make changes and commit:**
+For detailed contributing guidelines including:
 
-   ```bash
-   git add .
-   git commit -m "feat: add your feature"
-   ```
+- Step-by-step development workflow
+- Branch naming conventions
+- Commit message format
+- Pull request guidelines
+- Code quality standards
+- Release process
 
-   Commits must follow [Conventional Commits](https://www.conventionalcommits.org/) format:
-   - `feat:` - New feature
-   - `fix:` - Bug fix
-   - `docs:` - Documentation changes
-   - `chore:` - Maintenance tasks
-   - `refactor:` - Code refactoring
-   - `test:` - Test additions
-   - `style:` - Code formatting
-   - `perf:` - Performance improvements
-
-3. **Push and create PR:**
-
-   ```bash
-   git push -u origin feature/your-feature-name
-   ```
-
-   Then open a Pull Request against `dev` on GitHub.
-
-4. **Review and merge:**
-   - Wait for CI checks to pass
-   - Get review approval (if required)
-   - Merge via GitHub into `dev` using **"Create a merge commit"** (NOT squash merge)
-   - Delete the feature branch
-   - Pull latest `dev`: `git checkout dev && git pull origin dev`
-
-**Important**: Always use "Create a merge commit" when merging PRs. Squash merging breaks commit history and causes conflicts when syncing branches.
+**See [CONTRIBUTING.md](./CONTRIBUTING.md)**
 
 ## Git Hooks
 
@@ -370,13 +348,30 @@ The workflow will show a warning if the API key is not configured but will conti
 
 ## Contributing
 
-We welcome contributions! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for:
+We welcome contributions!
 
-- Development workflow (GitHub Flow)
-- Branch naming conventions
-- Commit message guidelines
-- Pull request process
-- Release process
+**To contribute code:**
+
+1. Read our [CONTRIBUTING.md](./CONTRIBUTING.md) guide for:
+   - Development workflow and branching strategy
+   - Branch naming conventions
+   - Commit message format (Conventional Commits)
+   - Pull request guidelines
+   - Code quality standards and testing requirements
+   - Release process
+
+2. Review the sections above for:
+   - Project setup and installation
+   - Available scripts and commands
+   - API integration details
+   - Git hooks and automation
+
+**Quick Links:**
+
+- [Development Workflow](./CONTRIBUTING.md#development-workflow)
+- [Commit Messages](./CONTRIBUTING.md#commit-messages)
+- [Pull Request Guidelines](./CONTRIBUTING.md#pull-requests)
+- [Release Process](./CONTRIBUTING.md#release-process)
 
 ## Versioning
 

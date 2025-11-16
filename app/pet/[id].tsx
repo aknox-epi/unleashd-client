@@ -1086,6 +1086,8 @@ export default function PetDetailScreen() {
         transparent={false}
         animationType="none"
         onRequestClose={closeFullscreenModal}
+        accessible={true}
+        accessibilityViewIsModal={true}
       >
         <Animated.View
           style={{
@@ -1095,6 +1097,8 @@ export default function PetDetailScreen() {
             opacity: modalOpacity,
           }}
           {...panResponder.panHandlers}
+          accessible={false}
+          importantForAccessibility="no-hide-descendants"
         >
           <StatusBar barStyle="light-content" />
 
@@ -1113,6 +1117,10 @@ export default function PetDetailScreen() {
               alignItems: 'center',
               justifyContent: 'center',
             }}
+            accessible={true}
+            accessibilityRole="button"
+            accessibilityLabel="Close fullscreen image"
+            accessibilityHint="Double tap to close the fullscreen view"
           >
             <X size={24} color="white" />
           </Pressable>
@@ -1205,6 +1213,10 @@ export default function PetDetailScreen() {
                             alignItems: 'center',
                             justifyContent: 'center',
                           }}
+                          accessible={true}
+                          accessibilityRole="button"
+                          accessibilityLabel="Previous image"
+                          accessibilityHint="Double tap to view the previous image"
                         >
                           <ChevronLeft size={24} color="white" />
                         </Pressable>
@@ -1226,6 +1238,10 @@ export default function PetDetailScreen() {
                             alignItems: 'center',
                             justifyContent: 'center',
                           }}
+                          accessible={true}
+                          accessibilityRole="button"
+                          accessibilityLabel="Next image"
+                          accessibilityHint="Double tap to view the next image"
                         >
                           <ChevronRight size={24} color="white" />
                         </Pressable>

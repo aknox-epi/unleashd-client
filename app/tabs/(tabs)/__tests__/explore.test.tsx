@@ -6,7 +6,11 @@ import { FavoritesProvider } from '@/contexts/FavoritesContext';
 import { RescueGroupsProvider } from '@/contexts/RescueGroupsContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { useAnimalSearch } from '@/hooks/useAnimals';
-import type { Sex, GeneralAge } from '@/services/rescuegroups';
+import type {
+  Sex,
+  GeneralAge,
+  GeneralSizePotential,
+} from '@/services/rescuegroups';
 
 // Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () => ({
@@ -77,6 +81,7 @@ describe('Explore Screen - Gender and Age Filter Integration', () => {
         species: 'Dog',
         sex: undefined,
         age: undefined,
+        size: undefined,
         limit: 20,
       });
     });
@@ -102,6 +107,16 @@ describe('Explore Screen - Gender and Age Filter Integration', () => {
     });
   });
 
+  it('should include size parameter in search call structure', async () => {
+    renderWithProviders(<Explore />);
+
+    await waitFor(() => {
+      expect(mockSearch).toHaveBeenCalled();
+      const callArgs = mockSearch.mock.calls[0][0];
+      expect(callArgs).toHaveProperty('size');
+    });
+  });
+
   it('should pass all expected filter parameters to search function', async () => {
     renderWithProviders(<Explore />);
 
@@ -110,6 +125,7 @@ describe('Explore Screen - Gender and Age Filter Integration', () => {
         species: expect.any(String),
         sex: undefined,
         age: undefined,
+        size: undefined,
         limit: expect.any(Number),
       });
     });
@@ -168,6 +184,15 @@ describe('Explore Screen - Gender and Age Filter Integration', () => {
       expect(callArgs.age).toBeUndefined();
     });
   });
+
+  it('should initialize size filter as undefined (All sizes)', async () => {
+    renderWithProviders(<Explore />);
+
+    await waitFor(() => {
+      const callArgs = mockSearch.mock.calls[0][0];
+      expect(callArgs.size).toBeUndefined();
+    });
+  });
 });
 
 describe('Explore Screen - Type Safety', () => {
@@ -183,6 +208,13 @@ describe('Explore Screen - Type Safety', () => {
     // TypeScript will fail to compile if GeneralAge is not exported
     const testValue: GeneralAge = 'Adult';
     expect(testValue).toBe('Adult');
+  });
+
+  it('should import GeneralSizePotential type from rescuegroups service', () => {
+    // This test validates that the type export works at compile time
+    // TypeScript will fail to compile if GeneralSizePotential is not exported
+    const testValue: GeneralSizePotential = 'Large';
+    expect(testValue).toBe('Large');
   });
 });
 

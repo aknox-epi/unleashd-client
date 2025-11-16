@@ -36,6 +36,7 @@ import {
   type AnimalSpecies,
   type Sex,
   type GeneralAge,
+  type GeneralSizePotential,
 } from '@/services/rescuegroups';
 import { isDevelopment } from '@/utils/env';
 import { useWarningToast } from '@/hooks/useWarningToast';
@@ -51,6 +52,7 @@ export default function Explore() {
   );
   const [selectedGender, setSelectedGender] = useState<Sex>('');
   const [selectedAge, setSelectedAge] = useState<GeneralAge>('');
+  const [selectedSize, setSelectedSize] = useState<GeneralSizePotential>('');
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [errorDismissed, setErrorDismissed] = useState(false);
   const [warningsDismissed, setWarningsDismissed] = useState(false);
@@ -82,6 +84,7 @@ export default function Explore() {
       species: selectedSpecies,
       sex: selectedGender || undefined,
       age: selectedAge || undefined,
+      size: selectedSize || undefined,
       limit: 20,
     });
   };
@@ -99,6 +102,7 @@ export default function Explore() {
       species: selectedSpecies,
       sex: selectedGender || undefined,
       age: selectedAge || undefined,
+      size: selectedSize || undefined,
       limit: 20,
     });
     setIsRefreshing(false);
@@ -246,6 +250,35 @@ export default function Explore() {
               <SelectItem label="Young" value="Young" />
               <SelectItem label="Adult" value="Adult" />
               <SelectItem label="Senior" value="Senior" />
+            </SelectContent>
+          </SelectPortal>
+        </Select>
+
+        <Select
+          selectedValue={selectedSize}
+          onValueChange={(value) => {
+            try {
+              Haptics.selectionAsync();
+            } catch {
+              // Haptics not supported on web, ignore
+            }
+            setSelectedSize(value as GeneralSizePotential);
+          }}
+        >
+          <SelectTrigger variant="outline" size="md">
+            <SelectInput placeholder="Size (All)" />
+          </SelectTrigger>
+          <SelectPortal>
+            <SelectBackdrop />
+            <SelectContent>
+              <SelectDragIndicatorWrapper>
+                <SelectDragIndicator />
+              </SelectDragIndicatorWrapper>
+              <SelectItem label="All Sizes" value="" />
+              <SelectItem label="Small" value="Small" />
+              <SelectItem label="Medium" value="Medium" />
+              <SelectItem label="Large" value="Large" />
+              <SelectItem label="X-Large" value="X-Large" />
             </SelectContent>
           </SelectPortal>
         </Select>

@@ -29,7 +29,7 @@ const STORAGE_KEYS = {
 
 // Default preferences
 const DEFAULT_PREFERENCES: WhatsNewPreferences = {
-  enabled: false, // Opt-in by default
+  enabled: true, // Enabled by default
   lastSeenVersion: null,
 };
 

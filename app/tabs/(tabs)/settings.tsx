@@ -61,9 +61,19 @@ export default function Settings() {
     setFilters,
     isDrawerOpen,
     closeDrawer,
+    hasNewVersion,
+    markVersionAsSeen,
   } = useWhatsNew();
   const isDarkMode = colorMode === 'dark';
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(true);
+
+  // Handle drawer close - mark version as seen if there's a new version
+  const handleDrawerClose = () => {
+    if (hasNewVersion) {
+      markVersionAsSeen();
+    }
+    closeDrawer();
+  };
 
   // Get all unique section types across all changelogs
   const allSectionTypes = Array.from(
@@ -163,7 +173,7 @@ export default function Settings() {
       </ScrollView>
 
       {/* What's New Drawer */}
-      <Drawer isOpen={isDrawerOpen} onClose={closeDrawer} size="lg">
+      <Drawer isOpen={isDrawerOpen} onClose={handleDrawerClose} size="lg">
         <DrawerBackdrop />
         <DrawerContent className="flex flex-col overflow-hidden px-3 py-6">
           <DrawerHeader className="shrink-0">

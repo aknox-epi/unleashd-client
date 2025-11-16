@@ -164,14 +164,6 @@ export class RescueGroupsClient {
 
       const data = (await response.json()) as RescueGroupsResponse<T>;
 
-      // Log warnings/messages
-      if (data.messages?.generalMessages) {
-        console.warn(
-          '[RescueGroups API] Messages:',
-          data.messages.generalMessages.map((m) => m.messageText)
-        );
-      }
-
       if (data.status === 'error') {
         const errorMessages = this.extractErrorMessages(data);
         throw this.createError(

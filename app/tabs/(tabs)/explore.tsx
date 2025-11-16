@@ -10,6 +10,7 @@ import {
   ArrowUp,
   Filter,
   ChevronDown,
+  MapPin,
 } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { Button, ButtonText } from '@/components/ui/button';
@@ -21,6 +22,7 @@ import { HStack } from '@/components/ui/hstack';
 import { Spinner } from '@/components/ui/spinner';
 import { Icon } from '@/components/ui/icon';
 import { Box } from '@/components/ui/box';
+import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
 import {
   Accordion,
   AccordionItem,
@@ -58,6 +60,11 @@ import {
 import { isDevelopment } from '@/utils/env';
 import { useWarningToast } from '@/hooks/useWarningToast';
 import { useTheme } from '@/contexts/ThemeContext';
+import {
+  isValidZipCode,
+  formatZipCode,
+  getBaseZipCode,
+} from '@/utils/zipCodeValidation';
 
 export default function Explore() {
   const { search, loadMore, results, total, hasMore, isLoading, error } =
@@ -70,6 +77,9 @@ export default function Explore() {
   const [selectedGender, setSelectedGender] = useState<Sex>('');
   const [selectedAge, setSelectedAge] = useState<GeneralAge>('');
   const [selectedSize, setSelectedSize] = useState<GeneralSizePotential>('');
+  const [zipCode, setZipCode] = useState('');
+  const [radius, setRadius] = useState<number | ''>('');
+  const [zipCodeError, setZipCodeError] = useState('');
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [errorDismissed, setErrorDismissed] = useState(false);
   const [warningsDismissed, setWarningsDismissed] = useState(false);
@@ -94,6 +104,13 @@ export default function Explore() {
     } catch {
       // Haptics not supported on web, ignore
     }
+
+    // Validate zip code before searching
+    if (zipCode && !isValidZipCode(zipCode)) {
+      setZipCodeError('Please enter a valid 5-digit ZIP code');
+      return;
+    }
+
     setSearchPerformed(true);
     setErrorDismissed(false);
     setWarningsDismissed(false);
@@ -102,6 +119,11 @@ export default function Explore() {
       sex: selectedGender || undefined,
       age: selectedAge || undefined,
       size: selectedSize || undefined,
+      location:
+        zipCode && isValidZipCode(zipCode)
+          ? getBaseZipCode(zipCode)
+          : undefined,
+      radius: radius || undefined,
       limit: 20,
     });
   };
@@ -120,6 +142,11 @@ export default function Explore() {
       sex: selectedGender || undefined,
       age: selectedAge || undefined,
       size: selectedSize || undefined,
+      location:
+        zipCode && isValidZipCode(zipCode)
+          ? getBaseZipCode(zipCode)
+          : undefined,
+      radius: radius || undefined,
       limit: 20,
     });
     setIsRefreshing(false);
@@ -159,6 +186,8 @@ export default function Explore() {
     if (selectedGender) count++;
     if (selectedAge) count++;
     if (selectedSize) count++;
+    if (zipCode && isValidZipCode(zipCode)) count++;
+    if (radius) count++;
     return count;
   };
 
@@ -171,6 +200,27 @@ export default function Explore() {
     setSelectedGender('');
     setSelectedAge('');
     setSelectedSize('');
+    setZipCode('');
+    setRadius('');
+    setZipCodeError('');
+  };
+
+  const handleZipCodeChange = (value: string) => {
+    const formatted = formatZipCode(value);
+    setZipCode(formatted);
+
+    // Clear error when user starts typing
+    if (zipCodeError) {
+      setZipCodeError('');
+    }
+  };
+
+  const validateZipCodeOnBlur = () => {
+    if (zipCode && !isValidZipCode(zipCode)) {
+      setZipCodeError('Please enter a valid 5-digit ZIP code');
+    } else {
+      setZipCodeError('');
+    }
   };
 
   const renderHeader = () => {
@@ -334,6 +384,72 @@ export default function Explore() {
                         <SelectItem label="Medium" value="Medium" />
                         <SelectItem label="Large" value="Large" />
                         <SelectItem label="X-Large" value="X-Large" />
+                      </SelectContent>
+                    </SelectPortal>
+                  </Select>
+
+                  <VStack space="sm">
+                    <Text className="text-sm font-medium text-typography-600">
+                      Location (Optional)
+                    </Text>
+                    <Input
+                      variant="outline"
+                      size="md"
+                      isInvalid={!!zipCodeError}
+                    >
+                      <InputSlot className="pl-3">
+                        <InputIcon as={MapPin} />
+                      </InputSlot>
+                      <InputField
+                        placeholder="ZIP Code"
+                        value={zipCode}
+                        onChangeText={handleZipCodeChange}
+                        onBlur={validateZipCodeOnBlur}
+                        keyboardType="number-pad"
+                        maxLength={10}
+                      />
+                    </Input>
+                    {zipCodeError && (
+                      <Text className="text-xs text-error-600">
+                        {zipCodeError}
+                      </Text>
+                    )}
+                  </VStack>
+
+                  <Select
+                    selectedValue={radius ? radius.toString() : ''}
+                    onValueChange={(value) => {
+                      try {
+                        Haptics.selectionAsync();
+                      } catch {
+                        // Haptics not supported on web, ignore
+                      }
+                      setRadius(value ? Number(value) : '');
+                    }}
+                    isDisabled={!zipCode || !!zipCodeError}
+                  >
+                    <SelectTrigger variant="outline" size="md">
+                      <SelectInput
+                        placeholder={
+                          !zipCode
+                            ? 'Distance (Enter ZIP first)'
+                            : 'Distance (Any)'
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectPortal>
+                      <SelectBackdrop />
+                      <SelectContent>
+                        <SelectDragIndicatorWrapper>
+                          <SelectDragIndicator />
+                        </SelectDragIndicatorWrapper>
+                        <SelectItem label="Any Distance" value="" />
+                        <SelectItem label="10 miles" value="10" />
+                        <SelectItem label="25 miles" value="25" />
+                        <SelectItem label="50 miles" value="50" />
+                        <SelectItem label="100 miles" value="100" />
+                        <SelectItem label="250 miles" value="250" />
+                        <SelectItem label="500 miles" value="500" />
                       </SelectContent>
                     </SelectPortal>
                   </Select>

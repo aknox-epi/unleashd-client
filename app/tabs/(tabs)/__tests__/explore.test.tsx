@@ -82,6 +82,8 @@ describe('Explore Screen - Gender and Age Filter Integration', () => {
         sex: undefined,
         age: undefined,
         size: undefined,
+        location: undefined,
+        radius: undefined,
         limit: 20,
       });
     });
@@ -126,6 +128,8 @@ describe('Explore Screen - Gender and Age Filter Integration', () => {
         sex: undefined,
         age: undefined,
         size: undefined,
+        location: undefined,
+        radius: undefined,
         limit: expect.any(Number),
       });
     });
@@ -191,6 +195,44 @@ describe('Explore Screen - Gender and Age Filter Integration', () => {
     await waitFor(() => {
       const callArgs = mockSearch.mock.calls[0][0];
       expect(callArgs.size).toBeUndefined();
+    });
+  });
+
+  it('should include location parameter in search call structure', async () => {
+    renderWithProviders(<Explore />);
+
+    await waitFor(() => {
+      expect(mockSearch).toHaveBeenCalled();
+      const callArgs = mockSearch.mock.calls[0][0];
+      expect(callArgs).toHaveProperty('location');
+    });
+  });
+
+  it('should include radius parameter in search call structure', async () => {
+    renderWithProviders(<Explore />);
+
+    await waitFor(() => {
+      expect(mockSearch).toHaveBeenCalled();
+      const callArgs = mockSearch.mock.calls[0][0];
+      expect(callArgs).toHaveProperty('radius');
+    });
+  });
+
+  it('should initialize location filter as undefined', async () => {
+    renderWithProviders(<Explore />);
+
+    await waitFor(() => {
+      const callArgs = mockSearch.mock.calls[0][0];
+      expect(callArgs.location).toBeUndefined();
+    });
+  });
+
+  it('should initialize radius filter as undefined', async () => {
+    renderWithProviders(<Explore />);
+
+    await waitFor(() => {
+      const callArgs = mockSearch.mock.calls[0][0];
+      expect(callArgs.radius).toBeUndefined();
     });
   });
 });

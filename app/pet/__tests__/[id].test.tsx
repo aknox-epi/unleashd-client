@@ -6,6 +6,7 @@ import PetDetailScreen from '../[id]';
 import { animalService, organizationService } from '@/services/rescuegroups';
 import type { Animal, Organization } from '@/services/rescuegroups';
 import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
+import { FavoritesProvider } from '@/contexts/FavoritesContext';
 
 // Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () => ({
@@ -62,7 +63,9 @@ jest.mock('nativewind', () => ({
 // Helper function to render with providers
 const renderWithProviders = (component: React.ReactElement) => {
   return render(
-    <GluestackUIProvider mode="light">{component}</GluestackUIProvider>
+    <FavoritesProvider>
+      <GluestackUIProvider mode="light">{component}</GluestackUIProvider>
+    </FavoritesProvider>
   );
 };
 

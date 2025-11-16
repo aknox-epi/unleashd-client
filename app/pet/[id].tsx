@@ -52,15 +52,18 @@ import {
   ActionsheetIcon,
 } from '@/components/ui/actionsheet';
 import { SpeciesBadge } from '@/components/SpeciesBadge';
+import { useFavorites } from '@/contexts/FavoritesContext';
 import { animalService, organizationService } from '@/services/rescuegroups';
 import {
   getErrorMessage,
   type Animal,
   type Organization,
 } from '@/services/rescuegroups';
+import type { FavoriteAnimal } from '@/types/favorites';
 
 export default function PetDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { isFavorite, toggleFavorite } = useFavorites();
   // Subscribe to theme changes to ensure component re-renders when theme updates
   const [animal, setAnimal] = useState<Animal | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -130,9 +133,45 @@ export default function PetDetailScreen() {
     }
   };
 
-  const handleBack = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.back();
+  const handleBack = async () => {
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch {
+      // Haptics not supported on web, ignore
+    }
+
+    // Check if we can go back, otherwise navigate to explore
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.push('/tabs/explore');
+    }
+  };
+
+  const handleFavorite = async () => {
+    if (!animal) return;
+
+    // Haptic feedback
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch {
+      // Haptics not supported on web, ignore
+    }
+
+    // Convert Animal to FavoriteAnimal
+    const favoriteAnimal: FavoriteAnimal = {
+      animalID: animal.animalID,
+      animalName: animal.animalName,
+      animalSpecies: animal.animalSpecies,
+      animalThumbnailUrl: animal.animalThumbnailUrl,
+      animalBreed: animal.animalBreed,
+      animalLocationCitystate: animal.animalLocationCitystate,
+      animalGeneralAge: animal.animalGeneralAge,
+      animalSex: animal.animalSex,
+      favoritedAt: Date.now(),
+    };
+
+    await toggleFavorite(favoriteAnimal);
   };
 
   const getMapsUrl = () => {
@@ -552,9 +591,11 @@ export default function PetDetailScreen() {
           options={{
             title: 'Loading...',
             headerLeft: () => (
-              <Button variant="link" size="sm" onPress={handleBack}>
-                <ButtonIcon as={ArrowLeft} />
-              </Button>
+              <Box className="ml-2">
+                <Button variant="link" size="md" onPress={handleBack}>
+                  <ButtonIcon as={ArrowLeft} size="xl" />
+                </Button>
+              </Box>
             ),
           }}
         />
@@ -572,9 +613,11 @@ export default function PetDetailScreen() {
           options={{
             title: 'Error',
             headerLeft: () => (
-              <Button variant="link" size="sm" onPress={handleBack}>
-                <ButtonIcon as={ArrowLeft} />
-              </Button>
+              <Box className="ml-2">
+                <Button variant="link" size="md" onPress={handleBack}>
+                  <ButtonIcon as={ArrowLeft} size="xl" />
+                </Button>
+              </Box>
             ),
           }}
         />
@@ -602,19 +645,32 @@ export default function PetDetailScreen() {
           title: animal.animalName,
           gestureEnabled: true,
           headerLeft: () => (
-            <Button variant="link" size="sm" onPress={handleBack}>
-              <ButtonIcon as={ArrowLeft} />
-            </Button>
+            <Box className="ml-2">
+              <Button variant="link" size="md" onPress={handleBack}>
+                <ButtonIcon as={ArrowLeft} size="xl" />
+              </Button>
+            </Box>
           ),
           headerRight: () => (
-            <HStack space="sm">
-              <Button variant="link" size="sm" onPress={handleShare}>
-                <ButtonIcon as={Share2} />
-              </Button>
-              <Button variant="link" size="sm">
-                <ButtonIcon as={Heart} />
-              </Button>
-            </HStack>
+            <Box className="mr-2">
+              <HStack space="md">
+                <Button variant="link" size="md" onPress={handleShare}>
+                  <ButtonIcon as={Share2} size="xl" />
+                </Button>
+                <Button variant="link" size="md" onPress={handleFavorite}>
+                  <ButtonIcon
+                    as={Heart}
+                    size="xl"
+                    fill={isFavorite(animal.animalID) ? 'currentColor' : 'none'}
+                    className={
+                      isFavorite(animal.animalID)
+                        ? 'text-error-500'
+                        : 'text-typography-700'
+                    }
+                  />
+                </Button>
+              </HStack>
+            </Box>
           ),
         }}
       />

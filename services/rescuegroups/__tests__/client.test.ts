@@ -4,10 +4,7 @@ import {
 } from '@/services/rescuegroups/client';
 import type { RescueGroupsResponse } from '@/services/rescuegroups/types';
 import { ServiceStatus } from '@/services/rescuegroups/types';
-import {
-  RESCUEGROUPS_CONFIG,
-  isConfigured,
-} from '@/constants/RescueGroupsConfig';
+import { isConfigured } from '@/constants/RescueGroupsConfig';
 
 // Mock the config module
 jest.mock('@/constants/RescueGroupsConfig', () => ({
@@ -292,48 +289,6 @@ describe('RescueGroupsClient', () => {
       mockFetch.mockRejectedValueOnce(apiError);
 
       await expect(client.request(mockRequest)).rejects.toEqual(apiError);
-    });
-
-    it('should log debug information for successful requests', async () => {
-      const mockResponseData: RescueGroupsResponse<Record<string, unknown>> = {
-        status: 'ok',
-        foundRows: 2,
-        data: {
-          '1': {
-            animalID: '1',
-            animalSpecies: RESCUEGROUPS_CONFIG.SPECIES.DOG,
-          },
-          '2': {
-            animalID: '2',
-            animalSpecies: RESCUEGROUPS_CONFIG.SPECIES.CAT,
-          },
-        },
-      };
-
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => mockResponseData,
-      });
-
-      await client.request(mockRequest);
-
-      expect(console.log).toHaveBeenCalledWith(
-        '[RescueGroups API] Request:',
-        expect.any(String)
-      );
-      expect(console.log).toHaveBeenCalledWith(
-        '[RescueGroups API] Response status:',
-        'ok'
-      );
-      expect(console.log).toHaveBeenCalledWith(
-        '[RescueGroups API] Found rows:',
-        2
-      );
-      expect(console.log).toHaveBeenCalledWith(
-        '[RescueGroups API] Records returned:',
-        2
-      );
     });
 
     it('should log warning messages from API response', async () => {

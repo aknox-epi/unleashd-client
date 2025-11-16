@@ -16,6 +16,7 @@ import {
   useTheme,
 } from '@/contexts/ThemeContext';
 import { WhatsNewProvider } from '@/contexts/WhatsNewContext';
+import { FavoritesProvider } from '@/contexts/FavoritesContext';
 import { CHANGELOG_CONTENT } from '@/constants/changelog';
 
 // Get version from package.json
@@ -47,12 +48,14 @@ export default function RootLayout() {
 
   return (
     <CustomThemeProvider>
-      <WhatsNewProvider
-        changelogContent={CHANGELOG_CONTENT}
-        currentVersion={APP_VERSION}
-      >
-        <RootLayoutNav />
-      </WhatsNewProvider>
+      <FavoritesProvider>
+        <WhatsNewProvider
+          changelogContent={CHANGELOG_CONTENT}
+          currentVersion={APP_VERSION}
+        >
+          <RootLayoutNav />
+        </WhatsNewProvider>
+      </FavoritesProvider>
     </CustomThemeProvider>
   );
 }

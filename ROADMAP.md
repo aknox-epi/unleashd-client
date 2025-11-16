@@ -28,6 +28,14 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - Image fallbacks with species-specific icons (64px icons for animals without photos)
 - Theme-aware styling (light/dark mode support)
 
+**UX Enhancements:**
+
+- Loading skeleton animations (5 skeleton cards during initial load)
+- Enhanced empty states with visual icons (Search, SearchX, AlertCircle)
+- Haptic feedback on interactions (search, refresh, card taps, species selector)
+- Scroll-to-top FAB button (appears after 300px scroll with fade animation)
+- Theme-aware RefreshControl styling (dynamic colors for light/dark mode)
+
 #### 📱 Pet Details & Gallery
 
 **Detail Screen:**
@@ -39,6 +47,14 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - Adoption fee with smart formatting (auto-adds $ prefix)
 - Theme-aware background styling (bg-background-0)
 - Image validation to prevent empty boxes
+
+**Navigation:**
+
+- Native back button support for iOS/Android (Stack navigator)
+- Gesture-based navigation (iOS swipe-back support)
+- Haptic feedback on back button interactions
+- Cross-platform navigation consistency (mobile + web)
+- Proper navigation hierarchy (root Stack → tabs → detail screens)
 
 **Photo Gallery:**
 
@@ -168,7 +184,7 @@ This document outlines potential features and enhancements for the Unleashd pet 
 
 #### 🗂️ Project Structure
 
-- Tab-based navigation (Explore, Settings, Status)
+- Tab-based navigation (Explore, Favorites, Settings, Status)
 - File-based routing with Expo Router
 - GlueStack UI + NativeWind (Tailwind CSS) styling
 - TypeScript strict mode enabled
@@ -179,6 +195,35 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - Service layer architecture (rescuegroups services)
 - Context providers for global state
 - Custom hooks for data fetching
+
+#### ⭐ Favorites & Saved Pets
+
+**Core Functionality:**
+
+- Favorite/save pets from card and detail screens
+- Heart button with haptic feedback on interactions
+- Visual indicators for favorited pets (filled red heart)
+- Persist favorites locally with AsyncStorage
+- Dedicated Favorites tab in navigation
+- Remove from favorites functionality
+- Favorites count badge on tab icon
+
+**Favorites Tab:**
+
+- Grid display of favorited pets
+- Pull-to-refresh functionality
+- Empty state with helpful message
+- Sort by most recently favorited
+- Tap to view pet details
+- Favorites counter in header
+
+**Implementation:**
+
+- FavoritesContext with React Context API
+- O(1) favorite lookup performance (Set-based)
+- Versioned storage schema for future migrations
+- 100% test coverage (20 comprehensive tests)
+- Optimistic updates for instant UI feedback
 
 ## Planned Features
 
@@ -209,23 +254,8 @@ This document outlines potential features and enhancements for the Unleashd pet 
 #### Interactive Features
 
 - Pinch-to-zoom for images
-- Share pet profiles via social media
-- Share via text/email
 - Add notes/comments for saved pets
 - Mark pet as "contacted" or "applied"
-
-### ⭐ Favorites & Saved Pets
-
-#### Favorites System
-
-- Add ability to favorite/save pets
-- Create favorites tab or section in Explore
-- Persist favorites locally (AsyncStorage)
-- Visual indicator for favorited pets in search results
-- Remove from favorites functionality
-- Add to favorites from both card and detail screen
-- Favorites count badge
-- Sync favorites across devices (future: requires backend)
 
 ### ⚙️ Settings Enhancements
 
@@ -307,13 +337,6 @@ Priority order for next features (subject to change):
 
 1. **High Priority** (Next Sprint)
 
-   **Favorites/Saved Pets System** - Most requested user feature
-   - Add favorite button to AnimalCard and detail screen
-   - Create favorites storage with AsyncStorage
-   - Add favorites tab/section to Explore
-   - Visual indicators for favorited pets in search results
-   - Remove from favorites functionality
-
    **Advanced Filtering** - Enhance search capabilities
    - Age range filter (puppy/kitten, young, adult, senior)
    - Size filter (small, medium, large, extra large)
@@ -334,13 +357,12 @@ Priority order for next features (subject to change):
    - Default pet type preference
    - Search radius preference
    - Display preferences (grid/list)
-   - Clear cache functionality
+   - Clear favorites functionality (in Settings)
 
    **Pet Details Polish** - Improve detail screen UX
-   - Share pet functionality
    - Pinch-to-zoom for images
-   - Add to favorites from detail screen
    - Recently viewed pets tracking
+   - Add notes/comments for favorited pets
 
 3. **Low Priority** (Future Sprints)
    - Status tab detailed metrics and dashboard

@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Pressable } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import {
   Dog,
   Cat,
   Bird,
   Rabbit,
   Image as ImageIcon,
+  Heart,
 } from 'lucide-react-native';
 import { Box } from '@/components/ui/box';
 import { HStack } from '@/components/ui/hstack';
@@ -14,7 +16,9 @@ import { Heading } from '@/components/ui/heading';
 import { Text } from '@/components/ui/text';
 import { Image } from '@/components/ui/image';
 import { Icon } from '@/components/ui/icon';
+import { useFavorites } from '@/contexts/FavoritesContext';
 import type { Animal } from '@/services/rescuegroups';
+import type { FavoriteAnimal } from '@/types/favorites';
 
 interface AnimalCardProps {
   animal: Animal;
@@ -72,7 +76,7 @@ function ImageFallback({
 
   return (
     <Box
-      className={`h-32 w-32 rounded-lg border ${
+      className={`h-24 w-24 rounded-lg border ${
         isDarkMode
           ? 'bg-background-100 border-outline-300'
           : 'bg-background-50 border-outline-200'
@@ -80,7 +84,7 @@ function ImageFallback({
     >
       <Icon
         as={SpeciesIcon}
-        size="xl"
+        size="lg"
         className={isDarkMode ? 'text-typography-400' : 'text-typography-300'}
       />
     </Box>
@@ -97,8 +101,10 @@ export function AnimalCard({
   isDarkMode = false,
 }: AnimalCardProps) {
   const [hasImageError, setHasImageError] = useState(false);
+  const { isFavorite, toggleFavorite } = useFavorites();
   const imageUrl = getAnimalImageUrl(animal);
   const shouldShowFallback = !imageUrl || hasImageError;
+  const favorited = isFavorite(animal.animalID);
 
   const handlePress = () => {
     if (onPress) {
@@ -106,11 +112,60 @@ export function AnimalCard({
     }
   };
 
+  const handleFavoritePress = async (e: React.BaseSyntheticEvent) => {
+    // Stop event propagation to prevent card press
+    e.stopPropagation();
+
+    // Haptic feedback
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch {
+      // Haptics not supported on web, ignore
+    }
+
+    // Convert Animal to FavoriteAnimal
+    const favoriteAnimal: FavoriteAnimal = {
+      animalID: animal.animalID,
+      animalName: animal.animalName,
+      animalSpecies: animal.animalSpecies,
+      animalThumbnailUrl: animal.animalThumbnailUrl,
+      animalBreed: animal.animalBreed,
+      animalLocationCitystate: animal.animalLocationCitystate,
+      animalGeneralAge: animal.animalGeneralAge,
+      animalSex: animal.animalSex,
+      favoritedAt: Date.now(),
+    };
+
+    await toggleFavorite(favoriteAnimal);
+  };
+
   const content = (
     <VStack
-      className="border border-outline-200 rounded-lg p-4 bg-background-0"
+      className="border border-outline-200 rounded-lg p-3 bg-background-0 relative"
       space="sm"
     >
+      {/* Favorite button - absolute positioned top-right */}
+      <Box className="absolute top-2 right-2 z-10">
+        <Pressable
+          onPress={handleFavoritePress}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          testID={`favorite-button-${animal.animalID}`}
+        >
+          <Icon
+            as={Heart}
+            size="lg"
+            className={
+              favorited
+                ? 'text-error-500'
+                : isDarkMode
+                  ? 'text-typography-400'
+                  : 'text-typography-300'
+            }
+            fill={favorited ? 'currentColor' : 'none'}
+          />
+        </Pressable>
+      </Box>
+
       <HStack space="md">
         {shouldShowFallback ? (
           <ImageFallback
@@ -120,37 +175,38 @@ export function AnimalCard({
         ) : (
           <Image
             source={{ uri: imageUrl }}
-            size="xl"
+            size="lg"
             alt={animal.animalName}
             className="rounded-lg"
             onError={() => setHasImageError(true)}
           />
         )}
-        <VStack space="sm" className="flex-1">
+        <VStack space="xs" className="flex-1 shrink pr-8">
           <Heading size="sm" className="font-semibold">
             {animal.animalName}
           </Heading>
-          <HStack space="sm">
-            <Text className="text-typography-500">{animal.animalSpecies}</Text>
+          <VStack space="xs">
+            <Text size="sm" className="text-typography-500">
+              {animal.animalSpecies}
+            </Text>
             {animal.animalBreed && (
-              <>
-                <Text className="text-typography-500">•</Text>
-                <Text className="text-typography-500">
-                  {animal.animalBreed}
-                </Text>
-              </>
+              <Text size="sm" className="text-typography-500 flex-wrap">
+                {animal.animalBreed}
+              </Text>
             )}
-          </HStack>
+          </VStack>
           {animal.animalGeneralAge && (
-            <Text className="text-typography-500">
+            <Text size="sm" className="text-typography-500">
               Age: {animal.animalGeneralAge}
             </Text>
           )}
           {animal.animalSex && (
-            <Text className="text-typography-500">Sex: {animal.animalSex}</Text>
+            <Text size="sm" className="text-typography-500">
+              Sex: {animal.animalSex}
+            </Text>
           )}
           {animal.animalLocationCitystate && (
-            <Text className="text-typography-400 text-sm">
+            <Text size="xs" className="text-typography-400">
               Location: {animal.animalLocationCitystate}
             </Text>
           )}

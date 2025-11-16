@@ -15,6 +15,7 @@ import {
   PanResponder,
   Animated,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
 import {
   ArrowLeft,
@@ -127,6 +128,11 @@ export default function PetDetailScreen() {
     } catch {
       // User cancelled or error occurred
     }
+  };
+
+  const handleBack = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.back();
   };
 
   const getMapsUrl = () => {
@@ -546,7 +552,7 @@ export default function PetDetailScreen() {
           options={{
             title: 'Loading...',
             headerLeft: () => (
-              <Button variant="link" size="sm" onPress={() => router.back()}>
+              <Button variant="link" size="sm" onPress={handleBack}>
                 <ButtonIcon as={ArrowLeft} />
               </Button>
             ),
@@ -566,7 +572,7 @@ export default function PetDetailScreen() {
           options={{
             title: 'Error',
             headerLeft: () => (
-              <Button variant="link" size="sm" onPress={() => router.back()}>
+              <Button variant="link" size="sm" onPress={handleBack}>
                 <ButtonIcon as={ArrowLeft} />
               </Button>
             ),
@@ -596,7 +602,7 @@ export default function PetDetailScreen() {
           title: animal.animalName,
           gestureEnabled: true,
           headerLeft: () => (
-            <Button variant="link" size="sm" onPress={() => router.back()}>
+            <Button variant="link" size="sm" onPress={handleBack}>
               <ButtonIcon as={ArrowLeft} />
             </Button>
           ),

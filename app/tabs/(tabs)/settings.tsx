@@ -275,9 +275,9 @@ export default function Settings() {
 
               {/* Changelog Display */}
               {filteredChangelogs.length > 0 ? (
-                filteredChangelogs.map((changelog, changelogIndex) => (
+                filteredChangelogs.map((changelog) => (
                   <VStack
-                    key={changelogIndex}
+                    key={changelog.version}
                     className="gap-3 pb-4 border-b border-outline-100 last:border-b-0"
                   >
                     <HStack className="items-center gap-2">
@@ -289,14 +289,20 @@ export default function Settings() {
                       </Text>
                     </HStack>
 
-                    {changelog.sections.map((section, sectionIndex) => (
-                      <VStack key={sectionIndex} className="gap-2">
+                    {changelog.sections.map((section) => (
+                      <VStack
+                        key={`${changelog.version}-${section.title}`}
+                        className="gap-2"
+                      >
                         <Heading size="sm" className="font-semibold">
                           {section.title}
                         </Heading>
                         <VStack className="gap-1">
                           {section.items.map((item, itemIndex) => (
-                            <HStack key={itemIndex} className="gap-2">
+                            <HStack
+                              key={`${changelog.version}-${section.title}-${itemIndex}`}
+                              className="gap-2"
+                            >
                               <Text className="text-typography-700">•</Text>
                               <Text className="flex-1">
                                 {item.text}

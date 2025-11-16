@@ -98,6 +98,14 @@ export default function Settings() {
     closeDrawer();
   };
 
+  // Handle drawer close - mark version as seen if there's a new version
+  const handleDrawerClose = () => {
+    if (hasNewVersion) {
+      markVersionAsSeen();
+    }
+    closeDrawer();
+  };
+
   // Get all unique section types across all changelogs
   const allSectionTypes = Array.from(
     new Set(

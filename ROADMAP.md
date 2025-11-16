@@ -21,6 +21,11 @@ This document outlines potential features and enhancements for the Unleashd pet 
 
 - Species filter (Dog, Cat, Bird, Rabbit, Small Animal, Horse, Reptile, Barnyard)
 - Species selector dropdown with icon indicators
+- Gender filter (Male, Female, All) - ✅ Added in v0.1.0
+- Age filter (Baby, Young, Adult, Senior, All) - ✅ Added in v0.1.0
+- Size filter (Small, Medium, Large, X-Large, All) - ✅ Added in v0.1.0
+- Collapsible filter accordion with active filter count indicator - ✅ Added in v0.1.0
+- "Clear All Filters" button - ✅ Added in v0.1.0
 
 **Display Components:**
 
@@ -231,13 +236,13 @@ This document outlines potential features and enhancements for the Unleashd pet 
 
 #### Advanced Filtering
 
-- Filter by age range (puppy/kitten, young, adult, senior)
-- Filter by size (small, medium, large, extra large)
+- ✅ ~~Filter by age range (puppy/kitten, young, adult, senior)~~ - Completed in v0.1.0
+- ✅ ~~Filter by size (small, medium, large, extra large)~~ - Completed in v0.1.0
+- ✅ ~~Filter by gender (male, female, unknown)~~ - Completed in v0.1.0
 - Filter by location/distance (zip code + radius)
-- Filter by gender (male, female, unknown)
 - Filter by special needs
 - Filter by good with kids/dogs/cats
-- Multi-filter support (combine multiple filters)
+- ✅ ~~Multi-filter support (combine multiple filters)~~ - Completed in v0.1.0
 - Save filter preferences locally
 
 #### Sorting & Organization
@@ -279,6 +284,14 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - Export/import favorites (backup)
 
 #### What's New / Changelog Enhancements
+
+**Known Issues to Fix:**
+
+- 🐛 Fix double-click bug on sparkle icon when new updates available (currently requires two clicks to open drawer)
+- 🐛 Ensure "What's New" notifications are enabled by default for all users
+- 🐛 Fix changelog parsing to pull from latest CHANGELOG.md entries
+
+**Future Enhancements:**
 
 - Push notifications for app updates (requires Expo Notifications)
 - Deep links from changelog items to specific features
@@ -338,11 +351,11 @@ Priority order for next features (subject to change):
 1. **High Priority** (Next Sprint)
 
    **Advanced Filtering** - Enhance search capabilities
-   - Age range filter (puppy/kitten, young, adult, senior)
-   - Size filter (small, medium, large, extra large)
-   - Location/distance filter (zip code + radius)
-   - Gender filter
-   - Multi-filter support (combine filters)
+   - ✅ ~~Age range filter (Baby, Young, Adult, Senior)~~ - Completed
+   - ✅ ~~Size filter (Small, Medium, Large, X-Large)~~ - Completed
+   - ✅ ~~Gender filter (Male, Female)~~ - Completed
+   - ✅ ~~Multi-filter support (combine filters)~~ - Completed
+   - Location/distance filter (zip code + radius) - **In Progress**
 
 2. **Medium Priority** (Next 2-3 Sprints)
 

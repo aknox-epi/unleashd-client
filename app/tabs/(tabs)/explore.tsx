@@ -34,6 +34,8 @@ import {
   getErrorMessage,
   type Animal,
   type AnimalSpecies,
+  type Sex,
+  type GeneralAge,
 } from '@/services/rescuegroups';
 import { isDevelopment } from '@/utils/env';
 import { useWarningToast } from '@/hooks/useWarningToast';
@@ -47,6 +49,8 @@ export default function Explore() {
   const [selectedSpecies, setSelectedSpecies] = useState<AnimalSpecies>(
     RESCUEGROUPS_CONFIG.SPECIES.DOG
   );
+  const [selectedGender, setSelectedGender] = useState<Sex>('');
+  const [selectedAge, setSelectedAge] = useState<GeneralAge>('');
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [errorDismissed, setErrorDismissed] = useState(false);
   const [warningsDismissed, setWarningsDismissed] = useState(false);
@@ -76,6 +80,8 @@ export default function Explore() {
     setWarningsDismissed(false);
     await search({
       species: selectedSpecies,
+      sex: selectedGender || undefined,
+      age: selectedAge || undefined,
       limit: 20,
     });
   };
@@ -91,6 +97,8 @@ export default function Explore() {
     setWarningsDismissed(false);
     await search({
       species: selectedSpecies,
+      sex: selectedGender || undefined,
+      age: selectedAge || undefined,
       limit: 20,
     });
     setIsRefreshing(false);
@@ -182,6 +190,62 @@ export default function Explore() {
                 label="Barnyard"
                 value={RESCUEGROUPS_CONFIG.SPECIES.BARNYARD}
               />
+            </SelectContent>
+          </SelectPortal>
+        </Select>
+
+        <Select
+          selectedValue={selectedGender}
+          onValueChange={(value) => {
+            try {
+              Haptics.selectionAsync();
+            } catch {
+              // Haptics not supported on web, ignore
+            }
+            setSelectedGender(value as Sex);
+          }}
+        >
+          <SelectTrigger variant="outline" size="md">
+            <SelectInput placeholder="Gender (All)" />
+          </SelectTrigger>
+          <SelectPortal>
+            <SelectBackdrop />
+            <SelectContent>
+              <SelectDragIndicatorWrapper>
+                <SelectDragIndicator />
+              </SelectDragIndicatorWrapper>
+              <SelectItem label="All Genders" value="" />
+              <SelectItem label="Male" value="Male" />
+              <SelectItem label="Female" value="Female" />
+            </SelectContent>
+          </SelectPortal>
+        </Select>
+
+        <Select
+          selectedValue={selectedAge}
+          onValueChange={(value) => {
+            try {
+              Haptics.selectionAsync();
+            } catch {
+              // Haptics not supported on web, ignore
+            }
+            setSelectedAge(value as GeneralAge);
+          }}
+        >
+          <SelectTrigger variant="outline" size="md">
+            <SelectInput placeholder="Age (All)" />
+          </SelectTrigger>
+          <SelectPortal>
+            <SelectBackdrop />
+            <SelectContent>
+              <SelectDragIndicatorWrapper>
+                <SelectDragIndicator />
+              </SelectDragIndicatorWrapper>
+              <SelectItem label="All Ages" value="" />
+              <SelectItem label="Baby" value="Baby" />
+              <SelectItem label="Young" value="Young" />
+              <SelectItem label="Adult" value="Adult" />
+              <SelectItem label="Senior" value="Senior" />
             </SelectContent>
           </SelectPortal>
         </Select>

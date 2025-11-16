@@ -138,7 +138,9 @@ describe('PetDetailScreen', () => {
     it('displays animal details when loaded successfully', async () => {
       (animalService.getAnimalById as jest.Mock).mockResolvedValue(mockAnimal);
 
-      const { getByText } = renderWithProviders(<PetDetailScreen />);
+      const { getByText, getAllByText } = renderWithProviders(
+        <PetDetailScreen />
+      );
 
       await waitFor(() => {
         expect(getByText('Buddy')).toBeTruthy();
@@ -146,7 +148,8 @@ describe('PetDetailScreen', () => {
 
       expect(getByText('Dog')).toBeTruthy();
       expect(getByText('Golden Retriever')).toBeTruthy();
-      expect(getByText('San Francisco, CA')).toBeTruthy();
+      // San Francisco, CA appears multiple times (animal location + org location)
+      expect(getAllByText('San Francisco, CA').length).toBeGreaterThan(0);
     });
 
     it('displays animal description', async () => {

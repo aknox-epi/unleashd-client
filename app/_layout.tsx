@@ -18,9 +18,10 @@ import {
 import { WhatsNewProvider } from '@/contexts/WhatsNewContext';
 import { FavoritesProvider } from '@/contexts/FavoritesContext';
 import { CHANGELOG_CONTENT } from '@/constants/changelog';
+import packageJson from '../package.json';
 
-// Get version from package.json
-const APP_VERSION = '0.1.3';
+// Get version from package.json automatically
+const APP_VERSION = packageJson.version;
 
 export {
   // Catch any errors thrown by the Layout component.

@@ -16,15 +16,13 @@ function TabBarIcon(props: {
 }
 
 export default function TabLayout() {
-  const { isEnabled, hasNewVersion, openDrawer, markVersionAsSeen } =
-    useWhatsNew();
+  const { isEnabled, hasNewVersion, openDrawer } = useWhatsNew();
   const { count } = useFavorites();
 
   const handleWhatsNewPress = () => {
     openDrawer();
-    if (hasNewVersion) {
-      markVersionAsSeen();
-    }
+    // Don't mark as seen here - let the drawer handle it on close
+    // This prevents the badge from disappearing before user sees the content
   };
 
   return (

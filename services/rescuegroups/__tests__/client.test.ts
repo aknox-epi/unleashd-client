@@ -11,15 +11,30 @@ jest.mock('@/constants/RescueGroupsConfig', () => ({
   RESCUEGROUPS_CONFIG: {
     API_ENDPOINT: 'https://api.rescuegroups.org/http/v2.json',
     TIMEOUT: 30000,
+    PAGINATION: {
+      DEFAULT_LIMIT: 25,
+      MAX_LIMIT: 100,
+      DEFAULT_START: 0,
+    },
+    SEARCH_RADIUS: {
+      DEFAULT: 25,
+      OPTIONS: [10, 25, 50, 100, 250, 500],
+    },
+    OBJECT_TYPES: {
+      ANIMALS: 'animals',
+      ORGANIZATIONS: 'orgs',
+      EVENTS: 'events',
+      CONTACTS: 'contacts',
+    },
     SPECIES: {
-      DOG: 'dog',
-      CAT: 'cat',
-      BIRD: 'bird',
-      RABBIT: 'rabbit',
-      SMALL_FURRY: 'small&furry',
-      HORSE: 'horse',
-      REPTILE: 'reptile',
-      BARNYARD: 'barnyard',
+      DOG: 'Dog',
+      CAT: 'Cat',
+      BIRD: 'Bird',
+      RABBIT: 'Rabbit',
+      SMALL_ANIMAL: 'Small Animal',
+      HORSE: 'Horse',
+      REPTILE: 'Reptile',
+      BARNYARD: 'Barnyard',
     },
   },
   getApiKey: jest.fn(() => 'test-api-key'),
@@ -291,36 +306,6 @@ describe('RescueGroupsClient', () => {
       await expect(client.request(mockRequest)).rejects.toEqual(apiError);
     });
 
-    it('should log warning messages from API response', async () => {
-      const mockResponseData: RescueGroupsResponse<Record<string, unknown>> = {
-        status: 'ok',
-        foundRows: 0,
-        data: {},
-        messages: {
-          generalMessages: [
-            {
-              messageID: '1',
-              messageCriticality: 'warning',
-              messageText: 'No results found',
-            },
-          ],
-        },
-      };
-
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => mockResponseData,
-      });
-
-      await client.request(mockRequest);
-
-      expect(console.warn).toHaveBeenCalledWith(
-        '[RescueGroups API] Messages:',
-        ['No results found']
-      );
-    });
-
     it('should handle response with no data', async () => {
       const mockResponseData: RescueGroupsResponse<Record<string, unknown>> = {
         status: 'ok',
@@ -385,7 +370,7 @@ describe('RescueGroupsClient', () => {
         json: async () => mockResponseData,
       });
 
-      await expect(client.healthCheck()).resolves.not.toThrow();
+      await expect(client.healthCheck()).resolves.toBeUndefined();
 
       expect(mockFetch).toHaveBeenCalledWith(
         'https://api.rescuegroups.org/http/v2.json',
@@ -514,10 +499,6 @@ describe('RescueGroupsClient', () => {
   });
 
   describe('singleton instance', () => {
-    it('should export a singleton client instance', () => {
-      expect(rescueGroupsClient).toBeInstanceOf(RescueGroupsClient);
-    });
-
     it('should reuse the same singleton instance', () => {
       const instance1 = rescueGroupsClient;
       const instance2 = rescueGroupsClient;

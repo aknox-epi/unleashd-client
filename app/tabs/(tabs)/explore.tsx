@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { FlatList, RefreshControl, Pressable } from 'react-native';
 import type { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import * as Haptics from 'expo-haptics';
@@ -80,6 +80,7 @@ export default function Explore() {
   const [zipCode, setZipCode] = useState('');
   const [radius, setRadius] = useState<number | ''>('');
   const [zipCodeError, setZipCodeError] = useState('');
+  const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [errorDismissed, setErrorDismissed] = useState(false);
   const [warningsDismissed, setWarningsDismissed] = useState(false);
@@ -94,39 +95,52 @@ export default function Explore() {
 
   // Auto-search on mount with dogs
   useEffect(() => {
-    handleSearch();
+    handleSearch(false); // Skip haptic on auto-search
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleSearch = async () => {
-    try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    } catch {
-      // Haptics not supported on web, ignore
-    }
+  const handleSearch = useCallback(
+    async (includeHaptic = true) => {
+      if (includeHaptic) {
+        try {
+          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        } catch {
+          // Haptics not supported on web, ignore
+        }
+      }
 
-    // Validate zip code before searching
-    if (zipCode && !isValidZipCode(zipCode)) {
-      setZipCodeError('Please enter a valid 5-digit ZIP code');
-      return;
-    }
+      // Validate zip code before searching
+      if (zipCode && !isValidZipCode(zipCode)) {
+        setZipCodeError('Please enter a valid 5-digit ZIP code');
+        return;
+      }
 
-    setSearchPerformed(true);
-    setErrorDismissed(false);
-    setWarningsDismissed(false);
-    await search({
-      species: selectedSpecies,
-      sex: selectedGender || undefined,
-      age: selectedAge || undefined,
-      size: selectedSize || undefined,
-      location:
-        zipCode && isValidZipCode(zipCode)
-          ? getBaseZipCode(zipCode)
-          : undefined,
-      radius: radius || undefined,
-      limit: 20,
-    });
-  };
+      setSearchPerformed(true);
+      setErrorDismissed(false);
+      setWarningsDismissed(false);
+      await search({
+        species: selectedSpecies,
+        sex: selectedGender || undefined,
+        age: selectedAge || undefined,
+        size: selectedSize || undefined,
+        location:
+          zipCode && isValidZipCode(zipCode)
+            ? getBaseZipCode(zipCode)
+            : undefined,
+        radius: radius || undefined,
+        limit: 20,
+      });
+    },
+    [
+      zipCode,
+      selectedSpecies,
+      selectedGender,
+      selectedAge,
+      selectedSize,
+      radius,
+      search,
+    ]
+  );
 
   const handleRefresh = async () => {
     try {
@@ -181,7 +195,7 @@ export default function Explore() {
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
   };
 
-  const getActiveFilterCount = () => {
+  const getActiveFilterCount = useCallback(() => {
     let count = 0;
     if (selectedGender) count++;
     if (selectedAge) count++;
@@ -189,9 +203,9 @@ export default function Explore() {
     if (zipCode && isValidZipCode(zipCode)) count++;
     if (radius) count++;
     return count;
-  };
+  }, [selectedGender, selectedAge, selectedSize, zipCode, radius]);
 
-  const handleClearFilters = async () => {
+  const handleClearFilters = useCallback(async () => {
     try {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     } catch {
@@ -203,27 +217,30 @@ export default function Explore() {
     setZipCode('');
     setRadius('');
     setZipCodeError('');
-  };
+  }, []);
 
-  const handleZipCodeChange = (value: string) => {
-    const formatted = formatZipCode(value);
-    setZipCode(formatted);
+  const handleZipCodeChange = useCallback(
+    (value: string) => {
+      const formatted = formatZipCode(value);
+      setZipCode(formatted);
 
-    // Clear error when user starts typing
-    if (zipCodeError) {
-      setZipCodeError('');
-    }
-  };
+      // Clear error when user starts typing
+      if (zipCodeError) {
+        setZipCodeError('');
+      }
+    },
+    [zipCodeError]
+  );
 
-  const validateZipCodeOnBlur = () => {
+  const validateZipCodeOnBlur = useCallback(() => {
     if (zipCode && !isValidZipCode(zipCode)) {
       setZipCodeError('Please enter a valid 5-digit ZIP code');
     } else {
       setZipCodeError('');
     }
-  };
+  }, [zipCode]);
 
-  const renderHeader = () => {
+  const renderHeader = useMemo(() => {
     const activeFiltersCount = getActiveFilterCount();
 
     return (
@@ -287,7 +304,15 @@ export default function Explore() {
             </SelectPortal>
           </Select>
 
-          <Accordion type="single" variant="unfilled" size="md">
+          <Accordion
+            type="single"
+            variant="unfilled"
+            size="md"
+            value={isFiltersExpanded ? ['filters'] : []}
+            onValueChange={(value) =>
+              setIsFiltersExpanded(value.includes('filters'))
+            }
+          >
             <AccordionItem value="filters">
               <AccordionHeader>
                 <AccordionTrigger>
@@ -522,7 +547,30 @@ export default function Explore() {
         )}
       </VStack>
     );
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    selectedSpecies,
+    selectedGender,
+    selectedAge,
+    selectedSize,
+    zipCodeError,
+    radius,
+    isFiltersExpanded,
+    searchPerformed,
+    results.length,
+    total,
+    error,
+    errorDismissed,
+    warnings,
+    warningsDismissed,
+    isDarkMode,
+    isLoading,
+    getActiveFilterCount,
+    handleSearch,
+    handleClearFilters,
+    handleZipCodeChange,
+    validateZipCodeOnBlur,
+  ]);
 
   const renderEmpty = () => {
     if (isLoading) {

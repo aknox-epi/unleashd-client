@@ -9,11 +9,19 @@ import type {
 } from '@/services/rescuegroups/types';
 
 // Mock the client
-jest.mock('@/services/rescuegroups/client', () => ({
-  rescueGroupsClient: {
-    request: jest.fn(),
-  },
-}));
+jest.mock('@/services/rescuegroups/client', () => {
+  class MockRescueGroupsClient {
+    request = jest.fn();
+    isConfigured = jest.fn(() => true);
+    healthCheck = jest.fn();
+    getServiceStatus = jest.fn();
+  }
+
+  return {
+    RescueGroupsClient: MockRescueGroupsClient,
+    rescueGroupsClient: new MockRescueGroupsClient(),
+  };
+});
 
 describe('AnimalService', () => {
   let service: AnimalService;

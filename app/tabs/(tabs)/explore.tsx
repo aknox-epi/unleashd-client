@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { FlatList, RefreshControl, Pressable } from 'react-native';
-import { X, Search } from 'lucide-react-native';
+import type { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { X, Search, SearchX, AlertCircle, ArrowUp } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { Button, ButtonText } from '@/components/ui/button';
 import { Center } from '@/components/ui/center';
@@ -23,6 +25,8 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 import { AnimalCard } from '@/components/AnimalCard';
+import { AnimalCardSkeleton } from '@/components/AnimalCardSkeleton';
+import { Fab, FabIcon } from '@/components/ui/fab';
 import { useAnimalSearch } from '@/hooks/useAnimals';
 import { useRescueGroupsContext } from '@/contexts/RescueGroupsContext';
 import { RESCUEGROUPS_CONFIG } from '@/constants/RescueGroupsConfig';
@@ -47,6 +51,8 @@ export default function Explore() {
   const [errorDismissed, setErrorDismissed] = useState(false);
   const [warningsDismissed, setWarningsDismissed] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showScrollToTop, setShowScrollToTop] = useState(false);
+  const flatListRef = useRef<FlatList>(null);
 
   const isDarkMode = colorMode === 'dark';
 
@@ -60,6 +66,7 @@ export default function Explore() {
   }, []);
 
   const handleSearch = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSearchPerformed(true);
     setErrorDismissed(false);
     setWarningsDismissed(false);
@@ -70,6 +77,7 @@ export default function Explore() {
   };
 
   const handleRefresh = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setIsRefreshing(true);
     setErrorDismissed(false);
     setWarningsDismissed(false);
@@ -87,7 +95,18 @@ export default function Explore() {
   };
 
   const handleAnimalPress = (animal: Animal) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push(`/pet/${animal.animalID}`);
+  };
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    setShowScrollToTop(offsetY > 300);
+  };
+
+  const scrollToTop = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
   };
 
   const renderHeader = () => (
@@ -97,7 +116,10 @@ export default function Explore() {
       <VStack space="md">
         <Select
           selectedValue={selectedSpecies}
-          onValueChange={(value) => setSelectedSpecies(value as AnimalSpecies)}
+          onValueChange={(value) => {
+            Haptics.selectionAsync();
+            setSelectedSpecies(value as AnimalSpecies);
+          }}
         >
           <SelectTrigger variant="outline" size="md">
             <SelectInput placeholder="Select Species" />
@@ -204,10 +226,22 @@ export default function Explore() {
     if (!searchPerformed) {
       return (
         <Center className="py-12">
-          <VStack space="md" className="items-center">
-            <Text className="text-typography-500 text-center">
-              Select a species and search to find adoptable pets
-            </Text>
+          <VStack space="lg" className="items-center max-w-xs">
+            <Icon
+              as={Search}
+              size="xl"
+              className="text-typography-300"
+              style={{ width: 64, height: 64 }}
+            />
+            <VStack space="sm" className="items-center">
+              <Text className="text-typography-600 font-semibold text-center">
+                Start Your Search
+              </Text>
+              <Text className="text-typography-500 text-center text-sm">
+                Select a species above and tap search to find adorable adoptable
+                pets near you
+              </Text>
+            </VStack>
           </VStack>
         </Center>
       );
@@ -216,14 +250,23 @@ export default function Explore() {
     if (error) {
       return (
         <Center className="py-12">
-          <VStack space="md" className="items-center max-w-md">
-            <Text className="text-error-600 font-semibold">
-              Unable to load pets
-            </Text>
-            <Text className="text-typography-500 text-center">
-              Please try again later
-            </Text>
-            <Button onPress={handleSearch} size="sm">
+          <VStack space="lg" className="items-center max-w-xs">
+            <Icon
+              as={AlertCircle}
+              size="xl"
+              className="text-error-500"
+              style={{ width: 64, height: 64 }}
+            />
+            <VStack space="sm" className="items-center">
+              <Text className="text-error-600 font-semibold text-center">
+                Unable to Load Pets
+              </Text>
+              <Text className="text-typography-500 text-center text-sm">
+                We encountered an issue loading the pet listings. Please check
+                your connection and try again.
+              </Text>
+            </VStack>
+            <Button onPress={handleSearch} size="sm" className="mt-2">
               <ButtonText>Retry</ButtonText>
             </Button>
           </VStack>
@@ -233,13 +276,23 @@ export default function Explore() {
 
     return (
       <Center className="py-12">
-        <VStack space="md" className="items-center">
-          <Text className="text-typography-500 text-center">
-            No {selectedSpecies.toLowerCase()}s found
-          </Text>
-          <Text className="text-typography-400 text-sm text-center">
-            Try selecting a different species
-          </Text>
+        <VStack space="lg" className="items-center max-w-xs">
+          <Icon
+            as={SearchX}
+            size="xl"
+            className="text-typography-300"
+            style={{ width: 64, height: 64 }}
+          />
+          <VStack space="sm" className="items-center">
+            <Text className="text-typography-600 font-semibold text-center">
+              No {selectedSpecies}s Found
+            </Text>
+            <Text className="text-typography-500 text-center text-sm">
+              We couldn&apos;t find any {selectedSpecies.toLowerCase()}s
+              available for adoption right now. Try selecting a different
+              species or check back later.
+            </Text>
+          </VStack>
         </VStack>
       </Center>
     );
@@ -270,25 +323,47 @@ export default function Explore() {
   return (
     <Box className="flex-1">
       <FlatList
-        data={results}
-        renderItem={({ item }) => (
-          <AnimalCard
-            animal={item}
-            onPress={handleAnimalPress}
-            isDarkMode={isDarkMode}
-          />
-        )}
-        keyExtractor={(item) => item.animalID}
+        ref={flatListRef}
+        data={isLoading && results.length === 0 ? Array(5).fill(null) : results}
+        renderItem={({ item }) =>
+          isLoading && results.length === 0 ? (
+            <AnimalCardSkeleton isDarkMode={isDarkMode} />
+          ) : (
+            <AnimalCard
+              animal={item}
+              onPress={handleAnimalPress}
+              isDarkMode={isDarkMode}
+            />
+          )
+        }
+        keyExtractor={(item, index) =>
+          isLoading && results.length === 0
+            ? `skeleton-${index}`
+            : item.animalID
+        }
         contentContainerStyle={{ padding: 24, gap: 16 }}
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={renderEmpty}
         ListFooterComponent={renderFooter}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={isDarkMode ? '#9BA1A6' : '#687076'}
+            colors={['#0a7ea4', '#0891b2']}
+            progressBackgroundColor={isDarkMode ? '#1F2937' : '#F9FAFB'}
+          />
         }
       />
+      {showScrollToTop && (
+        <Fab onPress={scrollToTop} size="md" placement="bottom right">
+          <FabIcon as={ArrowUp} />
+        </Fab>
+      )}
     </Box>
   );
 }

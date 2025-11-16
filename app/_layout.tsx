@@ -9,7 +9,7 @@ import {
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { Slot } from 'expo-router';
+import { Stack } from 'expo-router';
 import { RescueGroupsProvider } from '@/contexts/RescueGroupsContext';
 import {
   ThemeProvider as CustomThemeProvider,
@@ -64,7 +64,19 @@ function RootLayoutNav() {
     <RescueGroupsProvider>
       <GluestackUIProvider mode={colorMode}>
         <ThemeProvider value={colorMode === 'dark' ? DarkTheme : DefaultTheme}>
-          <Slot />
+          <Stack>
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="tabs" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="pet/[id]"
+              options={{
+                headerShown: true,
+                headerTitle: '',
+                gestureEnabled: true,
+              }}
+            />
+          </Stack>
         </ThemeProvider>
       </GluestackUIProvider>
     </RescueGroupsProvider>

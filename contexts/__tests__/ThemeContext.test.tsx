@@ -9,16 +9,28 @@ jest.mock('react-native/Libraries/Utilities/useColorScheme', () => ({
   default: jest.fn(),
 }));
 
+// Mock logger
+jest.mock('@/utils/logger', () => ({
+  logger: {
+    error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
+  },
+}));
+
 import React from 'react';
 import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { ThemeProvider, useTheme } from '../ThemeContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useColorScheme } from 'react-native';
+import { logger } from '@/utils/logger';
 
 const mockAsyncStorage = AsyncStorage as jest.Mocked<typeof AsyncStorage>;
 const mockUseColorScheme = useColorScheme as jest.MockedFunction<
   typeof useColorScheme
 >;
+const mockLogger = logger as jest.Mocked<typeof logger>;
 
 describe('ThemeContext', () => {
   beforeEach(() => {
@@ -119,9 +131,6 @@ describe('ThemeContext', () => {
     });
 
     it('should handle AsyncStorage read errors gracefully', async () => {
-      const consoleErrorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
       mockAsyncStorage.getItem.mockRejectedValue(new Error('Storage error'));
       mockUseColorScheme.mockReturnValue('light');
 
@@ -133,12 +142,10 @@ describe('ThemeContext', () => {
         expect(result.current.colorMode).toBe('light');
       });
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect(mockLogger.error).toHaveBeenCalledWith(
         'Failed to load theme preference:',
         expect.any(Error)
       );
-
-      consoleErrorSpy.mockRestore();
     });
   });
 
@@ -190,9 +197,6 @@ describe('ThemeContext', () => {
     });
 
     it('should handle AsyncStorage write errors', async () => {
-      const consoleErrorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
       mockAsyncStorage.setItem.mockRejectedValue(new Error('Write error'));
       mockUseColorScheme.mockReturnValue('light');
 
@@ -212,12 +216,10 @@ describe('ThemeContext', () => {
         expect(result.current.colorMode).toBe('dark');
       });
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect(mockLogger.error).toHaveBeenCalledWith(
         'Failed to save theme preference:',
         expect.any(Error)
       );
-
-      consoleErrorSpy.mockRestore();
     });
   });
 

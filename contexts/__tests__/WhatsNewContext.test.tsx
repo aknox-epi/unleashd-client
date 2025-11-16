@@ -51,11 +51,13 @@ describe('WhatsNewContext', () => {
     changelog: string = mockChangelogContent,
     version: string = currentVersion
   ) => {
-    return ({ children }: { children: React.ReactNode }) => (
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
       <WhatsNewProvider changelogContent={changelog} currentVersion={version}>
         {children}
       </WhatsNewProvider>
     );
+    Wrapper.displayName = 'WhatsNewProviderWrapper';
+    return Wrapper;
   };
 
   describe('useWhatsNew hook', () => {

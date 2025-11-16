@@ -13,6 +13,7 @@ import type {
   FavoritesContextState,
   StoredFavoritesData,
 } from '@/types/favorites';
+import { logger } from '@/utils/logger';
 
 // Storage key
 const STORAGE_KEY = '@unleashd:favorites:animals';
@@ -56,7 +57,7 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
           }
         }
       } catch (error) {
-        console.error('Failed to load favorites from storage:', error);
+        logger.error('Failed to load favorites from storage:', error);
         // Don't throw - just start with empty favorites
       } finally {
         setIsLoading(false);
@@ -77,7 +78,7 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
       };
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (error) {
-      console.error('Failed to save favorites to storage:', error);
+      logger.error('Failed to save favorites to storage:', error);
       // Don't throw - continue with in-memory state
     }
   }, []);

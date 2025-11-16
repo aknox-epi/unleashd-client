@@ -3,6 +3,22 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { AnimalCard } from '../AnimalCard';
 import type { Animal } from '@/services/rescuegroups';
 
+// Mock AsyncStorage
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  getItem: jest.fn(() => Promise.resolve(null)),
+  setItem: jest.fn(() => Promise.resolve()),
+}));
+
+// Mock Favorites Context
+jest.mock('@/contexts/FavoritesContext', () => ({
+  useFavorites: () => ({
+    favorites: [],
+    isFavorite: () => false,
+    toggleFavorite: jest.fn(),
+    isLoading: false,
+  }),
+}));
+
 // Mock theme context
 jest.mock('@/contexts/ThemeContext', () => ({
   useTheme: () => ({ colorMode: 'light' }),

@@ -133,16 +133,30 @@ export default function PetDetailScreen() {
     }
   };
 
-  const handleBack = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.back();
+  const handleBack = async () => {
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch {
+      // Haptics not supported on web, ignore
+    }
+
+    // Check if we can go back, otherwise navigate to explore
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.push('/tabs/explore');
+    }
   };
 
   const handleFavorite = async () => {
     if (!animal) return;
 
     // Haptic feedback
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch {
+      // Haptics not supported on web, ignore
+    }
 
     // Convert Animal to FavoriteAnimal
     const favoriteAnimal: FavoriteAnimal = {

@@ -39,7 +39,11 @@ export default function FavoritesScreen() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch {
+      // Haptics not supported on web, ignore
+    }
     // Favorites are already in memory, just trigger re-render
     // Use a brief delay to show the refresh animation
     await new Promise((resolve) => {
@@ -49,8 +53,12 @@ export default function FavoritesScreen() {
     setRefreshing(false);
   };
 
-  const handleCardPress = (animal: Animal) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  const handleCardPress = async (animal: Animal) => {
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch {
+      // Haptics not supported on web, ignore
+    }
     router.push(`/pet/${animal.animalID}`);
   };
 

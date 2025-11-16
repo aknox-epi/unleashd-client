@@ -76,7 +76,7 @@ function ImageFallback({
 
   return (
     <Box
-      className={`h-32 w-32 rounded-lg border ${
+      className={`h-24 w-24 rounded-lg border ${
         isDarkMode
           ? 'bg-background-100 border-outline-300'
           : 'bg-background-50 border-outline-200'
@@ -84,7 +84,7 @@ function ImageFallback({
     >
       <Icon
         as={SpeciesIcon}
-        size="xl"
+        size="lg"
         className={isDarkMode ? 'text-typography-400' : 'text-typography-300'}
       />
     </Box>
@@ -117,7 +117,11 @@ export function AnimalCard({
     e.stopPropagation();
 
     // Haptic feedback
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch {
+      // Haptics not supported on web, ignore
+    }
 
     // Convert Animal to FavoriteAnimal
     const favoriteAnimal: FavoriteAnimal = {
@@ -137,7 +141,7 @@ export function AnimalCard({
 
   const content = (
     <VStack
-      className="border border-outline-200 rounded-lg p-4 bg-background-0 relative"
+      className="border border-outline-200 rounded-lg p-3 bg-background-0 relative"
       space="sm"
     >
       {/* Favorite button - absolute positioned top-right */}
@@ -171,37 +175,38 @@ export function AnimalCard({
         ) : (
           <Image
             source={{ uri: imageUrl }}
-            size="xl"
+            size="lg"
             alt={animal.animalName}
             className="rounded-lg"
             onError={() => setHasImageError(true)}
           />
         )}
-        <VStack space="sm" className="flex-1">
+        <VStack space="xs" className="flex-1 shrink pr-8">
           <Heading size="sm" className="font-semibold">
             {animal.animalName}
           </Heading>
-          <HStack space="sm">
-            <Text className="text-typography-500">{animal.animalSpecies}</Text>
+          <VStack space="xs">
+            <Text size="sm" className="text-typography-500">
+              {animal.animalSpecies}
+            </Text>
             {animal.animalBreed && (
-              <>
-                <Text className="text-typography-500">•</Text>
-                <Text className="text-typography-500">
-                  {animal.animalBreed}
-                </Text>
-              </>
+              <Text size="sm" className="text-typography-500 flex-wrap">
+                {animal.animalBreed}
+              </Text>
             )}
-          </HStack>
+          </VStack>
           {animal.animalGeneralAge && (
-            <Text className="text-typography-500">
+            <Text size="sm" className="text-typography-500">
               Age: {animal.animalGeneralAge}
             </Text>
           )}
           {animal.animalSex && (
-            <Text className="text-typography-500">Sex: {animal.animalSex}</Text>
+            <Text size="sm" className="text-typography-500">
+              Sex: {animal.animalSex}
+            </Text>
           )}
           {animal.animalLocationCitystate && (
-            <Text className="text-typography-400 text-sm">
+            <Text size="xs" className="text-typography-400">
               Location: {animal.animalLocationCitystate}
             </Text>
           )}

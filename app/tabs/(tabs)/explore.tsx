@@ -66,7 +66,11 @@ export default function Explore() {
   }, []);
 
   const handleSearch = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch {
+      // Haptics not supported on web, ignore
+    }
     setSearchPerformed(true);
     setErrorDismissed(false);
     setWarningsDismissed(false);
@@ -77,7 +81,11 @@ export default function Explore() {
   };
 
   const handleRefresh = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch {
+      // Haptics not supported on web, ignore
+    }
     setIsRefreshing(true);
     setErrorDismissed(false);
     setWarningsDismissed(false);
@@ -94,8 +102,12 @@ export default function Explore() {
     }
   };
 
-  const handleAnimalPress = (animal: Animal) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  const handleAnimalPress = async (animal: Animal) => {
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch {
+      // Haptics not supported on web, ignore
+    }
     router.push(`/pet/${animal.animalID}`);
   };
 
@@ -104,8 +116,12 @@ export default function Explore() {
     setShowScrollToTop(offsetY > 300);
   };
 
-  const scrollToTop = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  const scrollToTop = async () => {
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch {
+      // Haptics not supported on web, ignore
+    }
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
   };
 
@@ -117,7 +133,11 @@ export default function Explore() {
         <Select
           selectedValue={selectedSpecies}
           onValueChange={(value) => {
-            Haptics.selectionAsync();
+            try {
+              Haptics.selectionAsync();
+            } catch {
+              // Haptics not supported on web, ignore
+            }
             setSelectedSpecies(value as AnimalSpecies);
           }}
         >

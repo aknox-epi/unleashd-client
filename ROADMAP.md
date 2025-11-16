@@ -117,15 +117,19 @@ This document outlines potential features and enhancements for the Unleashd pet 
 **What's New / Changelog:**
 
 - Animated sparkle notification badge on Settings tab
-- Opt-in toggle for changelog notifications
+- Enabled by default with opt-out toggle for changelog notifications
 - Version tracking and comparison (isNewerVersion)
+- Automated changelog embedding system (scripts/embed-changelog.js)
+- Dynamic version reading from package.json
 - Changelog parsing from CHANGELOG.md
 - Collapsible filter section with Accordion
 - Timeline filtering (latest, 7/30 days, 3 months, all time)
 - Type filtering with checkboxes (Features, Fixes, Docs, Build, etc.)
 - Drawer with comprehensive changelog display
 - Persistent user preferences via AsyncStorage
-- 100% test coverage for What's New feature (75 tests)
+- Badge marks version as seen on drawer close (prevents double-press bug)
+- Unique React keys for changelog rendering (no duplicate key warnings)
+- 100% test coverage for What's New feature (30 WhatsNewContext tests)
 
 #### 🔧 Development Infrastructure
 
@@ -284,12 +288,6 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - Export/import favorites (backup)
 
 #### What's New / Changelog Enhancements
-
-**Known Issues to Fix:**
-
-- 🐛 Fix double-click bug on sparkle icon when new updates available (currently requires two clicks to open drawer)
-- 🐛 Ensure "What's New" notifications are enabled by default for all users
-- 🐛 Fix changelog parsing to pull from latest CHANGELOG.md entries
 
 **Future Enhancements:**
 

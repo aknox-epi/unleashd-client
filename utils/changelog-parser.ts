@@ -3,6 +3,7 @@ import type {
   ChangelogSection,
   TimelineFilter,
 } from '@/types/whats-new';
+import { logger } from '@/utils/logger';
 
 /**
  * Parse CHANGELOG.md content and extract the most recent version entry
@@ -113,7 +114,7 @@ export function parseLatestChangelog(
       sections,
     };
   } catch (error) {
-    console.error('Failed to parse changelog:', error);
+    logger.error('Failed to parse changelog:', error);
     return null;
   }
 }
@@ -244,7 +245,7 @@ export function parseAllChangelogs(changelogContent: string): ChangelogEntry[] {
 
     return entries;
   } catch (error) {
-    console.error('Failed to parse all changelogs:', error);
+    logger.error('Failed to parse all changelogs:', error);
     return [];
   }
 }

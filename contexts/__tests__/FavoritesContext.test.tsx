@@ -4,13 +4,25 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   setItem: jest.fn(),
 }));
 
+// Mock logger
+jest.mock('@/utils/logger', () => ({
+  logger: {
+    error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
+  },
+}));
+
 import React from 'react';
 import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { FavoritesProvider, useFavorites } from '../FavoritesContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { FavoriteAnimal } from '@/types/favorites';
+import { logger } from '@/utils/logger';
 
 const mockAsyncStorage = AsyncStorage as jest.Mocked<typeof AsyncStorage>;
+const mockLogger = logger as jest.Mocked<typeof logger>;
 
 const mockAnimal: FavoriteAnimal = {
   animalID: '123',
@@ -111,9 +123,6 @@ describe('FavoritesContext', () => {
 
     it('should handle corrupted storage data gracefully', async () => {
       mockAsyncStorage.getItem.mockResolvedValue('invalid json');
-      const consoleErrorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
 
       const { result } = renderHook(() => useFavorites(), {
         wrapper: ({ children }) => (
@@ -126,19 +135,14 @@ describe('FavoritesContext', () => {
         expect(result.current.count).toBe(0);
       });
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect(mockLogger.error).toHaveBeenCalledWith(
         'Failed to load favorites from storage:',
         expect.any(Error)
       );
-
-      consoleErrorSpy.mockRestore();
     });
 
     it('should handle AsyncStorage read errors gracefully', async () => {
       mockAsyncStorage.getItem.mockRejectedValue(new Error('Storage error'));
-      const consoleErrorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
 
       const { result } = renderHook(() => useFavorites(), {
         wrapper: ({ children }) => (
@@ -150,8 +154,7 @@ describe('FavoritesContext', () => {
         expect(result.current.favorites).toEqual([]);
       });
 
-      expect(consoleErrorSpy).toHaveBeenCalled();
-      consoleErrorSpy.mockRestore();
+      expect(mockLogger.error).toHaveBeenCalled();
     });
   });
 
@@ -253,9 +256,6 @@ describe('FavoritesContext', () => {
 
     it('should handle AsyncStorage write errors', async () => {
       mockAsyncStorage.setItem.mockRejectedValue(new Error('Write error'));
-      const consoleErrorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
 
       const { result } = renderHook(() => useFavorites(), {
         wrapper: ({ children }) => (
@@ -273,8 +273,7 @@ describe('FavoritesContext', () => {
 
       // Should still update in-memory state
       expect(result.current.favorites).toHaveLength(1);
-      expect(consoleErrorSpy).toHaveBeenCalled();
-      consoleErrorSpy.mockRestore();
+      expect(mockLogger.error).toHaveBeenCalled();
     });
   });
 

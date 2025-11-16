@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logger';
+
 export const script = (mode: string) => {
   const documentElement = document.documentElement;
 
@@ -14,6 +16,6 @@ export const script = (mode: string) => {
     documentElement.classList.add(theme);
     documentElement.style.colorScheme = theme;
   } catch (e) {
-    console.error(e);
+    logger.error('Failed to set theme:', e);
   }
 };

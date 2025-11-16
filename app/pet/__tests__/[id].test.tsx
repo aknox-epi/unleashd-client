@@ -7,12 +7,25 @@ import { animalService, organizationService } from '@/services/rescuegroups';
 import type { Animal, Organization } from '@/services/rescuegroups';
 import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
 import { FavoritesProvider } from '@/contexts/FavoritesContext';
+import { logger } from '@/utils/logger';
+
+const mockLogger = logger as jest.Mocked<typeof logger>;
 
 // Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () => ({
   getItem: jest.fn(),
   setItem: jest.fn(),
   removeItem: jest.fn(),
+}));
+
+// Mock logger
+jest.mock('@/utils/logger', () => ({
+  logger: {
+    error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
+  },
 }));
 
 // Mock dependencies
@@ -393,10 +406,6 @@ describe('PetDetailScreen', () => {
         new Error('Org fetch failed')
       );
 
-      const consoleWarnSpy = jest
-        .spyOn(console, 'warn')
-        .mockImplementation(() => {});
-
       const { getByText } = renderWithProviders(<PetDetailScreen />);
 
       // Animal details should still render
@@ -406,13 +415,11 @@ describe('PetDetailScreen', () => {
 
       // Organization section should not appear
       await waitFor(() => {
-        expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect(mockLogger.warn).toHaveBeenCalledWith(
           'Failed to load organization details:',
           expect.any(Error)
         );
       });
-
-      consoleWarnSpy.mockRestore();
     });
 
     it('does not show organization section when org data is null', async () => {

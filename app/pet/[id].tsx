@@ -60,6 +60,7 @@ import {
   type Organization,
 } from '@/services/rescuegroups';
 import type { FavoriteAnimal } from '@/types/favorites';
+import { logger } from '@/utils/logger';
 
 export default function PetDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -114,7 +115,7 @@ export default function PetDetailScreen() {
       setOrganization(data);
     } catch (err) {
       // Don't block the UI if org fetch fails - just log the error
-      console.warn('Failed to load organization details:', err);
+      logger.warn('Failed to load organization details:', err);
     }
   };
 

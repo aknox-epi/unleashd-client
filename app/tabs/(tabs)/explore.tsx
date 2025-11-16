@@ -95,47 +95,52 @@ export default function Explore() {
 
   // Auto-search on mount with dogs
   useEffect(() => {
-    handleSearch();
+    handleSearch(false); // Skip haptic on auto-search
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleSearch = useCallback(async () => {
-    try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    } catch {
-      // Haptics not supported on web, ignore
-    }
+  const handleSearch = useCallback(
+    async (includeHaptic = true) => {
+      if (includeHaptic) {
+        try {
+          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        } catch {
+          // Haptics not supported on web, ignore
+        }
+      }
 
-    // Validate zip code before searching
-    if (zipCode && !isValidZipCode(zipCode)) {
-      setZipCodeError('Please enter a valid 5-digit ZIP code');
-      return;
-    }
+      // Validate zip code before searching
+      if (zipCode && !isValidZipCode(zipCode)) {
+        setZipCodeError('Please enter a valid 5-digit ZIP code');
+        return;
+      }
 
-    setSearchPerformed(true);
-    setErrorDismissed(false);
-    setWarningsDismissed(false);
-    await search({
-      species: selectedSpecies,
-      sex: selectedGender || undefined,
-      age: selectedAge || undefined,
-      size: selectedSize || undefined,
-      location:
-        zipCode && isValidZipCode(zipCode)
-          ? getBaseZipCode(zipCode)
-          : undefined,
-      radius: radius || undefined,
-      limit: 20,
-    });
-  }, [
-    zipCode,
-    selectedSpecies,
-    selectedGender,
-    selectedAge,
-    selectedSize,
-    radius,
-    search,
-  ]);
+      setSearchPerformed(true);
+      setErrorDismissed(false);
+      setWarningsDismissed(false);
+      await search({
+        species: selectedSpecies,
+        sex: selectedGender || undefined,
+        age: selectedAge || undefined,
+        size: selectedSize || undefined,
+        location:
+          zipCode && isValidZipCode(zipCode)
+            ? getBaseZipCode(zipCode)
+            : undefined,
+        radius: radius || undefined,
+        limit: 20,
+      });
+    },
+    [
+      zipCode,
+      selectedSpecies,
+      selectedGender,
+      selectedAge,
+      selectedSize,
+      radius,
+      search,
+    ]
+  );
 
   const handleRefresh = async () => {
     try {

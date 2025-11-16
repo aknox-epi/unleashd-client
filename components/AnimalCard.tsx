@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Pressable } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import {
   Dog,
   Cat,
   Bird,
   Rabbit,
   Image as ImageIcon,
+  Heart,
 } from 'lucide-react-native';
 import { Box } from '@/components/ui/box';
 import { HStack } from '@/components/ui/hstack';
@@ -14,7 +16,9 @@ import { Heading } from '@/components/ui/heading';
 import { Text } from '@/components/ui/text';
 import { Image } from '@/components/ui/image';
 import { Icon } from '@/components/ui/icon';
+import { useFavorites } from '@/contexts/FavoritesContext';
 import type { Animal } from '@/services/rescuegroups';
+import type { FavoriteAnimal } from '@/types/favorites';
 
 interface AnimalCardProps {
   animal: Animal;
@@ -97,8 +101,10 @@ export function AnimalCard({
   isDarkMode = false,
 }: AnimalCardProps) {
   const [hasImageError, setHasImageError] = useState(false);
+  const { isFavorite, toggleFavorite } = useFavorites();
   const imageUrl = getAnimalImageUrl(animal);
   const shouldShowFallback = !imageUrl || hasImageError;
+  const favorited = isFavorite(animal.animalID);
 
   const handlePress = () => {
     if (onPress) {
@@ -106,11 +112,56 @@ export function AnimalCard({
     }
   };
 
+  const handleFavoritePress = async (e: React.BaseSyntheticEvent) => {
+    // Stop event propagation to prevent card press
+    e.stopPropagation();
+
+    // Haptic feedback
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    // Convert Animal to FavoriteAnimal
+    const favoriteAnimal: FavoriteAnimal = {
+      animalID: animal.animalID,
+      animalName: animal.animalName,
+      animalSpecies: animal.animalSpecies,
+      animalThumbnailUrl: animal.animalThumbnailUrl,
+      animalBreed: animal.animalBreed,
+      animalLocationCitystate: animal.animalLocationCitystate,
+      animalGeneralAge: animal.animalGeneralAge,
+      animalSex: animal.animalSex,
+      favoritedAt: Date.now(),
+    };
+
+    await toggleFavorite(favoriteAnimal);
+  };
+
   const content = (
     <VStack
-      className="border border-outline-200 rounded-lg p-4 bg-background-0"
+      className="border border-outline-200 rounded-lg p-4 bg-background-0 relative"
       space="sm"
     >
+      {/* Favorite button - absolute positioned top-right */}
+      <Box className="absolute top-2 right-2 z-10">
+        <Pressable
+          onPress={handleFavoritePress}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          testID={`favorite-button-${animal.animalID}`}
+        >
+          <Icon
+            as={Heart}
+            size="lg"
+            className={
+              favorited
+                ? 'text-error-500'
+                : isDarkMode
+                  ? 'text-typography-400'
+                  : 'text-typography-300'
+            }
+            fill={favorited ? 'currentColor' : 'none'}
+          />
+        </Pressable>
+      </Box>
+
       <HStack space="md">
         {shouldShowFallback ? (
           <ImageFallback

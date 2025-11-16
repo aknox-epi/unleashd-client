@@ -2,7 +2,15 @@ import { useState, useEffect, useRef } from 'react';
 import { FlatList, RefreshControl, Pressable } from 'react-native';
 import type { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { X, Search, SearchX, AlertCircle, ArrowUp } from 'lucide-react-native';
+import {
+  X,
+  Search,
+  SearchX,
+  AlertCircle,
+  ArrowUp,
+  Filter,
+  ChevronDown,
+} from 'lucide-react-native';
 import { router } from 'expo-router';
 import { Button, ButtonText } from '@/components/ui/button';
 import { Center } from '@/components/ui/center';
@@ -13,6 +21,15 @@ import { HStack } from '@/components/ui/hstack';
 import { Spinner } from '@/components/ui/spinner';
 import { Icon } from '@/components/ui/icon';
 import { Box } from '@/components/ui/box';
+import {
+  Accordion,
+  AccordionItem,
+  AccordionHeader,
+  AccordionTrigger,
+  AccordionTitleText,
+  AccordionIcon,
+  AccordionContent,
+} from '@/components/ui/accordion';
 import {
   Select,
   SelectTrigger,
@@ -137,203 +154,259 @@ export default function Explore() {
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
   };
 
-  const renderHeader = () => (
-    <VStack space="lg" className="w-full">
-      <Heading className="text-2xl font-bold">Explore Pets</Heading>
+  const getActiveFilterCount = () => {
+    let count = 0;
+    if (selectedGender) count++;
+    if (selectedAge) count++;
+    if (selectedSize) count++;
+    return count;
+  };
 
-      <VStack space="md">
-        <Select
-          selectedValue={selectedSpecies}
-          onValueChange={(value) => {
-            try {
-              Haptics.selectionAsync();
-            } catch {
-              // Haptics not supported on web, ignore
-            }
-            setSelectedSpecies(value as AnimalSpecies);
-          }}
-        >
-          <SelectTrigger variant="outline" size="md">
-            <SelectInput placeholder="Select Species" />
-          </SelectTrigger>
-          <SelectPortal>
-            <SelectBackdrop />
-            <SelectContent>
-              <SelectDragIndicatorWrapper>
-                <SelectDragIndicator />
-              </SelectDragIndicatorWrapper>
-              <SelectItem
-                label="Dogs"
-                value={RESCUEGROUPS_CONFIG.SPECIES.DOG}
-              />
-              <SelectItem
-                label="Cats"
-                value={RESCUEGROUPS_CONFIG.SPECIES.CAT}
-              />
-              <SelectItem
-                label="Birds"
-                value={RESCUEGROUPS_CONFIG.SPECIES.BIRD}
-              />
-              <SelectItem
-                label="Rabbits"
-                value={RESCUEGROUPS_CONFIG.SPECIES.RABBIT}
-              />
-              <SelectItem
-                label="Small Animals"
-                value={RESCUEGROUPS_CONFIG.SPECIES.SMALL_ANIMAL}
-              />
-              <SelectItem
-                label="Horses"
-                value={RESCUEGROUPS_CONFIG.SPECIES.HORSE}
-              />
-              <SelectItem
-                label="Reptiles"
-                value={RESCUEGROUPS_CONFIG.SPECIES.REPTILE}
-              />
-              <SelectItem
-                label="Barnyard"
-                value={RESCUEGROUPS_CONFIG.SPECIES.BARNYARD}
-              />
-            </SelectContent>
-          </SelectPortal>
-        </Select>
+  const handleClearFilters = async () => {
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch {
+      // Haptics not supported on web, ignore
+    }
+    setSelectedGender('');
+    setSelectedAge('');
+    setSelectedSize('');
+  };
 
-        <Select
-          selectedValue={selectedGender}
-          onValueChange={(value) => {
-            try {
-              Haptics.selectionAsync();
-            } catch {
-              // Haptics not supported on web, ignore
-            }
-            setSelectedGender(value as Sex);
-          }}
-        >
-          <SelectTrigger variant="outline" size="md">
-            <SelectInput placeholder="Gender (All)" />
-          </SelectTrigger>
-          <SelectPortal>
-            <SelectBackdrop />
-            <SelectContent>
-              <SelectDragIndicatorWrapper>
-                <SelectDragIndicator />
-              </SelectDragIndicatorWrapper>
-              <SelectItem label="All Genders" value="" />
-              <SelectItem label="Male" value="Male" />
-              <SelectItem label="Female" value="Female" />
-            </SelectContent>
-          </SelectPortal>
-        </Select>
+  const renderHeader = () => {
+    const activeFiltersCount = getActiveFilterCount();
 
-        <Select
-          selectedValue={selectedAge}
-          onValueChange={(value) => {
-            try {
-              Haptics.selectionAsync();
-            } catch {
-              // Haptics not supported on web, ignore
-            }
-            setSelectedAge(value as GeneralAge);
-          }}
-        >
-          <SelectTrigger variant="outline" size="md">
-            <SelectInput placeholder="Age (All)" />
-          </SelectTrigger>
-          <SelectPortal>
-            <SelectBackdrop />
-            <SelectContent>
-              <SelectDragIndicatorWrapper>
-                <SelectDragIndicator />
-              </SelectDragIndicatorWrapper>
-              <SelectItem label="All Ages" value="" />
-              <SelectItem label="Baby" value="Baby" />
-              <SelectItem label="Young" value="Young" />
-              <SelectItem label="Adult" value="Adult" />
-              <SelectItem label="Senior" value="Senior" />
-            </SelectContent>
-          </SelectPortal>
-        </Select>
+    return (
+      <VStack space="lg" className="w-full">
+        <Heading className="text-2xl font-bold">Explore Pets</Heading>
 
-        <Select
-          selectedValue={selectedSize}
-          onValueChange={(value) => {
-            try {
-              Haptics.selectionAsync();
-            } catch {
-              // Haptics not supported on web, ignore
-            }
-            setSelectedSize(value as GeneralSizePotential);
-          }}
-        >
-          <SelectTrigger variant="outline" size="md">
-            <SelectInput placeholder="Size (All)" />
-          </SelectTrigger>
-          <SelectPortal>
-            <SelectBackdrop />
-            <SelectContent>
-              <SelectDragIndicatorWrapper>
-                <SelectDragIndicator />
-              </SelectDragIndicatorWrapper>
-              <SelectItem label="All Sizes" value="" />
-              <SelectItem label="Small" value="Small" />
-              <SelectItem label="Medium" value="Medium" />
-              <SelectItem label="Large" value="Large" />
-              <SelectItem label="X-Large" value="X-Large" />
-            </SelectContent>
-          </SelectPortal>
-        </Select>
+        <VStack space="md">
+          <Select
+            selectedValue={selectedSpecies}
+            onValueChange={(value) => {
+              try {
+                Haptics.selectionAsync();
+              } catch {
+                // Haptics not supported on web, ignore
+              }
+              setSelectedSpecies(value as AnimalSpecies);
+            }}
+          >
+            <SelectTrigger variant="outline" size="md">
+              <SelectInput placeholder="Select Species" />
+            </SelectTrigger>
+            <SelectPortal>
+              <SelectBackdrop />
+              <SelectContent>
+                <SelectDragIndicatorWrapper>
+                  <SelectDragIndicator />
+                </SelectDragIndicatorWrapper>
+                <SelectItem
+                  label="Dogs"
+                  value={RESCUEGROUPS_CONFIG.SPECIES.DOG}
+                />
+                <SelectItem
+                  label="Cats"
+                  value={RESCUEGROUPS_CONFIG.SPECIES.CAT}
+                />
+                <SelectItem
+                  label="Birds"
+                  value={RESCUEGROUPS_CONFIG.SPECIES.BIRD}
+                />
+                <SelectItem
+                  label="Rabbits"
+                  value={RESCUEGROUPS_CONFIG.SPECIES.RABBIT}
+                />
+                <SelectItem
+                  label="Small Animals"
+                  value={RESCUEGROUPS_CONFIG.SPECIES.SMALL_ANIMAL}
+                />
+                <SelectItem
+                  label="Horses"
+                  value={RESCUEGROUPS_CONFIG.SPECIES.HORSE}
+                />
+                <SelectItem
+                  label="Reptiles"
+                  value={RESCUEGROUPS_CONFIG.SPECIES.REPTILE}
+                />
+                <SelectItem
+                  label="Barnyard"
+                  value={RESCUEGROUPS_CONFIG.SPECIES.BARNYARD}
+                />
+              </SelectContent>
+            </SelectPortal>
+          </Select>
 
-        <Button onPress={handleSearch} isDisabled={isLoading}>
-          <Icon as={Search} className="text-typography-0 mr-2" />
-          <ButtonText>Search {selectedSpecies}s</ButtonText>
-        </Button>
-      </VStack>
+          <Accordion type="single" variant="unfilled" size="md">
+            <AccordionItem value="filters">
+              <AccordionHeader>
+                <AccordionTrigger>
+                  <HStack space="sm" className="flex-1">
+                    <Icon as={Filter} size="sm" />
+                    <AccordionTitleText>
+                      Filters
+                      {activeFiltersCount > 0 && ` (${activeFiltersCount})`}
+                    </AccordionTitleText>
+                  </HStack>
+                  <AccordionIcon as={ChevronDown} />
+                </AccordionTrigger>
+              </AccordionHeader>
+              <AccordionContent>
+                <VStack space="md" className="pt-2">
+                  <Select
+                    selectedValue={selectedGender}
+                    onValueChange={(value) => {
+                      try {
+                        Haptics.selectionAsync();
+                      } catch {
+                        // Haptics not supported on web, ignore
+                      }
+                      setSelectedGender(value as Sex);
+                    }}
+                  >
+                    <SelectTrigger variant="outline" size="md">
+                      <SelectInput placeholder="Gender (All)" />
+                    </SelectTrigger>
+                    <SelectPortal>
+                      <SelectBackdrop />
+                      <SelectContent>
+                        <SelectDragIndicatorWrapper>
+                          <SelectDragIndicator />
+                        </SelectDragIndicatorWrapper>
+                        <SelectItem label="All Genders" value="" />
+                        <SelectItem label="Male" value="Male" />
+                        <SelectItem label="Female" value="Female" />
+                      </SelectContent>
+                    </SelectPortal>
+                  </Select>
 
-      {isDevelopment() && error && !errorDismissed && (
-        <HStack
-          space="md"
-          className="border-l-4 border-error-500 bg-error-50 p-4 rounded-r-lg"
-        >
-          <VStack space="sm" className="flex-1">
-            <Text className="font-semibold text-error-700">Error:</Text>
-            <Text className="text-error-700 text-sm">
-              {getErrorMessage(error)}
-            </Text>
-          </VStack>
-          <Pressable onPress={() => setErrorDismissed(true)} className="p-1">
-            <Icon as={X} className="text-error-700" size="sm" />
-          </Pressable>
-        </HStack>
-      )}
+                  <Select
+                    selectedValue={selectedAge}
+                    onValueChange={(value) => {
+                      try {
+                        Haptics.selectionAsync();
+                      } catch {
+                        // Haptics not supported on web, ignore
+                      }
+                      setSelectedAge(value as GeneralAge);
+                    }}
+                  >
+                    <SelectTrigger variant="outline" size="md">
+                      <SelectInput placeholder="Age (All)" />
+                    </SelectTrigger>
+                    <SelectPortal>
+                      <SelectBackdrop />
+                      <SelectContent>
+                        <SelectDragIndicatorWrapper>
+                          <SelectDragIndicator />
+                        </SelectDragIndicatorWrapper>
+                        <SelectItem label="All Ages" value="" />
+                        <SelectItem label="Baby" value="Baby" />
+                        <SelectItem label="Young" value="Young" />
+                        <SelectItem label="Adult" value="Adult" />
+                        <SelectItem label="Senior" value="Senior" />
+                      </SelectContent>
+                    </SelectPortal>
+                  </Select>
 
-      {isDevelopment() && warnings.length > 0 && !warningsDismissed && (
-        <HStack
-          space="md"
-          className="border-l-4 border-warning-500 bg-warning-50 p-4 rounded-r-lg"
-        >
-          <VStack space="sm" className="flex-1">
-            <Text className="font-semibold text-warning-700">
-              API Warnings ({warnings.length}):
-            </Text>
-            {warnings.map((warning, index) => (
-              <Text key={index} className="text-warning-700 text-sm">
-                • {warning}
+                  <Select
+                    selectedValue={selectedSize}
+                    onValueChange={(value) => {
+                      try {
+                        Haptics.selectionAsync();
+                      } catch {
+                        // Haptics not supported on web, ignore
+                      }
+                      setSelectedSize(value as GeneralSizePotential);
+                    }}
+                  >
+                    <SelectTrigger variant="outline" size="md">
+                      <SelectInput placeholder="Size (All)" />
+                    </SelectTrigger>
+                    <SelectPortal>
+                      <SelectBackdrop />
+                      <SelectContent>
+                        <SelectDragIndicatorWrapper>
+                          <SelectDragIndicator />
+                        </SelectDragIndicatorWrapper>
+                        <SelectItem label="All Sizes" value="" />
+                        <SelectItem label="Small" value="Small" />
+                        <SelectItem label="Medium" value="Medium" />
+                        <SelectItem label="Large" value="Large" />
+                        <SelectItem label="X-Large" value="X-Large" />
+                      </SelectContent>
+                    </SelectPortal>
+                  </Select>
+
+                  {activeFiltersCount > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onPress={handleClearFilters}
+                    >
+                      <ButtonText>Clear All Filters</ButtonText>
+                    </Button>
+                  )}
+                </VStack>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+
+          <Button onPress={handleSearch} isDisabled={isLoading}>
+            <Icon as={Search} className="text-typography-0 mr-2" />
+            <ButtonText>Search {selectedSpecies}s</ButtonText>
+          </Button>
+        </VStack>
+
+        {isDevelopment() && error && !errorDismissed && (
+          <HStack
+            space="md"
+            className="border-l-4 border-error-500 bg-error-50 p-4 rounded-r-lg"
+          >
+            <VStack space="sm" className="flex-1">
+              <Text className="font-semibold text-error-700">Error:</Text>
+              <Text className="text-error-700 text-sm">
+                {getErrorMessage(error)}
               </Text>
-            ))}
-          </VStack>
-          <Pressable onPress={() => setWarningsDismissed(true)} className="p-1">
-            <Icon as={X} className="text-warning-700" size="sm" />
-          </Pressable>
-        </HStack>
-      )}
+            </VStack>
+            <Pressable onPress={() => setErrorDismissed(true)} className="p-1">
+              <Icon as={X} className="text-error-700" size="sm" />
+            </Pressable>
+          </HStack>
+        )}
 
-      {searchPerformed && results.length > 0 && (
-        <Text className="font-semibold text-center">
-          Found {total} pets (showing {results.length})
-        </Text>
-      )}
-    </VStack>
-  );
+        {isDevelopment() && warnings.length > 0 && !warningsDismissed && (
+          <HStack
+            space="md"
+            className="border-l-4 border-warning-500 bg-warning-50 p-4 rounded-r-lg"
+          >
+            <VStack space="sm" className="flex-1">
+              <Text className="font-semibold text-warning-700">
+                API Warnings ({warnings.length}):
+              </Text>
+              {warnings.map((warning, index) => (
+                <Text key={index} className="text-warning-700 text-sm">
+                  • {warning}
+                </Text>
+              ))}
+            </VStack>
+            <Pressable
+              onPress={() => setWarningsDismissed(true)}
+              className="p-1"
+            >
+              <Icon as={X} className="text-warning-700" size="sm" />
+            </Pressable>
+          </HStack>
+        )}
+
+        {searchPerformed && results.length > 0 && (
+          <Text className="font-semibold text-center">
+            Found {total} pets (showing {results.length})
+          </Text>
+        )}
+      </VStack>
+    );
+  };
 
   const renderEmpty = () => {
     if (isLoading) {

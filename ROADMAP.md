@@ -28,6 +28,14 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - Image fallbacks with species-specific icons (64px icons for animals without photos)
 - Theme-aware styling (light/dark mode support)
 
+**UX Enhancements:**
+
+- Loading skeleton animations (5 skeleton cards during initial load)
+- Enhanced empty states with visual icons (Search, SearchX, AlertCircle)
+- Haptic feedback on interactions (search, refresh, card taps, species selector)
+- Scroll-to-top FAB button (appears after 300px scroll with fade animation)
+- Theme-aware RefreshControl styling (dynamic colors for light/dark mode)
+
 #### 📱 Pet Details & Gallery
 
 **Detail Screen:**
@@ -39,6 +47,14 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - Adoption fee with smart formatting (auto-adds $ prefix)
 - Theme-aware background styling (bg-background-0)
 - Image validation to prevent empty boxes
+
+**Navigation:**
+
+- Native back button support for iOS/Android (Stack navigator)
+- Gesture-based navigation (iOS swipe-back support)
+- Haptic feedback on back button interactions
+- Cross-platform navigation consistency (mobile + web)
+- Proper navigation hierarchy (root Stack → tabs → detail screens)
 
 **Photo Gallery:**
 

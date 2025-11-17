@@ -74,7 +74,8 @@ When changes are ready to be committed, agents must follow this exact workflow:
 ## Build/Test Commands
 
 - **Start dev**: `bun run start` (or `npm start` for iOS/Android/web)
-- **Run tests**: `bun run test` or `jest --watchAll`
+- **Run tests**: `bun run test` (runs all tests once)
+- **Run tests in watch mode**: `bun run test:watch` (for active development)
 - **Run single test**: `jest path/to/test.spec.ts` or `jest -t "test name"`
 - **Run tests with coverage**: `bun run test:coverage` (generates coverage report in `coverage/`)
 - **Run staged tests**: `bun run test:staged` (runs tests on staged test files only)
@@ -85,6 +86,8 @@ When changes are ready to be committed, agents must follow this exact workflow:
 - **Format check**: `bun run format:check` (check formatting without changes)
 - **Release**: `bun run release` (generate changelog and bump version)
 - **Release dry run**: `bun run release:dry` (preview release without changes)
+
+**⚠️ Important:** Never use `bun test` directly - it uses Bun's native test runner which is incompatible with React Native. Always use `bun run test` or other npm scripts. See [TESTING.md](./TESTING.md) for detailed testing documentation.
 
 **Note:** Tests run automatically via Git hooks:
 
@@ -249,13 +252,13 @@ Releases are created using a dedicated release branch that merges to `dev` first
    - Verify version bump in `package.json`
    - Review the git commit and tag
 
-5. **Push release branch with tags**:
+8. **Push release branch with tags**:
 
    ```bash
    git push --follow-tags origin release/0.x.x
    ```
 
-6. **Create PR from release branch to dev**:
+9. **Create PR from release branch to dev**:
 
    ```bash
    gh pr create --base dev --head release/0.x.x \
@@ -263,19 +266,19 @@ Releases are created using a dedicated release branch that merges to `dev` first
      --body "Release preparation - updates changelog and version"
    ```
 
-7. **Get approval and merge to dev using "Create a merge commit"** (NOT squash merge!)
+10. **Get approval and merge to dev using "Create a merge commit"** (NOT squash merge!)
 
-8. **Create PR from dev to main**:
+11. **Create PR from dev to main**:
 
-   ```bash
-   gh pr create --base main --head dev \
-     --title "Release v0.x.x" \
-     --body "Production release v0.x.x - see CHANGELOG.md"
-   ```
+    ```bash
+    gh pr create --base main --head dev \
+      --title "Release v0.x.x" \
+      --body "Production release v0.x.x - see CHANGELOG.md"
+    ```
 
-9. **Get approval and merge to main using "Create a merge commit"** (NOT squash merge!)
+12. **Get approval and merge to main using "Create a merge commit"** (NOT squash merge!)
 
-10. **Sync local branches and clean up**:
+13. **Sync local branches and clean up**:
 
     ```bash
     git checkout dev && git pull origin dev

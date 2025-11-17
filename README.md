@@ -197,10 +197,21 @@ Scan the QR code with Expo Go (Android) or Camera app (iOS) to run on a physical
 
 ### Testing
 
-- `bun run test` - Run tests in watch mode
-- `jest` - Run tests once
-- `jest --coverage` - Run tests with coverage report
+- `bun run test` - Run all tests once
+- `bun run test:watch` - Run tests in watch mode (for active development)
+- `bun run test:coverage` - Run tests with coverage report
 - `bun run test:staged` - Run tests for staged files (used by pre-commit hook)
+
+**⚠️ Important:** Always use `bun run test` (not `bun test`). Bun's native test runner is incompatible with React Native projects.
+
+**For comprehensive testing documentation**, see [TESTING.md](./TESTING.md) which covers:
+
+- Available test commands and why `bun test` doesn't work
+- Test structure and patterns
+- Mocking strategies
+- Coverage requirements
+- Troubleshooting common issues
+- Best practices
 
 #### Test Automation
 

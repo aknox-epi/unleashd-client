@@ -176,7 +176,9 @@ export default function PetDetailScreen() {
   };
 
   const getMapsUrl = () => {
-    if (!organization) return null;
+    // Only provide directions if there's a valid street address
+    // Prevents vague "just take me to this city" links
+    if (!organization || !organization.orgAddress) return null;
 
     const address = [
       organization.orgAddress,
@@ -185,8 +187,6 @@ export default function PetDetailScreen() {
     ]
       .filter(Boolean)
       .join(', ');
-
-    if (!address) return null;
 
     const encodedAddress = encodeURIComponent(address);
 

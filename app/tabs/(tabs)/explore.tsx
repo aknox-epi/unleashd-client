@@ -33,21 +33,21 @@ import {
   AccordionContent,
 } from '@/components/ui/accordion';
 import {
-  Select,
-  SelectTrigger,
-  SelectInput,
-  SelectPortal,
-  SelectBackdrop,
-  SelectContent,
-  SelectDragIndicatorWrapper,
-  SelectDragIndicator,
-  SelectItem,
-} from '@/components/ui/select';
+  AccessibleSelect,
+  AccessibleSelectTrigger,
+  AccessibleSelectInput,
+  AccessibleSelectPortal,
+  AccessibleSelectContent,
+  AccessibleSelectDragIndicatorWrapper,
+  AccessibleSelectDragIndicator,
+  AccessibleSelectItem,
+} from '@/components/AccessibleSelect';
 import { AnimalCard } from '@/components/AnimalCard';
 import { AnimalCardSkeleton } from '@/components/AnimalCardSkeleton';
 import { Fab, FabIcon } from '@/components/ui/fab';
 import { useAnimalSearch } from '@/hooks/useAnimals';
 import { useRescueGroupsContext } from '@/contexts/RescueGroupsContext';
+import { useLocationPreferences } from '@/contexts/LocationPreferencesContext';
 import { RESCUEGROUPS_CONFIG } from '@/constants/RescueGroupsConfig';
 import {
   getErrorMessage,
@@ -70,6 +70,11 @@ export default function Explore() {
   const { search, loadMore, results, total, hasMore, isLoading, error } =
     useAnimalSearch();
   const { warnings } = useRescueGroupsContext();
+  const {
+    preferences: locationPreferences,
+    updatePreferences: updateLocationPreferences,
+    isLoading: prefsLoading,
+  } = useLocationPreferences();
   const { colorMode } = useTheme();
   const [selectedSpecies, setSelectedSpecies] = useState<AnimalSpecies>(
     RESCUEGROUPS_CONFIG.SPECIES.DOG
@@ -92,6 +97,14 @@ export default function Explore() {
 
   // Show toast notifications in production
   useWarningToast(warnings, error);
+
+  // Load saved location preferences on mount
+  useEffect(() => {
+    if (!prefsLoading && locationPreferences.zipCode) {
+      setZipCode(locationPreferences.zipCode);
+      setRadius(locationPreferences.radius);
+    }
+  }, [prefsLoading, locationPreferences]);
 
   // Auto-search on mount with dogs
   useEffect(() => {
@@ -130,6 +143,11 @@ export default function Explore() {
         radius: radius || undefined,
         limit: 20,
       });
+
+      // Save location preferences if location was used in search
+      if (zipCode && isValidZipCode(zipCode)) {
+        await updateLocationPreferences({ zipCode, radius });
+      }
     },
     [
       zipCode,
@@ -139,6 +157,7 @@ export default function Explore() {
       selectedSize,
       radius,
       search,
+      updateLocationPreferences,
     ]
   );
 
@@ -248,7 +267,7 @@ export default function Explore() {
         <Heading className="text-2xl font-bold">Explore Pets</Heading>
 
         <VStack space="md">
-          <Select
+          <AccessibleSelect
             selectedValue={selectedSpecies}
             onValueChange={(value) => {
               try {
@@ -259,50 +278,49 @@ export default function Explore() {
               setSelectedSpecies(value as AnimalSpecies);
             }}
           >
-            <SelectTrigger variant="outline" size="md">
-              <SelectInput placeholder="Select Species" />
-            </SelectTrigger>
-            <SelectPortal>
-              <SelectBackdrop />
-              <SelectContent>
-                <SelectDragIndicatorWrapper>
-                  <SelectDragIndicator />
-                </SelectDragIndicatorWrapper>
-                <SelectItem
+            <AccessibleSelectTrigger variant="outline" size="md">
+              <AccessibleSelectInput placeholder="Select Species" />
+            </AccessibleSelectTrigger>
+            <AccessibleSelectPortal>
+              <AccessibleSelectContent>
+                <AccessibleSelectDragIndicatorWrapper>
+                  <AccessibleSelectDragIndicator />
+                </AccessibleSelectDragIndicatorWrapper>
+                <AccessibleSelectItem
                   label="Dogs"
                   value={RESCUEGROUPS_CONFIG.SPECIES.DOG}
                 />
-                <SelectItem
+                <AccessibleSelectItem
                   label="Cats"
                   value={RESCUEGROUPS_CONFIG.SPECIES.CAT}
                 />
-                <SelectItem
+                <AccessibleSelectItem
                   label="Birds"
                   value={RESCUEGROUPS_CONFIG.SPECIES.BIRD}
                 />
-                <SelectItem
+                <AccessibleSelectItem
                   label="Rabbits"
                   value={RESCUEGROUPS_CONFIG.SPECIES.RABBIT}
                 />
-                <SelectItem
+                <AccessibleSelectItem
                   label="Small Animals"
                   value={RESCUEGROUPS_CONFIG.SPECIES.SMALL_ANIMAL}
                 />
-                <SelectItem
+                <AccessibleSelectItem
                   label="Horses"
                   value={RESCUEGROUPS_CONFIG.SPECIES.HORSE}
                 />
-                <SelectItem
+                <AccessibleSelectItem
                   label="Reptiles"
                   value={RESCUEGROUPS_CONFIG.SPECIES.REPTILE}
                 />
-                <SelectItem
+                <AccessibleSelectItem
                   label="Barnyard"
                   value={RESCUEGROUPS_CONFIG.SPECIES.BARNYARD}
                 />
-              </SelectContent>
-            </SelectPortal>
-          </Select>
+              </AccessibleSelectContent>
+            </AccessibleSelectPortal>
+          </AccessibleSelect>
 
           <Accordion
             type="single"
@@ -328,7 +346,7 @@ export default function Explore() {
               </AccordionHeader>
               <AccordionContent>
                 <VStack space="md" className="pt-2">
-                  <Select
+                  <AccessibleSelect
                     selectedValue={selectedGender}
                     onValueChange={(value) => {
                       try {
@@ -339,23 +357,22 @@ export default function Explore() {
                       setSelectedGender(value as Sex);
                     }}
                   >
-                    <SelectTrigger variant="outline" size="md">
-                      <SelectInput placeholder="Gender (All)" />
-                    </SelectTrigger>
-                    <SelectPortal>
-                      <SelectBackdrop />
-                      <SelectContent>
-                        <SelectDragIndicatorWrapper>
-                          <SelectDragIndicator />
-                        </SelectDragIndicatorWrapper>
-                        <SelectItem label="All Genders" value="" />
-                        <SelectItem label="Male" value="Male" />
-                        <SelectItem label="Female" value="Female" />
-                      </SelectContent>
-                    </SelectPortal>
-                  </Select>
+                    <AccessibleSelectTrigger variant="outline" size="md">
+                      <AccessibleSelectInput placeholder="Gender (All)" />
+                    </AccessibleSelectTrigger>
+                    <AccessibleSelectPortal>
+                      <AccessibleSelectContent>
+                        <AccessibleSelectDragIndicatorWrapper>
+                          <AccessibleSelectDragIndicator />
+                        </AccessibleSelectDragIndicatorWrapper>
+                        <AccessibleSelectItem label="All Genders" value="" />
+                        <AccessibleSelectItem label="Male" value="Male" />
+                        <AccessibleSelectItem label="Female" value="Female" />
+                      </AccessibleSelectContent>
+                    </AccessibleSelectPortal>
+                  </AccessibleSelect>
 
-                  <Select
+                  <AccessibleSelect
                     selectedValue={selectedAge}
                     onValueChange={(value) => {
                       try {
@@ -366,25 +383,24 @@ export default function Explore() {
                       setSelectedAge(value as GeneralAge);
                     }}
                   >
-                    <SelectTrigger variant="outline" size="md">
-                      <SelectInput placeholder="Age (All)" />
-                    </SelectTrigger>
-                    <SelectPortal>
-                      <SelectBackdrop />
-                      <SelectContent>
-                        <SelectDragIndicatorWrapper>
-                          <SelectDragIndicator />
-                        </SelectDragIndicatorWrapper>
-                        <SelectItem label="All Ages" value="" />
-                        <SelectItem label="Baby" value="Baby" />
-                        <SelectItem label="Young" value="Young" />
-                        <SelectItem label="Adult" value="Adult" />
-                        <SelectItem label="Senior" value="Senior" />
-                      </SelectContent>
-                    </SelectPortal>
-                  </Select>
+                    <AccessibleSelectTrigger variant="outline" size="md">
+                      <AccessibleSelectInput placeholder="Age (All)" />
+                    </AccessibleSelectTrigger>
+                    <AccessibleSelectPortal>
+                      <AccessibleSelectContent>
+                        <AccessibleSelectDragIndicatorWrapper>
+                          <AccessibleSelectDragIndicator />
+                        </AccessibleSelectDragIndicatorWrapper>
+                        <AccessibleSelectItem label="All Ages" value="" />
+                        <AccessibleSelectItem label="Baby" value="Baby" />
+                        <AccessibleSelectItem label="Young" value="Young" />
+                        <AccessibleSelectItem label="Adult" value="Adult" />
+                        <AccessibleSelectItem label="Senior" value="Senior" />
+                      </AccessibleSelectContent>
+                    </AccessibleSelectPortal>
+                  </AccessibleSelect>
 
-                  <Select
+                  <AccessibleSelect
                     selectedValue={selectedSize}
                     onValueChange={(value) => {
                       try {
@@ -395,23 +411,22 @@ export default function Explore() {
                       setSelectedSize(value as GeneralSizePotential);
                     }}
                   >
-                    <SelectTrigger variant="outline" size="md">
-                      <SelectInput placeholder="Size (All)" />
-                    </SelectTrigger>
-                    <SelectPortal>
-                      <SelectBackdrop />
-                      <SelectContent>
-                        <SelectDragIndicatorWrapper>
-                          <SelectDragIndicator />
-                        </SelectDragIndicatorWrapper>
-                        <SelectItem label="All Sizes" value="" />
-                        <SelectItem label="Small" value="Small" />
-                        <SelectItem label="Medium" value="Medium" />
-                        <SelectItem label="Large" value="Large" />
-                        <SelectItem label="X-Large" value="X-Large" />
-                      </SelectContent>
-                    </SelectPortal>
-                  </Select>
+                    <AccessibleSelectTrigger variant="outline" size="md">
+                      <AccessibleSelectInput placeholder="Size (All)" />
+                    </AccessibleSelectTrigger>
+                    <AccessibleSelectPortal>
+                      <AccessibleSelectContent>
+                        <AccessibleSelectDragIndicatorWrapper>
+                          <AccessibleSelectDragIndicator />
+                        </AccessibleSelectDragIndicatorWrapper>
+                        <AccessibleSelectItem label="All Sizes" value="" />
+                        <AccessibleSelectItem label="Small" value="Small" />
+                        <AccessibleSelectItem label="Medium" value="Medium" />
+                        <AccessibleSelectItem label="Large" value="Large" />
+                        <AccessibleSelectItem label="X-Large" value="X-Large" />
+                      </AccessibleSelectContent>
+                    </AccessibleSelectPortal>
+                  </AccessibleSelect>
 
                   <VStack space="sm">
                     <Text className="text-sm font-medium text-typography-600">
@@ -441,7 +456,7 @@ export default function Explore() {
                     )}
                   </VStack>
 
-                  <Select
+                  <AccessibleSelect
                     selectedValue={radius ? radius.toString() : ''}
                     onValueChange={(value) => {
                       try {
@@ -453,31 +468,30 @@ export default function Explore() {
                     }}
                     isDisabled={!zipCode || !!zipCodeError}
                   >
-                    <SelectTrigger variant="outline" size="md">
-                      <SelectInput
+                    <AccessibleSelectTrigger variant="outline" size="md">
+                      <AccessibleSelectInput
                         placeholder={
                           !zipCode
                             ? 'Distance (Enter ZIP first)'
                             : 'Distance (Any)'
                         }
                       />
-                    </SelectTrigger>
-                    <SelectPortal>
-                      <SelectBackdrop />
-                      <SelectContent>
-                        <SelectDragIndicatorWrapper>
-                          <SelectDragIndicator />
-                        </SelectDragIndicatorWrapper>
-                        <SelectItem label="Any Distance" value="" />
-                        <SelectItem label="10 miles" value="10" />
-                        <SelectItem label="25 miles" value="25" />
-                        <SelectItem label="50 miles" value="50" />
-                        <SelectItem label="100 miles" value="100" />
-                        <SelectItem label="250 miles" value="250" />
-                        <SelectItem label="500 miles" value="500" />
-                      </SelectContent>
-                    </SelectPortal>
-                  </Select>
+                    </AccessibleSelectTrigger>
+                    <AccessibleSelectPortal>
+                      <AccessibleSelectContent>
+                        <AccessibleSelectDragIndicatorWrapper>
+                          <AccessibleSelectDragIndicator />
+                        </AccessibleSelectDragIndicatorWrapper>
+                        <AccessibleSelectItem label="Any Distance" value="" />
+                        <AccessibleSelectItem label="10 miles" value="10" />
+                        <AccessibleSelectItem label="25 miles" value="25" />
+                        <AccessibleSelectItem label="50 miles" value="50" />
+                        <AccessibleSelectItem label="100 miles" value="100" />
+                        <AccessibleSelectItem label="250 miles" value="250" />
+                        <AccessibleSelectItem label="500 miles" value="500" />
+                      </AccessibleSelectContent>
+                    </AccessibleSelectPortal>
+                  </AccessibleSelect>
 
                   {activeFiltersCount > 0 && (
                     <Button

@@ -309,23 +309,44 @@ Releases are created using a dedicated release branch that merges to `dev` first
    git push --follow-tags origin release/0.x.x
    ```
 
-9. **Create PR from release branch to dev on GitHub**:
-   - **Title**: `chore(release): 0.x.x`
-   - **Body**: `Release preparation - updates changelog and version`
-   - Wait for CI checks to pass
-   - Get approval from reviewers
+9. **Create PR from release branch to dev**:
 
-10. **Merge release PR to dev using "Squash and merge"**
+   ```bash
+   gh pr create --base dev --head release/0.x.x \
+     --title "chore(release): 0.x.x" \
+     --body "Release preparation - updates changelog and version"
+   ```
 
-11. **Create PR from dev to main on GitHub**:
+10. **Get approval and merge to dev using "Create a merge commit"** (NOT squash merge!)
+
+11. **Create PR from dev to main**:
+
+    ```bash
+    gh pr create --base main --head dev \
+      --title "Release v0.x.x" \
+      --body "Production release v0.x.x - see CHANGELOG.md"
+    ```
+
+12. **Get approval and merge to main using "Create a merge commit"** (NOT squash merge!)
+
+13. **Sync local branches and clean up**:
+14. **Create PR from release branch to dev on GitHub**:
+    - **Title**: `chore(release): 0.x.x`
+    - **Body**: `Release preparation - updates changelog and version`
+    - Wait for CI checks to pass
+    - Get approval from reviewers
+
+15. **Merge release PR to dev using "Squash and merge"**
+
+16. **Create PR from dev to main on GitHub**:
     - **Title**: `chore: release v0.x.x to production`
     - **Body**: `Production release v0.x.x - see CHANGELOG.md for details`
     - Wait for CI checks to pass
     - Get approval from reviewers
 
-12. **Merge dev to main using "Squash and merge"**
+17. **Merge dev to main using "Squash and merge"**
 
-13. **Sync local branches and clean up**:
+18. **Sync local branches and clean up**:
 
     ```bash
     git checkout dev && git pull origin dev

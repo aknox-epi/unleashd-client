@@ -147,15 +147,19 @@ This document outlines potential features and enhancements for the Unleashd pet 
 
 **Testing & Quality:**
 
-- Comprehensive test coverage (249+ tests passing)
+- Comprehensive test coverage (339 tests passing)
 - 99%+ coverage for API integrations
 - 95%+ coverage for critical services
+- Clean test output with suppressed cosmetic warnings
+- Reorganized test commands (test, test:watch, test:coverage)
+- Comprehensive TESTING.md documentation guide
 - Pre-commit hooks (lint, format, test staged files)
 - Pre-push hooks (full test suite with coverage)
 - Jest configured with Expo preset
 - React Test Renderer for component testing
 - Mock implementations for external dependencies
 - Coverage reports generated in coverage/ directory
+- Documented Bun test runner incompatibility with React Native
 
 **Development Workflow:**
 
@@ -174,6 +178,7 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - Comprehensive README.md with setup guides
 - CONTRIBUTING.md with detailed workflow
 - AGENTS.md for AI agent guidelines
+- TESTING.md with comprehensive testing guide
 - Clear separation of concerns between docs
 - Cross-linking for easy navigation
 - API integration documentation with examples

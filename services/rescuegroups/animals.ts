@@ -26,6 +26,7 @@ const ANIMAL_FIELDS = [
 
   // Location
   'animalLocationCitystate',
+  'animalLocationDistance', // Distance from search location (when location filter is used)
 
   // Media (images)
   'animalPictures',

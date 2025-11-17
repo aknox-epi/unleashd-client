@@ -8,6 +8,7 @@ import {
   Rabbit,
   Image as ImageIcon,
   Heart,
+  MapPin,
 } from 'lucide-react-native';
 import { Box } from '@/components/ui/box';
 import { HStack } from '@/components/ui/hstack';
@@ -48,6 +49,34 @@ function getAnimalImageUrl(animal: Animal): string | undefined {
   }
 
   return undefined;
+}
+
+/**
+ * Format distance for display
+ * @param distance - Distance in miles (number or string)
+ * @returns Formatted string like "12 miles" or "0.5 miles"
+ */
+function formatDistance(distance: number | undefined): string | null {
+  if (distance === undefined || distance === null) {
+    return null;
+  }
+
+  // Convert to number if it's a string (API sometimes returns strings)
+  const numDistance =
+    typeof distance === 'number' ? distance : parseFloat(distance);
+
+  // Handle invalid numbers
+  if (isNaN(numDistance)) {
+    return null;
+  }
+
+  // Round to 1 decimal place for distances under 10 miles
+  if (numDistance < 10) {
+    return `${numDistance.toFixed(1)} miles`;
+  }
+
+  // Round to whole number for distances 10+ miles
+  return `${Math.round(numDistance)} miles`;
 }
 
 /**
@@ -209,6 +238,25 @@ export function AnimalCard({
             <Text size="xs" className="text-typography-400">
               Location: {animal.animalLocationCitystate}
             </Text>
+          )}
+          {animal.animalLocationDistance !== undefined && (
+            <HStack space="xs" className="items-center">
+              <Icon
+                as={MapPin}
+                size="xs"
+                className={isDarkMode ? 'text-info-400' : 'text-info-600'}
+              />
+              <Text
+                size="xs"
+                className={
+                  isDarkMode
+                    ? 'text-info-400 font-medium'
+                    : 'text-info-600 font-medium'
+                }
+              >
+                {formatDistance(animal.animalLocationDistance)}
+              </Text>
+            </HStack>
           )}
         </VStack>
       </HStack>

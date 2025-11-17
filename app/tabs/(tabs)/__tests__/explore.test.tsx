@@ -5,6 +5,7 @@ import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
 import { FavoritesProvider } from '@/contexts/FavoritesContext';
 import { RescueGroupsProvider } from '@/contexts/RescueGroupsContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { LocationPreferencesProvider } from '@/contexts/LocationPreferencesContext';
 import { useAnimalSearch } from '@/hooks/useAnimals';
 import type {
   Sex,
@@ -51,9 +52,11 @@ const renderWithProviders = (component: React.ReactElement) => {
   return render(
     <ThemeProvider>
       <RescueGroupsProvider>
-        <FavoritesProvider>
-          <GluestackUIProvider mode="light">{component}</GluestackUIProvider>
-        </FavoritesProvider>
+        <LocationPreferencesProvider>
+          <FavoritesProvider>
+            <GluestackUIProvider mode="light">{component}</GluestackUIProvider>
+          </FavoritesProvider>
+        </LocationPreferencesProvider>
       </RescueGroupsProvider>
     </ThemeProvider>
   );

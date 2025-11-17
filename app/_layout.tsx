@@ -17,6 +17,7 @@ import {
 } from '@/contexts/ThemeContext';
 import { WhatsNewProvider } from '@/contexts/WhatsNewContext';
 import { FavoritesProvider } from '@/contexts/FavoritesContext';
+import { LocationPreferencesProvider } from '@/contexts/LocationPreferencesContext';
 import { CHANGELOG_CONTENT } from '@/constants/changelog';
 import packageJson from '../package.json';
 
@@ -50,12 +51,14 @@ export default function RootLayout() {
   return (
     <CustomThemeProvider>
       <FavoritesProvider>
-        <WhatsNewProvider
-          changelogContent={CHANGELOG_CONTENT}
-          currentVersion={APP_VERSION}
-        >
-          <RootLayoutNav />
-        </WhatsNewProvider>
+        <LocationPreferencesProvider>
+          <WhatsNewProvider
+            changelogContent={CHANGELOG_CONTENT}
+            currentVersion={APP_VERSION}
+          >
+            <RootLayoutNav />
+          </WhatsNewProvider>
+        </LocationPreferencesProvider>
       </FavoritesProvider>
     </CustomThemeProvider>
   );

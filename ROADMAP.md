@@ -353,13 +353,14 @@ Priority order for next features (subject to change):
    - ✅ ~~Size filter (Small, Medium, Large, X-Large)~~ - Completed
    - ✅ ~~Gender filter (Male, Female)~~ - Completed
    - ✅ ~~Multi-filter support (combine filters)~~ - Completed
-   - Location/distance filter (zip code + radius) - **90% Complete**
+   - ✅ ~~Location/distance filter (zip code + radius)~~ - **Completed v0.4.0**
      - ✅ ZIP code input with validation (5-digit and ZIP+4 formats)
-     - ✅ Radius dropdown (10, 25, 50, 100, 250 miles)
+     - ✅ Radius dropdown (10, 25, 50, 100, 250, 500 miles)
      - ✅ API integration with location/radius parameters
      - ✅ Active filter count and clear filters support
-     - 🔄 Distance display on animal cards (in progress)
-     - 🔄 AsyncStorage for default location preference (planned)
+     - ✅ Distance display on animal cards with MapPin icon
+     - ✅ AsyncStorage for default location preference (auto-saves/loads ZIP and radius)
+     - 🔄 Optional: Geolocation "Use My Location" button (future enhancement)
 
 2. **Medium Priority** (Next 2-3 Sprints)
 

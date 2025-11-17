@@ -63,7 +63,7 @@ describe('OrganizationService', () => {
       expect(result).toEqual(mockOrganization);
       expect(mockRequest).toHaveBeenCalledWith({
         objectType: RESCUEGROUPS_CONFIG.OBJECT_TYPES.ORGANIZATIONS,
-        objectAction: 'publicView',
+        objectAction: 'publicSearch',
         search: {
           resultStart: 0,
           resultLimit: 1,

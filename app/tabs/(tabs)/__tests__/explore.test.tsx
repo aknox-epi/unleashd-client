@@ -7,6 +7,7 @@ import { RescueGroupsProvider } from '@/contexts/RescueGroupsContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { LocationPreferencesProvider } from '@/contexts/LocationPreferencesContext';
 import { SortPreferencesProvider } from '@/contexts/SortPreferencesContext';
+import { SpeciesPreferencesProvider } from '@/contexts/SpeciesPreferencesContext';
 import { useAnimalSearch } from '@/hooks/useAnimals';
 import type {
   Sex,
@@ -55,11 +56,13 @@ const renderWithProviders = (component: React.ReactElement) => {
       <RescueGroupsProvider>
         <LocationPreferencesProvider>
           <SortPreferencesProvider>
-            <FavoritesProvider>
-              <GluestackUIProvider mode="light">
-                {component}
-              </GluestackUIProvider>
-            </FavoritesProvider>
+            <SpeciesPreferencesProvider>
+              <FavoritesProvider>
+                <GluestackUIProvider mode="light">
+                  {component}
+                </GluestackUIProvider>
+              </FavoritesProvider>
+            </SpeciesPreferencesProvider>
           </SortPreferencesProvider>
         </LocationPreferencesProvider>
       </RescueGroupsProvider>

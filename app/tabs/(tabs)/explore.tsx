@@ -49,6 +49,7 @@ import { useAnimalSearch } from '@/hooks/useAnimals';
 import { useRescueGroupsContext } from '@/contexts/RescueGroupsContext';
 import { useLocationPreferences } from '@/contexts/LocationPreferencesContext';
 import { useSortPreferences } from '@/contexts/SortPreferencesContext';
+import { useSpeciesPreferences } from '@/contexts/SpeciesPreferencesContext';
 import { RESCUEGROUPS_CONFIG } from '@/constants/RescueGroupsConfig';
 import {
   getErrorMessage,
@@ -87,6 +88,11 @@ export default function Explore() {
     updatePreferences: updateSortPreferences,
     isLoading: sortPrefsLoading,
   } = useSortPreferences();
+  const {
+    preferences: speciesPreferences,
+    updatePreferences: updateSpeciesPreferences,
+    isLoading: speciesPrefsLoading,
+  } = useSpeciesPreferences();
   const { colorMode } = useTheme();
   const [selectedSpecies, setSelectedSpecies] = useState<AnimalSpecies>(
     RESCUEGROUPS_CONFIG.SPECIES.DOG
@@ -129,16 +135,23 @@ export default function Explore() {
     }
   }, [sortPrefsLoading, sortPreferences]);
 
+  // Load saved species preferences on mount
+  useEffect(() => {
+    if (!speciesPrefsLoading && speciesPreferences.defaultSpecies) {
+      setSelectedSpecies(speciesPreferences.defaultSpecies);
+    }
+  }, [speciesPrefsLoading, speciesPreferences]);
+
   // Auto-search on mount after preferences load
   // This ensures we use saved preferences (if any) on initial search
   // We pass the loaded sort preference directly to avoid race condition with state updates
   useEffect(() => {
-    if (!prefsLoading && !sortPrefsLoading) {
+    if (!prefsLoading && !sortPrefsLoading && !speciesPrefsLoading) {
       const sortToUse = sortPreferences.selectedSort || selectedSort;
       handleSearch(false, sortToUse); // Pass loaded sort directly
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prefsLoading, sortPrefsLoading]);
+  }, [prefsLoading, sortPrefsLoading, speciesPrefsLoading]);
 
   const handleSearch = useCallback(
     async (includeHaptic = true, sortOverride?: SortOption) => {
@@ -343,7 +356,10 @@ export default function Explore() {
               } catch {
                 // Haptics not supported on web, ignore
               }
-              setSelectedSpecies(value as AnimalSpecies);
+              const newSpecies = value as AnimalSpecies;
+              setSelectedSpecies(newSpecies);
+              // Save species preference
+              updateSpeciesPreferences({ defaultSpecies: newSpecies });
             }}
           >
             <AccessibleSelectTrigger variant="outline" size="md">

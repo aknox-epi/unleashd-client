@@ -29,7 +29,8 @@ module.exports = {
   expo: {
     name: 'starter-kit-expo',
     slug: 'starter-kit-expo',
-    version: '1.0.0',
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    version: require('./package.json').version,
     orientation: 'portrait',
     icon: './assets/images/icon.png',
     scheme: 'starterkitexpo',

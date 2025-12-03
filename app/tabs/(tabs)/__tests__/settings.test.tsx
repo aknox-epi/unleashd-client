@@ -295,3 +295,16 @@ describe('Settings Screen - Clear Favorites', () => {
     expect(queryByText('Clear All Favorites?')).toBeNull();
   });
 });
+
+describe('Settings Screen - About Section', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockAsyncStorage.getItem.mockResolvedValue(null);
+  });
+
+  it('should render without crashing when About section is added', () => {
+    // Just verify the component renders without throwing errors
+    // The About section contains app version, links, and attributions
+    expect(() => renderWithProviders(<Settings />)).not.toThrow();
+  });
+});

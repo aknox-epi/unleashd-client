@@ -1,5 +1,6 @@
 import { ScrollView } from 'react-native';
 import { useState } from 'react';
+import packageJson from '../../../package.json';
 import { Center } from '@/components/ui/center';
 import { Heading } from '@/components/ui/heading';
 import { HStack } from '@/components/ui/hstack';
@@ -10,12 +11,16 @@ import { Icon } from '@/components/ui/icon';
 import { MoonIcon, SunIcon } from '@/components/ui/icon';
 import { Button, ButtonText, ButtonIcon } from '@/components/ui/button';
 import { Link, LinkText } from '@/components/ui/link';
+import { Divider } from '@/components/ui/divider';
 import {
   Sparkles,
   ChevronDown,
   ChevronUp,
   Trash2,
   Heart,
+  Info,
+  Github,
+  ExternalLink,
 } from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useWhatsNew } from '@/contexts/WhatsNewContext';
@@ -81,6 +86,7 @@ export default function Settings() {
   } = useWhatsNew();
   const { count: favoritesCount, clearAllFavorites } = useFavorites();
   const isDarkMode = colorMode === 'dark';
+  const appVersion = packageJson.version;
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(true);
   const [showClearDialog, setShowClearDialog] = useState(false);
 
@@ -242,6 +248,112 @@ export default function Settings() {
                     />
                   </Button>
                 </HStack>
+              </VStack>
+            </VStack>
+
+            {/* About Section */}
+            <VStack className="gap-2">
+              <Heading
+                size="sm"
+                className="font-semibold text-typography-700 px-2"
+              >
+                About
+              </Heading>
+              <VStack className="gap-4 py-4 px-4 bg-background-50 rounded-lg">
+                {/* App Name and Version */}
+                <VStack className="gap-1">
+                  <Text className="font-bold text-xl">Unleashd</Text>
+                  <Text className="text-sm text-typography-500">
+                    Version {appVersion}
+                  </Text>
+                </VStack>
+
+                {/* App Description */}
+                <Text className="text-sm text-typography-600">
+                  A cross-platform mobile app for finding adoptable pets.
+                </Text>
+
+                <Divider className="my-1" />
+
+                {/* RescueGroups Attribution */}
+                <VStack className="gap-2">
+                  <HStack className="items-center gap-2">
+                    <Icon as={Heart} size="md" className="text-red-500" />
+                    <Text className="font-semibold text-sm">Data Provider</Text>
+                  </HStack>
+                  <Text className="text-sm text-typography-600">
+                    Animal data provided by RescueGroups.org
+                  </Text>
+                  <Link href="https://www.rescuegroups.org" isExternal>
+                    <HStack className="items-center gap-1">
+                      <LinkText className="text-sm text-blue-500">
+                        Visit RescueGroups.org
+                      </LinkText>
+                      <Icon
+                        as={ExternalLink}
+                        size="xs"
+                        className="text-blue-500"
+                      />
+                    </HStack>
+                  </Link>
+                </VStack>
+
+                <Divider className="my-1" />
+
+                {/* GitHub Repository */}
+                <VStack className="gap-2">
+                  <HStack className="items-center gap-2">
+                    <Icon
+                      as={Github}
+                      size="md"
+                      className="text-typography-700"
+                    />
+                    <Text className="font-semibold text-sm">Source Code</Text>
+                  </HStack>
+                  <Link
+                    href="https://github.com/aknox-epi/unleashd-client"
+                    isExternal
+                  >
+                    <HStack className="items-center gap-1">
+                      <LinkText className="text-sm text-blue-500">
+                        View on GitHub
+                      </LinkText>
+                      <Icon
+                        as={ExternalLink}
+                        size="xs"
+                        className="text-blue-500"
+                      />
+                    </HStack>
+                  </Link>
+                </VStack>
+
+                <Divider className="my-1" />
+
+                {/* License */}
+                <VStack className="gap-2">
+                  <HStack className="items-center gap-2">
+                    <Icon as={Info} size="md" className="text-typography-700" />
+                    <Text className="font-semibold text-sm">License</Text>
+                  </HStack>
+                  <Text className="text-sm text-typography-600">
+                    © 2025 Unleashd Contributors
+                  </Text>
+                  <Link
+                    href="https://github.com/aknox-epi/unleashd-client#readme"
+                    isExternal
+                  >
+                    <HStack className="items-center gap-1">
+                      <LinkText className="text-sm text-blue-500">
+                        View license information
+                      </LinkText>
+                      <Icon
+                        as={ExternalLink}
+                        size="xs"
+                        className="text-blue-500"
+                      />
+                    </HStack>
+                  </Link>
+                </VStack>
               </VStack>
             </VStack>
           </VStack>

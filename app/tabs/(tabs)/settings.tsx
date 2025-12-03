@@ -8,11 +8,18 @@ import { VStack } from '@/components/ui/vstack';
 import { Switch } from '@/components/ui/switch';
 import { Icon } from '@/components/ui/icon';
 import { MoonIcon, SunIcon } from '@/components/ui/icon';
-import { Button, ButtonText } from '@/components/ui/button';
+import { Button, ButtonText, ButtonIcon } from '@/components/ui/button';
 import { Link, LinkText } from '@/components/ui/link';
-import { Sparkles, ChevronDown, ChevronUp } from 'lucide-react-native';
+import {
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  Trash2,
+  Heart,
+} from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useWhatsNew } from '@/contexts/WhatsNewContext';
+import { useFavorites } from '@/contexts/FavoritesContext';
 import { Badge, BadgeText } from '@/components/ui/badge';
 import {
   Drawer,
@@ -22,6 +29,14 @@ import {
   DrawerBody,
   DrawerFooter,
 } from '@/components/ui/drawer';
+import {
+  AlertDialog,
+  AlertDialogBackdrop,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogBody,
+  AlertDialogFooter,
+} from '@/components/ui/alert-dialog';
 import {
   Checkbox,
   CheckboxIndicator,
@@ -64,8 +79,10 @@ export default function Settings() {
     hasNewVersion,
     markVersionAsSeen,
   } = useWhatsNew();
+  const { count: favoritesCount, clearAllFavorites } = useFavorites();
   const isDarkMode = colorMode === 'dark';
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(true);
+  const [showClearDialog, setShowClearDialog] = useState(false);
 
   // Handle drawer close - mark version as seen if there's a new version
   const handleDrawerClose = () => {
@@ -118,6 +135,23 @@ export default function Settings() {
     }
   };
 
+  // Handle clear all favorites with confirmation
+  const handleClearFavorites = () => {
+    if (favoritesCount === 0) {
+      return; // Button is disabled, but extra safety
+    }
+    setShowClearDialog(true);
+  };
+
+  const handleConfirmClear = async () => {
+    await clearAllFavorites();
+    setShowClearDialog(false);
+  };
+
+  const handleCancelClear = () => {
+    setShowClearDialog(false);
+  };
+
   return (
     <>
       <ScrollView className="flex-1">
@@ -167,6 +201,48 @@ export default function Settings() {
                   size="md"
                 />
               </HStack>
+            </VStack>
+
+            {/* Data Management Section */}
+            <VStack className="gap-2">
+              <Heading
+                size="sm"
+                className="font-semibold text-typography-700 px-2"
+              >
+                Data Management
+              </Heading>
+              <VStack className="gap-4">
+                {/* Clear Favorites Button */}
+                <HStack className="justify-between items-center py-3 px-4 bg-background-50 rounded-lg">
+                  <HStack className="items-center gap-3 flex-1">
+                    <Icon as={Heart} size="xl" className="text-red-500" />
+                    <VStack className="flex-1">
+                      <Text className="font-semibold text-base">
+                        Clear Favorites
+                      </Text>
+                      <Text className="text-sm text-typography-500">
+                        {favoritesCount === 0
+                          ? 'No favorites saved'
+                          : `${favoritesCount} ${favoritesCount === 1 ? 'favorite' : 'favorites'} saved`}
+                      </Text>
+                    </VStack>
+                  </HStack>
+                  <Button
+                    onPress={handleClearFavorites}
+                    action="negative"
+                    size="sm"
+                    variant="outline"
+                    isDisabled={favoritesCount === 0}
+                    accessibilityLabel="Clear Favorites"
+                  >
+                    <ButtonIcon
+                      as={Trash2}
+                      size="sm"
+                      className="text-error-500"
+                    />
+                  </Button>
+                </HStack>
+              </VStack>
             </VStack>
           </VStack>
         </Center>
@@ -339,6 +415,31 @@ export default function Settings() {
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
+
+      {/* Clear Favorites Confirmation Dialog */}
+      <AlertDialog isOpen={showClearDialog} onClose={handleCancelClear}>
+        <AlertDialogBackdrop />
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <Heading size="lg">Clear All Favorites?</Heading>
+          </AlertDialogHeader>
+          <AlertDialogBody>
+            <Text>
+              Are you sure you want to clear all {favoritesCount}{' '}
+              {favoritesCount === 1 ? 'favorite' : 'favorites'}? This cannot be
+              undone.
+            </Text>
+          </AlertDialogBody>
+          <AlertDialogFooter>
+            <Button variant="outline" onPress={handleCancelClear}>
+              <ButtonText>Cancel</ButtonText>
+            </Button>
+            <Button action="negative" onPress={handleConfirmClear}>
+              <ButtonText>Clear All</ButtonText>
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

@@ -262,28 +262,24 @@ export function AnimalCard({
               </Text>
             )}
             {animal.animalLocationCitystate && (
-              <Text size="xs" className="text-typography-400">
-                Location: {animal.animalLocationCitystate}
-              </Text>
-            )}
-            {animal.animalLocationDistance !== undefined && (
               <HStack space="xs" className="items-center">
-                <Icon
-                  as={MapPin}
-                  size="xs"
-                  className={isDarkMode ? 'text-info-400' : 'text-info-600'}
-                />
-                <Text
-                  size="xs"
-                  className={
-                    isDarkMode
-                      ? 'text-info-400 font-medium'
-                      : 'text-info-600 font-medium'
-                  }
-                >
-                  {formatDistance(animal.animalLocationDistance)}
+                <Icon as={MapPin} size="xs" className="text-typography-400" />
+                <Text size="xs" className="text-typography-400">
+                  Location: {animal.animalLocationCitystate}
                 </Text>
               </HStack>
+            )}
+            {animal.animalLocationDistance !== undefined && (
+              <Text
+                size="xs"
+                className={
+                  isDarkMode
+                    ? 'text-info-400 font-medium'
+                    : 'text-info-600 font-medium'
+                }
+              >
+                {formatDistance(animal.animalLocationDistance)}
+              </Text>
             )}
           </VStack>
         </HStack>

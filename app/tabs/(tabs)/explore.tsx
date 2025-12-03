@@ -129,11 +129,16 @@ export default function Explore() {
     }
   }, [sortPrefsLoading, sortPreferences]);
 
-  // Auto-search on mount with dogs
+  // Auto-search on mount after preferences load
+  // This ensures we use saved preferences (if any) on initial search
+  // We pass the loaded sort preference directly to avoid race condition with state updates
   useEffect(() => {
-    handleSearch(false); // Skip haptic on auto-search
+    if (!prefsLoading && !sortPrefsLoading) {
+      const sortToUse = sortPreferences.selectedSort || selectedSort;
+      handleSearch(false, sortToUse); // Pass loaded sort directly
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [prefsLoading, sortPrefsLoading]);
 
   const handleSearch = useCallback(
     async (includeHaptic = true, sortOverride?: SortOption) => {
@@ -160,16 +165,6 @@ export default function Explore() {
 
       // Get sort field mapping
       const sortMapping = getSortFieldMapping(activeSortOption);
-
-      // Debug logging
-      console.log('[EXPLORE] Sort Debug:', {
-        selectedSort,
-        sortOverride,
-        activeSortOption,
-        sortMapping,
-        field: sortMapping.field,
-        order: sortMapping.order,
-      });
 
       await search({
         species: selectedSpecies,

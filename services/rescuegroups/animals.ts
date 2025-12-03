@@ -185,14 +185,6 @@ export class AnimalService {
       criteria: 'Available',
     });
 
-    // Debug logging
-    console.log('[API SERVICE] Search params:', {
-      sort,
-      order,
-      resultSort: sort,
-      resultOrder: order,
-    });
-
     const response = await rescueGroupsClient.request<Animal>({
       objectType: RESCUEGROUPS_CONFIG.OBJECT_TYPES.ANIMALS,
       objectAction: 'publicSearch',

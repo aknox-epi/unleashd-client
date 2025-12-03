@@ -333,7 +333,7 @@ export default function Settings() {
           </DrawerBody>
 
           <DrawerFooter className="shrink-0 border-t border-outline-200 pt-4">
-            <Button onPress={closeDrawer} className="w-full">
+            <Button onPress={handleDrawerClose} className="w-full">
               <ButtonText>Close</ButtonText>
             </Button>
           </DrawerFooter>

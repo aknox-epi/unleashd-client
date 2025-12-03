@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Pressable } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { Pressable, Animated } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import {
   Dog,
@@ -135,6 +135,27 @@ export function AnimalCard({
   const shouldShowFallback = !imageUrl || hasImageError;
   const favorited = isFavorite(animal.animalID);
 
+  // Animation values - initialized once and stored in ref
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
+
+  // Run entrance animation on mount
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Run once on mount
+  }, []);
+
   const handlePress = () => {
     if (onPress) {
       onPress(animal);
@@ -169,83 +190,86 @@ export function AnimalCard({
   };
 
   const content = (
-    <VStack
-      className="border border-outline-200 rounded-lg p-3 bg-background-0 relative"
-      space="sm"
+    <Animated.View
+      style={{
+        opacity: fadeAnim,
+        transform: [{ translateY: slideAnim }],
+      }}
     >
-      {/* Favorite button - absolute positioned top-right */}
-      <Box className="absolute top-2 right-2 z-10">
-        <Pressable
-          onPress={handleFavoritePress}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          testID={`favorite-button-${animal.animalID}`}
-        >
-          <Icon
-            as={Heart}
-            size="lg"
-            className={
-              favorited
-                ? 'text-error-500'
-                : isDarkMode
-                  ? 'text-typography-400'
-                  : 'text-typography-300'
-            }
-            fill={favorited ? 'currentColor' : 'none'}
-          />
-        </Pressable>
-      </Box>
+      <VStack
+        className="border border-outline-200 rounded-lg p-3 bg-background-0 relative"
+        space="sm"
+      >
+        {/* Favorite button - absolute positioned top-right */}
+        <Box className="absolute top-2 right-2 z-10">
+          <Pressable
+            onPress={handleFavoritePress}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            testID={`favorite-button-${animal.animalID}`}
+          >
+            <Icon
+              as={Heart}
+              size="lg"
+              className={
+                favorited
+                  ? 'text-error-500'
+                  : isDarkMode
+                    ? 'text-typography-400'
+                    : 'text-typography-300'
+              }
+              fill={favorited ? 'currentColor' : 'none'}
+            />
+          </Pressable>
+        </Box>
 
-      <HStack space="md">
-        {shouldShowFallback ? (
-          <ImageFallback
-            species={animal.animalSpecies}
-            isDarkMode={isDarkMode}
-          />
-        ) : (
-          <Image
-            source={{ uri: imageUrl }}
-            size="lg"
-            alt={animal.animalName}
-            className="rounded-lg"
-            onError={() => setHasImageError(true)}
-          />
-        )}
-        <VStack space="xs" className="flex-1 shrink pr-8">
-          <Heading size="sm" className="font-semibold">
-            {animal.animalName}
-          </Heading>
-          <VStack space="xs">
-            <Text size="sm" className="text-typography-500">
-              {animal.animalSpecies}
-            </Text>
-            {animal.animalBreed && (
-              <Text size="sm" className="text-typography-500 flex-wrap">
-                {animal.animalBreed}
+        <HStack space="md">
+          {shouldShowFallback ? (
+            <ImageFallback
+              species={animal.animalSpecies}
+              isDarkMode={isDarkMode}
+            />
+          ) : (
+            <Image
+              source={{ uri: imageUrl }}
+              size="lg"
+              alt={animal.animalName}
+              className="rounded-lg"
+              onError={() => setHasImageError(true)}
+            />
+          )}
+          <VStack space="xs" className="flex-1 shrink pr-8">
+            <Heading size="sm" className="font-semibold">
+              {animal.animalName}
+            </Heading>
+            <VStack space="xs">
+              <Text size="sm" className="text-typography-500">
+                {animal.animalSpecies}
+              </Text>
+              {animal.animalBreed && (
+                <Text size="sm" className="text-typography-500 flex-wrap">
+                  {animal.animalBreed}
+                </Text>
+              )}
+            </VStack>
+            {animal.animalGeneralAge && (
+              <Text size="sm" className="text-typography-500">
+                Age: {animal.animalGeneralAge}
               </Text>
             )}
-          </VStack>
-          {animal.animalGeneralAge && (
-            <Text size="sm" className="text-typography-500">
-              Age: {animal.animalGeneralAge}
-            </Text>
-          )}
-          {animal.animalSex && (
-            <Text size="sm" className="text-typography-500">
-              Sex: {animal.animalSex}
-            </Text>
-          )}
-          {animal.animalLocationCitystate && (
-            <Text size="xs" className="text-typography-400">
-              Location: {animal.animalLocationCitystate}
-            </Text>
-          )}
-          {animal.animalLocationDistance !== undefined && (
-            <HStack space="xs" className="items-center">
-              <Icon
-                as={MapPin}
-                size="xs"
-                className={isDarkMode ? 'text-info-400' : 'text-info-600'}
-              />
+            {animal.animalSex && (
+              <Text size="sm" className="text-typography-500">
+                Sex: {animal.animalSex}
+              </Text>
+            )}
+            {animal.animalLocationCitystate && (
+              <HStack space="xs" className="items-center">
+                <Icon as={MapPin} size="xs" className="text-typography-400" />
+                <Text size="xs" className="text-typography-400">
+                  Location: {animal.animalLocationCitystate}
+                </Text>
+              </HStack>
+            )}
+            {animal.animalLocationDistance !== undefined && (
               <Text
                 size="xs"
                 className={
@@ -256,11 +280,11 @@ export function AnimalCard({
               >
                 {formatDistance(animal.animalLocationDistance)}
               </Text>
-            </HStack>
-          )}
-        </VStack>
-      </HStack>
-    </VStack>
+            )}
+          </VStack>
+        </HStack>
+      </VStack>
+    </Animated.View>
   );
 
   // Wrap in Pressable only if onPress is provided

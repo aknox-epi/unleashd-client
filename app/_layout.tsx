@@ -18,6 +18,7 @@ import {
 import { WhatsNewProvider } from '@/contexts/WhatsNewContext';
 import { FavoritesProvider } from '@/contexts/FavoritesContext';
 import { LocationPreferencesProvider } from '@/contexts/LocationPreferencesContext';
+import { SortPreferencesProvider } from '@/contexts/SortPreferencesContext';
 import { CHANGELOG_CONTENT } from '@/constants/changelog';
 import packageJson from '../package.json';
 
@@ -52,12 +53,14 @@ export default function RootLayout() {
     <CustomThemeProvider>
       <FavoritesProvider>
         <LocationPreferencesProvider>
-          <WhatsNewProvider
-            changelogContent={CHANGELOG_CONTENT}
-            currentVersion={APP_VERSION}
-          >
-            <RootLayoutNav />
-          </WhatsNewProvider>
+          <SortPreferencesProvider>
+            <WhatsNewProvider
+              changelogContent={CHANGELOG_CONTENT}
+              currentVersion={APP_VERSION}
+            >
+              <RootLayoutNav />
+            </WhatsNewProvider>
+          </SortPreferencesProvider>
         </LocationPreferencesProvider>
       </FavoritesProvider>
     </CustomThemeProvider>

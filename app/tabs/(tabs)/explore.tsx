@@ -48,6 +48,7 @@ import { Fab, FabIcon } from '@/components/ui/fab';
 import { useAnimalSearch } from '@/hooks/useAnimals';
 import { useRescueGroupsContext } from '@/contexts/RescueGroupsContext';
 import { useLocationPreferences } from '@/contexts/LocationPreferencesContext';
+import { useSortPreferences } from '@/contexts/SortPreferencesContext';
 import { RESCUEGROUPS_CONFIG } from '@/constants/RescueGroupsConfig';
 import {
   getErrorMessage,
@@ -57,6 +58,12 @@ import {
   type GeneralAge,
   type GeneralSizePotential,
 } from '@/services/rescuegroups';
+import {
+  SortOption,
+  SORT_LABELS,
+  getSortFieldMapping,
+  getSortOptionFromLabel,
+} from '@/types/sort-preferences';
 import { isDevelopment } from '@/utils/env';
 import { useWarningToast } from '@/hooks/useWarningToast';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -75,6 +82,11 @@ export default function Explore() {
     updatePreferences: updateLocationPreferences,
     isLoading: prefsLoading,
   } = useLocationPreferences();
+  const {
+    preferences: sortPreferences,
+    updatePreferences: updateSortPreferences,
+    isLoading: sortPrefsLoading,
+  } = useSortPreferences();
   const { colorMode } = useTheme();
   const [selectedSpecies, setSelectedSpecies] = useState<AnimalSpecies>(
     RESCUEGROUPS_CONFIG.SPECIES.DOG
@@ -82,6 +94,9 @@ export default function Explore() {
   const [selectedGender, setSelectedGender] = useState<Sex>('');
   const [selectedAge, setSelectedAge] = useState<GeneralAge>('');
   const [selectedSize, setSelectedSize] = useState<GeneralSizePotential>('');
+  const [selectedSort, setSelectedSort] = useState<SortOption>(
+    SortOption.NEWEST
+  );
   const [zipCode, setZipCode] = useState('');
   const [radius, setRadius] = useState<number | ''>('');
   const [zipCodeError, setZipCodeError] = useState('');
@@ -90,6 +105,7 @@ export default function Explore() {
   const [errorDismissed, setErrorDismissed] = useState(false);
   const [warningsDismissed, setWarningsDismissed] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isSortChanging, setIsSortChanging] = useState(false);
   const [showScrollToTop, setShowScrollToTop] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
@@ -105,6 +121,13 @@ export default function Explore() {
       setRadius(locationPreferences.radius);
     }
   }, [prefsLoading, locationPreferences]);
+
+  // Load saved sort preferences on mount
+  useEffect(() => {
+    if (!sortPrefsLoading && sortPreferences.selectedSort) {
+      setSelectedSort(sortPreferences.selectedSort);
+    }
+  }, [sortPrefsLoading, sortPreferences]);
 
   // Auto-search on mount with dogs
   useEffect(() => {
@@ -131,6 +154,10 @@ export default function Explore() {
       setSearchPerformed(true);
       setErrorDismissed(false);
       setWarningsDismissed(false);
+
+      // Get sort field mapping
+      const sortMapping = getSortFieldMapping(selectedSort);
+
       await search({
         species: selectedSpecies,
         sex: selectedGender || undefined,
@@ -141,6 +168,8 @@ export default function Explore() {
             ? getBaseZipCode(zipCode)
             : undefined,
         radius: radius || undefined,
+        sort: sortMapping.field,
+        order: sortMapping.order,
         limit: 20,
       });
 
@@ -155,6 +184,7 @@ export default function Explore() {
       selectedGender,
       selectedAge,
       selectedSize,
+      selectedSort,
       radius,
       search,
       updateLocationPreferences,
@@ -170,6 +200,10 @@ export default function Explore() {
     setIsRefreshing(true);
     setErrorDismissed(false);
     setWarningsDismissed(false);
+
+    // Get sort field mapping
+    const sortMapping = getSortFieldMapping(selectedSort);
+
     await search({
       species: selectedSpecies,
       sex: selectedGender || undefined,
@@ -180,6 +214,8 @@ export default function Explore() {
           ? getBaseZipCode(zipCode)
           : undefined,
       radius: radius || undefined,
+      sort: sortMapping.field,
+      order: sortMapping.order,
       limit: 20,
     });
     setIsRefreshing(false);
@@ -259,6 +295,29 @@ export default function Explore() {
     }
   }, [zipCode]);
 
+  const handleSortChange = useCallback(
+    async (value: string) => {
+      try {
+        await Haptics.selectionAsync();
+      } catch {
+        // Haptics not supported on web, ignore
+      }
+      const newSort = value as SortOption;
+      setSelectedSort(newSort);
+
+      // Save sort preference
+      await updateSortPreferences({ selectedSort: newSort });
+
+      // Auto-trigger search if search has been performed
+      if (searchPerformed) {
+        setIsSortChanging(true);
+        await handleSearch(false);
+        setIsSortChanging(false);
+      }
+    },
+    [searchPerformed, handleSearch, updateSortPreferences]
+  );
+
   const renderHeader = useMemo(() => {
     const activeFiltersCount = getActiveFilterCount();
 
@@ -317,6 +376,60 @@ export default function Explore() {
                 <AccessibleSelectItem
                   label="Barnyard"
                   value={RESCUEGROUPS_CONFIG.SPECIES.BARNYARD}
+                />
+              </AccessibleSelectContent>
+            </AccessibleSelectPortal>
+          </AccessibleSelect>
+
+          <AccessibleSelect
+            selectedValue={SORT_LABELS[selectedSort]}
+            onValueChange={(value) => {
+              // Find the sort option that matches this label
+              const sortOption = getSortOptionFromLabel(value);
+              if (sortOption) {
+                handleSortChange(sortOption);
+              }
+            }}
+            isDisabled={isSortChanging}
+          >
+            <AccessibleSelectTrigger variant="outline" size="md">
+              <AccessibleSelectInput placeholder="Sort By" />
+              {isSortChanging && (
+                <Box className="pr-3">
+                  <Spinner size="small" />
+                </Box>
+              )}
+            </AccessibleSelectTrigger>
+            <AccessibleSelectPortal>
+              <AccessibleSelectContent>
+                <AccessibleSelectDragIndicatorWrapper>
+                  <AccessibleSelectDragIndicator />
+                </AccessibleSelectDragIndicatorWrapper>
+                <AccessibleSelectItem
+                  label={SORT_LABELS[SortOption.NEWEST]}
+                  value={SORT_LABELS[SortOption.NEWEST]}
+                />
+                <AccessibleSelectItem
+                  label={SORT_LABELS[SortOption.OLDEST]}
+                  value={SORT_LABELS[SortOption.OLDEST]}
+                />
+                <AccessibleSelectItem
+                  label={SORT_LABELS[SortOption.DISTANCE_NEAR]}
+                  value={SORT_LABELS[SortOption.DISTANCE_NEAR]}
+                  isDisabled={!zipCode || !!zipCodeError}
+                />
+                <AccessibleSelectItem
+                  label={SORT_LABELS[SortOption.DISTANCE_FAR]}
+                  value={SORT_LABELS[SortOption.DISTANCE_FAR]}
+                  isDisabled={!zipCode || !!zipCodeError}
+                />
+                <AccessibleSelectItem
+                  label={SORT_LABELS[SortOption.NAME_ASC]}
+                  value={SORT_LABELS[SortOption.NAME_ASC]}
+                />
+                <AccessibleSelectItem
+                  label={SORT_LABELS[SortOption.NAME_DESC]}
+                  value={SORT_LABELS[SortOption.NAME_DESC]}
                 />
               </AccessibleSelectContent>
             </AccessibleSelectPortal>
@@ -567,6 +680,8 @@ export default function Explore() {
     selectedGender,
     selectedAge,
     selectedSize,
+    selectedSort,
+    zipCode,
     zipCodeError,
     radius,
     isFiltersExpanded,
@@ -579,8 +694,10 @@ export default function Explore() {
     warningsDismissed,
     isDarkMode,
     isLoading,
+    isSortChanging,
     getActiveFilterCount,
     handleSearch,
+    handleSortChange,
     handleClearFilters,
     handleZipCodeChange,
     validateZipCodeOnBlur,

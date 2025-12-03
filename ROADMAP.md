@@ -256,12 +256,13 @@ This document outlines potential features and enhancements for the Unleashd pet 
 
 #### Sorting & Organization
 
-- Sort by newest listings
-- Sort alphabetically by name
-- Sort by distance from location
-- Sort by age
+- ✅ Sort by newest listings - **Completed**
+- ✅ Sort by oldest listings - **Completed**
+- ✅ Sort alphabetically by name (A-Z, Z-A) - **Completed**
+- ✅ Sort by distance from location (closest/furthest) - **Completed**
+- ✅ Remember sort preference in AsyncStorage - **Completed**
 - Recently viewed pets
-- Remember sort preference
+- Sort by age
 
 ### 📱 Pet Details Enhancements
 
@@ -367,18 +368,21 @@ Priority order for next features (subject to change):
      - ✅ AsyncStorage for default location preference (auto-saves/loads ZIP and radius)
      - 🔄 Optional: Geolocation "Use My Location" button (future enhancement)
 
+   **Sorting Capabilities** - ✅ **Completed**
+   - ✅ Sort by newest/oldest listings (animalUpdatedDate)
+   - ✅ Sort by distance (closest/furthest - requires location filter)
+   - ✅ Sort alphabetically (A-Z, Z-A)
+   - ✅ Remember sort preference in AsyncStorage
+   - ✅ Auto-trigger search on sort change
+   - ✅ Disable distance sort when no ZIP code entered
+   - ✅ 100% test coverage for SortPreferencesContext
+
 2. **Medium Priority** (Next 2-3 Sprints)
 
-   **Sorting Capabilities** - Organize search results
-   - Sort by newest/oldest
-   - Sort by distance (requires location filter first)
-   - Sort alphabetically
-   - Remember sort preference in AsyncStorage
-
    **Settings Enhancements** - User preferences
-   - Location preference for searches
+   - Location preference for searches (already implemented)
    - Default pet type preference
-   - Search radius preference
+   - Search radius preference (already saved with location)
    - Display preferences (grid/list)
    - Clear favorites functionality (in Settings)
 

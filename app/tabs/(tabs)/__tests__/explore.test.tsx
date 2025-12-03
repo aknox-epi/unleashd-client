@@ -6,6 +6,7 @@ import { FavoritesProvider } from '@/contexts/FavoritesContext';
 import { RescueGroupsProvider } from '@/contexts/RescueGroupsContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { LocationPreferencesProvider } from '@/contexts/LocationPreferencesContext';
+import { SortPreferencesProvider } from '@/contexts/SortPreferencesContext';
 import { useAnimalSearch } from '@/hooks/useAnimals';
 import type {
   Sex,
@@ -53,9 +54,13 @@ const renderWithProviders = (component: React.ReactElement) => {
     <ThemeProvider>
       <RescueGroupsProvider>
         <LocationPreferencesProvider>
-          <FavoritesProvider>
-            <GluestackUIProvider mode="light">{component}</GluestackUIProvider>
-          </FavoritesProvider>
+          <SortPreferencesProvider>
+            <FavoritesProvider>
+              <GluestackUIProvider mode="light">
+                {component}
+              </GluestackUIProvider>
+            </FavoritesProvider>
+          </SortPreferencesProvider>
         </LocationPreferencesProvider>
       </RescueGroupsProvider>
     </ThemeProvider>
@@ -87,6 +92,8 @@ describe('Explore Screen - Gender and Age Filter Integration', () => {
         size: undefined,
         location: undefined,
         radius: undefined,
+        sort: 'animalUpdatedDate',
+        order: 'desc',
         limit: 20,
       });
     });
@@ -133,6 +140,8 @@ describe('Explore Screen - Gender and Age Filter Integration', () => {
         size: undefined,
         location: undefined,
         radius: undefined,
+        sort: expect.any(String),
+        order: expect.stringMatching(/^(asc|desc)$/),
         limit: expect.any(Number),
       });
     });
@@ -329,5 +338,59 @@ describe('Explore Screen - Component Integration', () => {
     });
 
     expect(() => renderWithProviders(<Explore />)).not.toThrow();
+  });
+});
+
+describe('Explore Screen - Sort Integration', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useAnimalSearch as jest.Mock).mockReturnValue({
+      search: mockSearch,
+      loadMore: mockLoadMore,
+      results: [],
+      total: 0,
+      hasMore: false,
+      isLoading: false,
+      error: null,
+    });
+  });
+
+  it('should include sort and order parameters in search call', async () => {
+    renderWithProviders(<Explore />);
+
+    await waitFor(() => {
+      expect(mockSearch).toHaveBeenCalled();
+      const callArgs = mockSearch.mock.calls[0][0];
+      expect(callArgs).toHaveProperty('sort');
+      expect(callArgs).toHaveProperty('order');
+    });
+  });
+
+  it('should default to newest first sort (animalUpdatedDate desc)', async () => {
+    renderWithProviders(<Explore />);
+
+    await waitFor(() => {
+      const callArgs = mockSearch.mock.calls[0][0];
+      expect(callArgs.sort).toBe('animalUpdatedDate');
+      expect(callArgs.order).toBe('desc');
+    });
+  });
+
+  it('should pass all expected parameters including sort to search function', async () => {
+    renderWithProviders(<Explore />);
+
+    await waitFor(() => {
+      expect(mockSearch).toHaveBeenCalledWith({
+        species: expect.any(String),
+        sex: undefined,
+        age: undefined,
+        size: undefined,
+        location: undefined,
+        radius: undefined,
+        sort: expect.any(String),
+        order: expect.stringMatching(/^(asc|desc)$/),
+        limit: expect.any(Number),
+      });
+    });
   });
 });

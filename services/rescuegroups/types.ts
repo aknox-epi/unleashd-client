@@ -307,12 +307,18 @@ export interface AnimalSearchParams {
   offset?: number;
 
   /**
-   * Sort field
+   * Sort field (API field name)
+   * Common options:
+   * - 'animalName' - Sort by pet name
+   * - 'animalUpdatedDate' - Sort by last updated date (newest/oldest)
+   * - 'animalLocationDistance' - Sort by distance (requires location filter)
    */
   sort?: string;
 
   /**
    * Sort order
+   * - 'asc' - Ascending (A-Z, oldest-newest, closest-furthest)
+   * - 'desc' - Descending (Z-A, newest-oldest, furthest-closest)
    */
   order?: 'asc' | 'desc';
 }

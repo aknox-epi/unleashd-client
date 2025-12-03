@@ -137,6 +137,14 @@ export class RescueGroupsClient {
       apikey: apiKey,
     };
 
+    // Debug logging (hide API key)
+    console.log('[API CLIENT] Request payload:', {
+      objectType: payload.objectType,
+      objectAction: payload.objectAction,
+      search: payload.search,
+      apikey: '***HIDDEN***',
+    });
+
     try {
       const controller = new AbortController();
       const timeoutId = global.setTimeout(

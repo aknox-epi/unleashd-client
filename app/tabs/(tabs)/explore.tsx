@@ -136,7 +136,7 @@ export default function Explore() {
   }, []);
 
   const handleSearch = useCallback(
-    async (includeHaptic = true) => {
+    async (includeHaptic = true, sortOverride?: SortOption) => {
       if (includeHaptic) {
         try {
           await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -155,8 +155,21 @@ export default function Explore() {
       setErrorDismissed(false);
       setWarningsDismissed(false);
 
+      // Use sortOverride if provided (for immediate sort changes), otherwise use state
+      const activeSortOption = sortOverride ?? selectedSort;
+
       // Get sort field mapping
-      const sortMapping = getSortFieldMapping(selectedSort);
+      const sortMapping = getSortFieldMapping(activeSortOption);
+
+      // Debug logging
+      console.log('[EXPLORE] Sort Debug:', {
+        selectedSort,
+        sortOverride,
+        activeSortOption,
+        sortMapping,
+        field: sortMapping.field,
+        order: sortMapping.order,
+      });
 
       await search({
         species: selectedSpecies,
@@ -309,9 +322,10 @@ export default function Explore() {
       await updateSortPreferences({ selectedSort: newSort });
 
       // Auto-trigger search if search has been performed
+      // Pass newSort directly to avoid stale state
       if (searchPerformed) {
         setIsSortChanging(true);
-        await handleSearch(false);
+        await handleSearch(false, newSort);
         setIsSortChanging(false);
       }
     },

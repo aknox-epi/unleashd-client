@@ -328,14 +328,17 @@ git push --follow-tags origin release/0.x.x
 
 #### Step 2: Merge dev to main (production release)
 
-**On GitHub:**
+**Automated by GitHub Actions:**
 
-1. Create PR from dev to main
-   - **Title**: `chore: release v0.x.x to production`
+1. A GitHub Action automatically creates a PR from `dev` to `main` with:
+   - **Title**: `chore: release v0.x.x to production` (auto-populated from package.json)
    - **Body**: `Production release v0.x.x - see CHANGELOG.md for details`
-2. Wait for CI checks to pass
-3. Get approval from team
-4. **Use "Squash and merge"** to merge to `main`
+2. Review the auto-created PR for accuracy
+3. Wait for CI checks to pass
+4. Get approval from team
+5. **Use "Squash and merge"** to merge to `main`
+
+**Note:** The PR creation is automated via `.github/workflows/auto-release-pr.yml`. You only need to review and merge the auto-created PR.
 
 #### Step 3: Sync and clean up
 

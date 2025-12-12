@@ -351,6 +351,34 @@ Release behavior is configured in `.versionrc.json`:
 
 **Note:** The dev→main PR is created automatically by GitHub Actions workflow (`.github/workflows/auto-release-pr.yml`)
 
+### Git Tag Strategy
+
+This project follows a **"tags only on main"** strategy for semantic versioning:
+
+**Why This Approach?**
+
+- ✅ **Semantic correctness**: Git tags represent production releases (code on `main`)
+- ✅ **Single source of truth**: Each tag points to exactly one commit (no duplicates)
+- ✅ **GitHub releases**: Tags on `main` enable proper GitHub release creation
+- ✅ **Squash and merge compatible**: Works perfectly with squash strategy
+
+**How It Works:**
+
+1. When you run `bun run release` on a release branch, a tag is created locally
+2. When the release PR merges to `dev`, the tag stays on the release branch (not transferred due to squash)
+3. When `dev` merges to `main`, a GitHub Action automatically tags the squashed commit on `main`
+4. All release scripts automatically fetch tags from `origin` before running
+
+**Important Notes:**
+
+- **Tags live only on `main`** - They represent production releases
+- **Tags are auto-fetched** - Release scripts run `git fetch origin --tags` automatically
+- **Tags are auto-created** - GitHub Actions workflow (`.github/workflows/auto-tag-release.yml`) handles tagging
+- **No manual tagging needed** - The automation handles everything
+
+**For Developers:**
+When previewing or creating releases from `dev` branch, tags are automatically fetched from `main`, so `commit-and-tag-version` can correctly determine the last release version and calculate the next version bump.
+
 ## Development Workflow
 
 1. **Start from dev**: Always create feature branches from the latest `dev` branch

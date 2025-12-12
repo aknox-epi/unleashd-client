@@ -3,6 +3,22 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { AnimalCard } from '../AnimalCard';
 import type { Animal } from '@/services/rescuegroups';
 
+// Mock AsyncStorage
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  getItem: jest.fn(() => Promise.resolve(null)),
+  setItem: jest.fn(() => Promise.resolve()),
+}));
+
+// Mock Favorites Context
+jest.mock('@/contexts/FavoritesContext', () => ({
+  useFavorites: () => ({
+    favorites: [],
+    isFavorite: () => false,
+    toggleFavorite: jest.fn(),
+    isLoading: false,
+  }),
+}));
+
 // Mock theme context
 jest.mock('@/contexts/ThemeContext', () => ({
   useTheme: () => ({ colorMode: 'light' }),
@@ -311,6 +327,92 @@ describe('AnimalCard', () => {
         <AnimalCard animal={animalWithoutImage} isDarkMode={false} />
       );
       expect(getByText('Buddy')).toBeTruthy();
+    });
+  });
+
+  describe('Distance Display', () => {
+    it('renders distance when animalLocationDistance is provided', () => {
+      const animalWithDistance: Animal = {
+        ...mockAnimal,
+        animalLocationDistance: 5.3,
+      };
+      const { getByText } = render(<AnimalCard animal={animalWithDistance} />);
+      expect(getByText('5.3 miles')).toBeTruthy();
+    });
+
+    it('does not render distance when animalLocationDistance is undefined', () => {
+      const animalWithoutDistance: Animal = {
+        ...mockAnimal,
+        animalLocationDistance: undefined,
+      };
+      const { queryByText } = render(
+        <AnimalCard animal={animalWithoutDistance} />
+      );
+      expect(queryByText(/miles/)).toBeNull();
+    });
+
+    it('formats distance with 1 decimal place for distances under 10 miles', () => {
+      const animalWithShortDistance: Animal = {
+        ...mockAnimal,
+        animalLocationDistance: 2.456,
+      };
+      const { getByText } = render(
+        <AnimalCard animal={animalWithShortDistance} />
+      );
+      expect(getByText('2.5 miles')).toBeTruthy();
+    });
+
+    it('formats distance as whole number for distances 10 miles or more', () => {
+      const animalWithLongDistance: Animal = {
+        ...mockAnimal,
+        animalLocationDistance: 24.8,
+      };
+      const { getByText } = render(
+        <AnimalCard animal={animalWithLongDistance} />
+      );
+      expect(getByText('25 miles')).toBeTruthy();
+    });
+
+    it('handles zero distance', () => {
+      const animalWithZeroDistance: Animal = {
+        ...mockAnimal,
+        animalLocationDistance: 0,
+      };
+      const { getByText } = render(
+        <AnimalCard animal={animalWithZeroDistance} />
+      );
+      expect(getByText('0.0 miles')).toBeTruthy();
+    });
+
+    it('handles exact 10 mile distance', () => {
+      const animalWithTenMiles: Animal = {
+        ...mockAnimal,
+        animalLocationDistance: 10,
+      };
+      const { getByText } = render(<AnimalCard animal={animalWithTenMiles} />);
+      expect(getByText('10 miles')).toBeTruthy();
+    });
+
+    it('handles distance as string from API', () => {
+      const animalWithStringDistance: Animal = {
+        ...mockAnimal,
+        animalLocationDistance: '7.5' as unknown as number,
+      };
+      const { getByText } = render(
+        <AnimalCard animal={animalWithStringDistance} />
+      );
+      expect(getByText('7.5 miles')).toBeTruthy();
+    });
+
+    it('handles invalid distance string', () => {
+      const animalWithInvalidDistance: Animal = {
+        ...mockAnimal,
+        animalLocationDistance: 'invalid' as unknown as number,
+      };
+      const { queryByText } = render(
+        <AnimalCard animal={animalWithInvalidDistance} />
+      );
+      expect(queryByText(/miles/)).toBeNull();
     });
   });
 

@@ -27,7 +27,12 @@ export type {
 } from './types';
 
 // Generated types
-export type { AnimalSpecies } from './generated-types';
+export type {
+  AnimalSpecies,
+  Sex,
+  GeneralAge,
+  GeneralSizePotential,
+} from './generated-types';
 
 export {
   RescueGroupsAPIError,

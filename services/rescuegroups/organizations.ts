@@ -46,7 +46,7 @@ export class OrganizationService {
   async getOrganizationById(orgId: string): Promise<Organization | null> {
     const response = await rescueGroupsClient.request<Organization>({
       objectType: RESCUEGROUPS_CONFIG.OBJECT_TYPES.ORGANIZATIONS,
-      objectAction: 'publicView',
+      objectAction: 'publicSearch',
       search: {
         resultStart: 0,
         resultLimit: 1,

@@ -113,4 +113,13 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Validate commit messages
-        run: bunx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+        run: |
+          # Only validate commits that are NEW in this PR (not already in base branch)
+          # This prevents failures from legacy commits already in main/dev
+          echo "Validating commits from base to head..."
+          bunx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose || {
+            echo "❌ Commit validation failed"
+            echo "Please ensure all commits follow Conventional Commits format"
+            echo "See AGENTS.md for commit message guidelines"
+            exit 1
+          }

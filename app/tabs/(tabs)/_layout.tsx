@@ -2,10 +2,11 @@ import React from 'react';
 import { Pressable } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Tabs } from 'expo-router';
-import { Settings, Sparkles } from 'lucide-react-native';
+import { Settings, Sparkles, Heart } from 'lucide-react-native';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 import { AnimatedTabIcon } from '@/components/ui/animated-tab-icon';
 import { useWhatsNew } from '@/contexts/WhatsNewContext';
+import { useFavorites } from '@/contexts/FavoritesContext';
 
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>['name'];
@@ -15,14 +16,13 @@ function TabBarIcon(props: {
 }
 
 export default function TabLayout() {
-  const { isEnabled, hasNewVersion, openDrawer, markVersionAsSeen } =
-    useWhatsNew();
+  const { isEnabled, hasNewVersion, openDrawer } = useWhatsNew();
+  const { count } = useFavorites();
 
   const handleWhatsNewPress = () => {
     openDrawer();
-    if (hasNewVersion) {
-      markVersionAsSeen();
-    }
+    // Don't mark as seen here - let the drawer handle it on close
+    // This prevents the badge from disappearing before user sees the content
   };
 
   return (
@@ -38,6 +38,16 @@ export default function TabLayout() {
         options={{
           title: 'Explore',
           tabBarIcon: ({ color }) => <TabBarIcon name="search" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="favorites"
+        options={{
+          title: 'Favorites',
+          tabBarIcon: ({ color }) => (
+            <AnimatedTabIcon icon={Heart} color={color} showBadge={count > 0} />
+          ),
+          tabBarBadge: count > 0 ? count : undefined,
         }}
       />
       <Tabs.Screen

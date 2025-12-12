@@ -15,6 +15,7 @@ import {
   PanResponder,
   Animated,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
 import {
   ArrowLeft,
@@ -51,15 +52,19 @@ import {
   ActionsheetIcon,
 } from '@/components/ui/actionsheet';
 import { SpeciesBadge } from '@/components/SpeciesBadge';
+import { useFavorites } from '@/contexts/FavoritesContext';
 import { animalService, organizationService } from '@/services/rescuegroups';
 import {
   getErrorMessage,
   type Animal,
   type Organization,
 } from '@/services/rescuegroups';
+import type { FavoriteAnimal } from '@/types/favorites';
+import { logger } from '@/utils/logger';
 
 export default function PetDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { isFavorite, toggleFavorite } = useFavorites();
   // Subscribe to theme changes to ensure component re-renders when theme updates
   const [animal, setAnimal] = useState<Animal | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -110,7 +115,7 @@ export default function PetDetailScreen() {
       setOrganization(data);
     } catch (err) {
       // Don't block the UI if org fetch fails - just log the error
-      console.warn('Failed to load organization details:', err);
+      logger.warn('Failed to load organization details:', err);
     }
   };
 
@@ -129,8 +134,51 @@ export default function PetDetailScreen() {
     }
   };
 
+  const handleBack = async () => {
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch {
+      // Haptics not supported on web, ignore
+    }
+
+    // Check if we can go back, otherwise navigate to explore
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.push('/tabs/explore');
+    }
+  };
+
+  const handleFavorite = async () => {
+    if (!animal) return;
+
+    // Haptic feedback
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch {
+      // Haptics not supported on web, ignore
+    }
+
+    // Convert Animal to FavoriteAnimal
+    const favoriteAnimal: FavoriteAnimal = {
+      animalID: animal.animalID,
+      animalName: animal.animalName,
+      animalSpecies: animal.animalSpecies,
+      animalThumbnailUrl: animal.animalThumbnailUrl,
+      animalBreed: animal.animalBreed,
+      animalLocationCitystate: animal.animalLocationCitystate,
+      animalGeneralAge: animal.animalGeneralAge,
+      animalSex: animal.animalSex,
+      favoritedAt: Date.now(),
+    };
+
+    await toggleFavorite(favoriteAnimal);
+  };
+
   const getMapsUrl = () => {
-    if (!organization) return null;
+    // Only provide directions if there's a valid street address
+    // Prevents vague "just take me to this city" links
+    if (!organization || !organization.orgAddress) return null;
 
     const address = [
       organization.orgAddress,
@@ -139,8 +187,6 @@ export default function PetDetailScreen() {
     ]
       .filter(Boolean)
       .join(', ');
-
-    if (!address) return null;
 
     const encodedAddress = encodeURIComponent(address);
 
@@ -546,9 +592,11 @@ export default function PetDetailScreen() {
           options={{
             title: 'Loading...',
             headerLeft: () => (
-              <Button variant="link" size="sm" onPress={() => router.back()}>
-                <ButtonIcon as={ArrowLeft} />
-              </Button>
+              <Box className="ml-2">
+                <Button variant="link" size="md" onPress={handleBack}>
+                  <ButtonIcon as={ArrowLeft} size="xl" />
+                </Button>
+              </Box>
             ),
           }}
         />
@@ -566,9 +614,11 @@ export default function PetDetailScreen() {
           options={{
             title: 'Error',
             headerLeft: () => (
-              <Button variant="link" size="sm" onPress={() => router.back()}>
-                <ButtonIcon as={ArrowLeft} />
-              </Button>
+              <Box className="ml-2">
+                <Button variant="link" size="md" onPress={handleBack}>
+                  <ButtonIcon as={ArrowLeft} size="xl" />
+                </Button>
+              </Box>
             ),
           }}
         />
@@ -596,19 +646,32 @@ export default function PetDetailScreen() {
           title: animal.animalName,
           gestureEnabled: true,
           headerLeft: () => (
-            <Button variant="link" size="sm" onPress={() => router.back()}>
-              <ButtonIcon as={ArrowLeft} />
-            </Button>
+            <Box className="ml-2">
+              <Button variant="link" size="md" onPress={handleBack}>
+                <ButtonIcon as={ArrowLeft} size="xl" />
+              </Button>
+            </Box>
           ),
           headerRight: () => (
-            <HStack space="sm">
-              <Button variant="link" size="sm" onPress={handleShare}>
-                <ButtonIcon as={Share2} />
-              </Button>
-              <Button variant="link" size="sm">
-                <ButtonIcon as={Heart} />
-              </Button>
-            </HStack>
+            <Box className="mr-2">
+              <HStack space="md">
+                <Button variant="link" size="md" onPress={handleShare}>
+                  <ButtonIcon as={Share2} size="xl" />
+                </Button>
+                <Button variant="link" size="md" onPress={handleFavorite}>
+                  <ButtonIcon
+                    as={Heart}
+                    size="xl"
+                    fill={isFavorite(animal.animalID) ? 'currentColor' : 'none'}
+                    className={
+                      isFavorite(animal.animalID)
+                        ? 'text-error-500'
+                        : 'text-typography-700'
+                    }
+                  />
+                </Button>
+              </HStack>
+            </Box>
           ),
         }}
       />
@@ -1024,6 +1087,8 @@ export default function PetDetailScreen() {
         transparent={false}
         animationType="none"
         onRequestClose={closeFullscreenModal}
+        accessible={true}
+        accessibilityViewIsModal={true}
       >
         <Animated.View
           style={{
@@ -1033,6 +1098,8 @@ export default function PetDetailScreen() {
             opacity: modalOpacity,
           }}
           {...panResponder.panHandlers}
+          accessible={false}
+          importantForAccessibility="no-hide-descendants"
         >
           <StatusBar barStyle="light-content" />
 
@@ -1051,6 +1118,10 @@ export default function PetDetailScreen() {
               alignItems: 'center',
               justifyContent: 'center',
             }}
+            accessible={true}
+            accessibilityRole="button"
+            accessibilityLabel="Close fullscreen image"
+            accessibilityHint="Double tap to close the fullscreen view"
           >
             <X size={24} color="white" />
           </Pressable>
@@ -1143,6 +1214,10 @@ export default function PetDetailScreen() {
                             alignItems: 'center',
                             justifyContent: 'center',
                           }}
+                          accessible={true}
+                          accessibilityRole="button"
+                          accessibilityLabel="Previous image"
+                          accessibilityHint="Double tap to view the previous image"
                         >
                           <ChevronLeft size={24} color="white" />
                         </Pressable>
@@ -1164,6 +1239,10 @@ export default function PetDetailScreen() {
                             alignItems: 'center',
                             justifyContent: 'center',
                           }}
+                          accessible={true}
+                          accessibilityRole="button"
+                          accessibilityLabel="Next image"
+                          accessibilityHint="Double tap to view the next image"
                         >
                           <ChevronRight size={24} color="white" />
                         </Pressable>

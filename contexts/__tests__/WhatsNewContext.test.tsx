@@ -51,11 +51,13 @@ describe('WhatsNewContext', () => {
     changelog: string = mockChangelogContent,
     version: string = currentVersion
   ) => {
-    return ({ children }: { children: React.ReactNode }) => (
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
       <WhatsNewProvider changelogContent={changelog} currentVersion={version}>
         {children}
       </WhatsNewProvider>
     );
+    Wrapper.displayName = 'WhatsNewProviderWrapper';
+    return Wrapper;
   };
 
   describe('useWhatsNew hook', () => {
@@ -89,7 +91,7 @@ describe('WhatsNewContext', () => {
       });
 
       await waitFor(() => {
-        expect(result.current.isEnabled).toBe(false);
+        expect(result.current.isEnabled).toBe(true);
         expect(result.current.lastSeenVersion).toBeNull();
       });
     });
@@ -123,7 +125,7 @@ describe('WhatsNewContext', () => {
       });
 
       await waitFor(() => {
-        expect(result.current.isEnabled).toBe(false);
+        expect(result.current.isEnabled).toBe(true);
       });
 
       consoleError.mockRestore();
@@ -154,13 +156,13 @@ describe('WhatsNewContext', () => {
   });
 
   describe('toggleEnabled', () => {
-    it('should toggle enabled state from false to true', async () => {
+    it('should toggle enabled state from true to false (default enabled)', async () => {
       const { result } = renderHook(() => useWhatsNew(), {
         wrapper: createWrapper(),
       });
 
       await waitFor(() => {
-        expect(result.current.isEnabled).toBe(false);
+        expect(result.current.isEnabled).toBe(true);
       });
 
       await act(async () => {
@@ -168,19 +170,19 @@ describe('WhatsNewContext', () => {
       });
 
       await waitFor(() => {
-        expect(result.current.isEnabled).toBe(true);
+        expect(result.current.isEnabled).toBe(false);
       });
 
       expect(mockAsyncStorage.setItem).toHaveBeenCalledWith(
         '@unleashd:whats-new:preferences',
-        JSON.stringify({ enabled: true, lastSeenVersion: null })
+        JSON.stringify({ enabled: false, lastSeenVersion: null })
       );
     });
 
-    it('should toggle enabled state from true to false', async () => {
+    it('should toggle enabled state from false to true (when manually disabled)', async () => {
       mockAsyncStorage.getItem.mockResolvedValue(
         JSON.stringify({
-          enabled: true,
+          enabled: false,
           lastSeenVersion: '0.1.0',
         })
       );
@@ -190,7 +192,7 @@ describe('WhatsNewContext', () => {
       });
 
       await waitFor(() => {
-        expect(result.current.isEnabled).toBe(true);
+        expect(result.current.isEnabled).toBe(false);
       });
 
       await act(async () => {
@@ -198,7 +200,7 @@ describe('WhatsNewContext', () => {
       });
 
       await waitFor(() => {
-        expect(result.current.isEnabled).toBe(false);
+        expect(result.current.isEnabled).toBe(true);
       });
     });
 
@@ -216,9 +218,9 @@ describe('WhatsNewContext', () => {
         await result.current.toggleEnabled();
       });
 
-      // State should not change if save fails
+      // State should not change if save fails (should remain at default: true)
       await waitFor(() => {
-        expect(result.current.isEnabled).toBe(false);
+        expect(result.current.isEnabled).toBe(true);
       });
 
       consoleError.mockRestore();
@@ -241,7 +243,7 @@ describe('WhatsNewContext', () => {
 
       expect(mockAsyncStorage.setItem).toHaveBeenCalledWith(
         '@unleashd:whats-new:preferences',
-        JSON.stringify({ enabled: false, lastSeenVersion: '0.2.0' })
+        JSON.stringify({ enabled: true, lastSeenVersion: '0.2.0' })
       );
     });
 
@@ -344,6 +346,13 @@ describe('WhatsNewContext', () => {
 
   describe('hasNewVersion', () => {
     it('should be false when feature is disabled', async () => {
+      mockAsyncStorage.getItem.mockResolvedValue(
+        JSON.stringify({
+          enabled: false,
+          lastSeenVersion: null,
+        })
+      );
+
       const { result } = renderHook(() => useWhatsNew(), {
         wrapper: createWrapper(),
       });

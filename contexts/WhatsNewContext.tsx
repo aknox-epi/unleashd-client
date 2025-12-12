@@ -21,6 +21,7 @@ import type {
   ChangelogEntry,
   ChangelogFilters,
 } from '@/types/whats-new';
+import { logger } from '@/utils/logger';
 
 // Storage keys
 const STORAGE_KEYS = {
@@ -29,7 +30,7 @@ const STORAGE_KEYS = {
 
 // Default preferences
 const DEFAULT_PREFERENCES: WhatsNewPreferences = {
-  enabled: false, // Opt-in by default
+  enabled: true, // Enabled by default
   lastSeenVersion: null,
 };
 
@@ -82,7 +83,7 @@ export function WhatsNewProvider({
         setPreferences(parsed);
       }
     } catch (error) {
-      console.error("Failed to load What's New preferences:", error);
+      logger.error("Failed to load What's New preferences:", error);
     }
   }, []);
 
@@ -114,7 +115,7 @@ export function WhatsNewProvider({
       );
       setPreferences(newPreferences);
     } catch (error) {
-      console.error("Failed to save What's New preferences:", error);
+      logger.error("Failed to save What's New preferences:", error);
     }
   };
 

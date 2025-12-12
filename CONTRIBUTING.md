@@ -1,33 +1,29 @@
 # Contributing to unleashd-client
 
-Thank you for your interest in contributing to unleashd-client! This document provides guidelines and workflows for contributing to this project.
+Thank you for your interest in contributing to unleashd-client! This guide covers the development workflow, coding standards, and release process for contributors making code changes.
 
 ## Table of Contents
 
-- [Branching Strategy](#branching-strategy)
+- [Prerequisites](#prerequisites)
 - [Development Workflow](#development-workflow)
 - [Branch Naming](#branch-naming)
 - [Commit Messages](#commit-messages)
 - [Pull Requests](#pull-requests)
-- [Code Quality](#code-quality)
 - [Release Process](#release-process)
+- [Code Quality](#code-quality)
+- [Code of Conduct](#code-of-conduct)
+- [Getting Help](#getting-help)
 
-## Branching Strategy
+## Prerequisites
 
-We use a modified **GitHub Flow** for our development workflow:
+Before contributing, ensure you have the development environment set up.
 
-- **`main`** - Production-ready code, always deployable
-- ** `dev` ** - Used as a staging area for main given current deployment limits with Netlify
-- **Feature branches** - Short-lived branches for new features, fixes, or improvements
+**See [README.md - Prerequisites](./README.md#prerequisites) and [README.md - Getting Started](./README.md#getting-started)** for:
 
-### Key Principles
-
-1. **`main` is sacred** - Always keep it stable and deployable
-2. **`dev`** - Current source of truth, all feature work should branch of dev and merge to dev
-3. **Branch often** - Create a new branch for each feature or fix
-4. **Merge fast** - Keep branches short-lived (hours to days, not weeks)
-5. **Review everything** - All changes go through pull requests
-6. **Delete after merge** - Clean up branches after merging
+- Node.js, Bun, and other required tools
+- Installation instructions
+- RescueGroups API key setup
+- Running the development server
 
 ## Development Workflow
 
@@ -84,66 +80,22 @@ git push origin feature/your-feature-name
 
 After initial approval:
 
-#### Release Process
-
-Releases are managed using [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) based on conventional commits.
-
-##### Creating a release
-
-```bash
-# 1. Squash commits for your feature branch
-git rebase -i dev
-
-# 2. Preview the release (recommended)
-bun run release:dry
-
-# 3. Create the release
-bun run release
-
-# 4. Push with tags
-git push --follow-tags origin dev
-```
-
-###### Version bumps
-
-Version is automatically determined by commit types since last release:
-
-- `feat:` commits → **minor** version bump (0.1.0 → 0.2.0)
-- `fix:` commits → **patch** version bump (0.1.0 → 0.1.1)
-- `BREAKING CHANGE:` footer → **major** version bump (0.1.0 → 1.0.0)
-
-###### Manual version bump
-
-If needed, you can force a specific bump:
-
-```bash
-bun run release:major  # 1.0.0 → 2.0.0
-bun run release:minor  # 1.0.0 → 1.1.0
-bun run release:patch  # 1.0.0 → 1.0.1
-```
-
-###### What happens during release
-
-1. Analyzes commits since last release
-2. Determines version bump
-3. Updates `CHANGELOG.md`
-4. Updates `package.json` version
-5. Creates a git commit
-6. Creates a git tag
-7. You push to remote
-
-#### Lastly
-
-1. Get last approval
-2. Merge via GitHub
-3. Delete the remote branch (GitHub offers this option)
-4. Clean up locally:
+1. **Merge via GitHub** using **"Squash and merge"**
+2. Delete the remote branch (GitHub offers this option)
+3. Clean up locally:
 
 ```bash
 git checkout dev
 git pull origin dev
 git branch -d feature/your-feature-name
 ```
+
+**Important**: Always use "Squash and merge" when merging PRs. This strategy:
+
+- Ensures your PR title becomes the commit message in history
+- Creates clean, linear history (one commit per feature/fix)
+- Prevents branch divergence and merge conflicts
+- Works seamlessly with automated changelog generation
 
 ## Branch Naming
 
@@ -243,21 +195,25 @@ git commit -m "chore: update expo-router to v4"
 
 ### Pre-commit automation
 
-When you commit, the following happens automatically:
+**Git hooks run automatically when you commit.** For details on what hooks do and how to bypass them, see [README.md - Git Hooks](./README.md#git-hooks).
 
-- **ESLint** checks and auto-fixes code quality issues
-- **Prettier** formats your code
-- **Tests** run on staged test files (in `__tests__/` directories)
-- **commitlint** validates your commit message format
+**Summary:**
+
+- ESLint checks and auto-fixes code quality issues
+- Prettier formats your code automatically
+- Tests run on staged test files (in `__tests__/` directories)
+- commitlint validates your commit message format
 
 If there are unfixable errors or failing tests, the commit will be blocked.
 
 ### Pre-push automation
 
-When you push to remote, the following happens automatically:
+**Full test suite runs automatically when you push.** For details, see [README.md - Git Hooks](./README.md#git-hooks).
 
-- **Full test suite** runs with coverage reporting
-- **Push is blocked** if any tests fail
+**Summary:**
+
+- Full test suite runs with coverage reporting
+- Push is blocked if any tests fail
 
 This ensures only tested, working code reaches the remote repository.
 
@@ -309,41 +265,142 @@ When opening a PR, ensure:
 3. No unresolved conversations
 4. Branch must be up to date with `dev`
 
+### Merge Strategy
+
+**CRITICAL**: Always use **"Squash and merge"** when merging PRs to `dev` or `main`.
+
+- ✅ **DO**: Use "Squash and merge" button on GitHub
+- ❌ **DON'T**: Use "Create a merge commit" or "Rebase and merge"
+
+**Why?** Squash merging:
+
+- Uses your validated PR title as the commit message
+- Creates clean, linear history (one commit per PR)
+- Prevents branch divergence that causes merge conflicts
+- Ensures changelog accurately reflects changes
+
+## Release Process
+
+Releases are managed using [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) based on conventional commits. The release process uses a dedicated release branch that merges to `dev` first, then `dev` merges to `main` for production deployment.
+
+### Version Bumps
+
+Version is automatically determined by commit types since last release:
+
+- `feat:` commits → **minor** version bump (0.1.0 → 0.2.0)
+- `fix:` commits → **patch** version bump (0.1.0 → 0.1.1)
+- `BREAKING CHANGE:` footer → **major** version bump (0.1.0 → 1.0.0)
+
+### Creating a Release (dev → main)
+
+```bash
+# 1. Create release branch from dev
+git checkout dev
+git pull origin dev
+git checkout -b release/0.x.x
+
+# 2. Preview the release (recommended)
+bun run release:dry
+
+# 3. Create the release
+bun run release        # Auto-detect version bump
+# OR force specific bump:
+# bun run release:minor   # 0.1.0 → 0.2.0
+# bun run release:major   # 0.1.0 → 1.0.0
+# bun run release:patch   # 0.1.0 → 0.1.1
+
+# 4. Push release branch with tags
+git push --follow-tags origin release/0.x.x
+```
+
+### Merging the Release
+
+#### Step 1: Merge release branch to dev
+
+**On GitHub:**
+
+1. Create PR from release branch to dev
+   - **Title**: `chore(release): 0.x.x`
+   - **Body**: `Release preparation - updates changelog and version`
+2. Wait for CI checks to pass
+3. Get approval from team
+4. **Use "Squash and merge"** to merge to `dev`
+
+#### Step 2: Merge dev to main (production release)
+
+**On GitHub:**
+
+1. Create PR from dev to main
+   - **Title**: `chore: release v0.x.x to production`
+   - **Body**: `Production release v0.x.x - see CHANGELOG.md for details`
+2. Wait for CI checks to pass
+3. Get approval from team
+4. **Use "Squash and merge"** to merge to `main`
+
+#### Step 3: Sync and clean up
+
+```bash
+# Sync local branches
+git checkout dev && git pull origin dev
+git checkout main && git pull origin main
+
+# Clean up release branch
+git branch -d release/0.x.x
+git push origin --delete release/0.x.x
+```
+
+### What Happens During Release
+
+1. Analyzes commits since last release tag
+2. Determines version bump based on commit types
+3. Updates `CHANGELOG.md` with grouped changes
+4. Updates `package.json` version
+5. Creates a git commit: `chore(release): x.x.x`
+6. Creates a git tag: `vx.x.x`
+
+### Manual Version Override
+
+If auto-detection isn't working correctly, force a specific bump:
+
+```bash
+bun run release:major  # Force major: 1.0.0 → 2.0.0
+bun run release:minor  # Force minor: 1.0.0 → 1.1.0
+bun run release:patch  # Force patch: 1.0.0 → 1.0.1
+```
+
 ## Code Quality
 
 ### Linting and Formatting
 
+**For available commands, see [README.md - Code Quality](./README.md#code-quality).**
+
+**Commands:**
+
 ```bash
-# Check for linting issues
-bun run lint
-
-# Auto-fix linting issues
-bun run lint:fix
-
-# Format all code
-bun run format
-
-# Check formatting without changes
-bun run format:check
+bun run lint          # Check for linting errors
+bun run lint:fix      # Auto-fix linting errors
+bun run format        # Format all files with Prettier
+bun run format:check  # Check formatting without changes
 ```
+
+**Standards:**
+
+- ESLint checks code quality, best practices, React rules, TypeScript issues
+- Prettier ensures consistent code style (2-space indents, single quotes, semicolons)
+- Both run automatically on commit via pre-commit hooks
 
 ### Testing
 
+**For test commands, see [README.md - Testing](./README.md#testing).**
+
+**Commands:**
+
 ```bash
-# Run all tests
-bun run test
-
-# Run tests in watch mode
-jest --watchAll
-
-# Run a specific test
-jest path/to/test.spec.ts
-
-# Run tests with coverage
-jest --coverage
-
-# Run tests on staged test files only
-bun run test:staged
+bun run test          # Run all tests
+jest --watchAll       # Run tests in watch mode
+jest path/to/test     # Run a specific test
+bun run test:coverage # Run tests with coverage report
+bun run test:staged   # Run tests on staged test files only
 ```
 
 #### Test Coverage Standards
@@ -356,7 +413,7 @@ This project maintains high test coverage standards:
 
 #### Automated Testing via Git Hooks
 
-Tests are automatically enforced through Git hooks:
+**Tests run automatically via Git hooks.** For details, see [README.md - Git Hooks](./README.md#git-hooks).
 
 **Pre-commit Hook**: Runs tests on staged test files only
 
@@ -389,26 +446,26 @@ When adding new functionality:
 
 ### Building
 
+**For build commands, see [README.md - Build](./README.md#build).**
+
+**Commands:**
+
 ```bash
-# Start development server
-bun run start
-
-# Build for web
-bun run build
-
-# iOS
-npm run ios
-
-# Android
-npm run android
+bun run start    # Start development server
+bun run build    # Build for web (exports to dist/)
+npm run ios      # Run on iOS simulator
+npm run android  # Run on Android emulator
 ```
 
 ## Getting Help
 
-- Check the [README.md](./README.md) for project setup
-- Review [AGENTS.md](./AGENTS.md) for AI agent guidelines
-- Open an issue for bugs or questions
-- Ask in pull request comments for code-specific questions
+- **Project setup and installation**: See [README.md](./README.md)
+- **API integration**: See [README.md - RescueGroups API Integration](./README.md#rescuegroups-api-integration)
+- **Available scripts and commands**: See [README.md - Available Scripts](./README.md#available-scripts)
+- **Git hooks and automation**: See [README.md - Git Hooks](./README.md#git-hooks)
+- **CI/CD pipeline**: See [README.md - CI/CD](./README.md#cicd)
+- **Bug reports or questions**: Open an issue on GitHub
+- **Code-specific questions**: Ask in pull request comments
 
 ## Code of Conduct
 

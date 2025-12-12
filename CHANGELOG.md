@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.3.1](https://github.com/aknox-epi/unleashd-client/compare/v0.3.0...v0.3.1) (2025-12-12)
+
+## [0.3.0](https://github.com/aknox-epi/unleashd-client/compare/v0.2.0...v0.3.0) (2025-12-12)
+
+### Features
+
+- **location:** display distance from search location on animal cards ([#25](https://github.com/aknox-epi/unleashd-client/issues/25)) ([391eab8](https://github.com/aknox-epi/unleashd-client/commit/391eab8a8343e4486edad759673a39d877139344))
+
+### Bug Fixes
+
+- **a11y:** resolve aria-hidden focus issue in fullscreen image modal ([#23](https://github.com/aknox-epi/unleashd-client/issues/23)) ([400cc4c](https://github.com/aknox-epi/unleashd-client/commit/400cc4c32f243de95add7ccc9c81773de0560044))
+- **organizations:** use publicSearch action instead of publicView ([#27](https://github.com/aknox-epi/unleashd-client/issues/27)) ([6747ce7](https://github.com/aknox-epi/unleashd-client/commit/6747ce76eac34ece61e4aab6a468bafc31ebd0d5))
+- **pet-detail:** require street address for Get Directions link ([#28](https://github.com/aknox-epi/unleashd-client/issues/28)) ([9ab677e](https://github.com/aknox-epi/unleashd-client/commit/9ab677eeee3e9c17179c8f2f6a99cc4362d0fd7b))
+- **settings:** ensure What's New badge disappears when drawer closes ([#31](https://github.com/aknox-epi/unleashd-client/issues/31)) ([cd1f4d4](https://github.com/aknox-epi/unleashd-client/commit/cd1f4d4f48384948e3faf209c015045971efd8ad))
+- **whats-new:** fix double-press bug and Fix two critical issues with the What's New feature ([#20](https://github.com/aknox-epi/unleashd-client/issues/20)) ([aa2f10b](https://github.com/aknox-epi/unleashd-client/commit/aa2f10b9d4c9c82fdd15b8924cb55878acf7852b)), closes [#1](https://github.com/aknox-epi/unleashd-client/issues/1) [#2](https://github.com/aknox-epi/unleashd-client/issues/2)
+
+### Documentation
+
+- update roadmap with testing improvements ([#30](https://github.com/aknox-epi/unleashd-client/issues/30)) ([f47abf5](https://github.com/aknox-epi/unleashd-client/commit/f47abf5f2394bb98c4cbffe07e040b91e1e3824f))
+- update ROADMAP.md to reflect v0.2.0 achievements ([#15](https://github.com/aknox-epi/unleashd-client/issues/15)) ([dc63bd6](https://github.com/aknox-epi/unleashd-client/commit/dc63bd6562cd1c0d6dcb86d9da6e52f850484419)), closes [#5](https://github.com/aknox-epi/unleashd-client/issues/5) [-#14](https://github.com/aknox-epi/-/issues/14)
+
 ## 0.2.0 (2025-11-15)
 
 ### Features

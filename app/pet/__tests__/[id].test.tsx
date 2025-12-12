@@ -6,12 +6,26 @@ import PetDetailScreen from '../[id]';
 import { animalService, organizationService } from '@/services/rescuegroups';
 import type { Animal, Organization } from '@/services/rescuegroups';
 import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
+import { FavoritesProvider } from '@/contexts/FavoritesContext';
+import { logger } from '@/utils/logger';
+
+const mockLogger = logger as jest.Mocked<typeof logger>;
 
 // Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () => ({
   getItem: jest.fn(),
   setItem: jest.fn(),
   removeItem: jest.fn(),
+}));
+
+// Mock logger
+jest.mock('@/utils/logger', () => ({
+  logger: {
+    error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
+  },
 }));
 
 // Mock dependencies
@@ -62,7 +76,9 @@ jest.mock('nativewind', () => ({
 // Helper function to render with providers
 const renderWithProviders = (component: React.ReactElement) => {
   return render(
-    <GluestackUIProvider mode="light">{component}</GluestackUIProvider>
+    <FavoritesProvider>
+      <GluestackUIProvider mode="light">{component}</GluestackUIProvider>
+    </FavoritesProvider>
   );
 };
 
@@ -138,7 +154,9 @@ describe('PetDetailScreen', () => {
     it('displays animal details when loaded successfully', async () => {
       (animalService.getAnimalById as jest.Mock).mockResolvedValue(mockAnimal);
 
-      const { getByText } = renderWithProviders(<PetDetailScreen />);
+      const { getByText, getAllByText } = renderWithProviders(
+        <PetDetailScreen />
+      );
 
       await waitFor(() => {
         expect(getByText('Buddy')).toBeTruthy();
@@ -146,7 +164,8 @@ describe('PetDetailScreen', () => {
 
       expect(getByText('Dog')).toBeTruthy();
       expect(getByText('Golden Retriever')).toBeTruthy();
-      expect(getByText('San Francisco, CA')).toBeTruthy();
+      // San Francisco, CA appears multiple times (animal location + org location)
+      expect(getAllByText('San Francisco, CA').length).toBeGreaterThan(0);
     });
 
     it('displays animal description', async () => {
@@ -387,10 +406,6 @@ describe('PetDetailScreen', () => {
         new Error('Org fetch failed')
       );
 
-      const consoleWarnSpy = jest
-        .spyOn(console, 'warn')
-        .mockImplementation(() => {});
-
       const { getByText } = renderWithProviders(<PetDetailScreen />);
 
       // Animal details should still render
@@ -400,13 +415,11 @@ describe('PetDetailScreen', () => {
 
       // Organization section should not appear
       await waitFor(() => {
-        expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect(mockLogger.warn).toHaveBeenCalledWith(
           'Failed to load organization details:',
           expect.any(Error)
         );
       });
-
-      consoleWarnSpy.mockRestore();
     });
 
     it('does not show organization section when org data is null', async () => {

@@ -9,17 +9,22 @@ import {
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { Slot } from 'expo-router';
+import { Stack } from 'expo-router';
 import { RescueGroupsProvider } from '@/contexts/RescueGroupsContext';
 import {
   ThemeProvider as CustomThemeProvider,
   useTheme,
 } from '@/contexts/ThemeContext';
 import { WhatsNewProvider } from '@/contexts/WhatsNewContext';
+import { FavoritesProvider } from '@/contexts/FavoritesContext';
+import { LocationPreferencesProvider } from '@/contexts/LocationPreferencesContext';
+import { SortPreferencesProvider } from '@/contexts/SortPreferencesContext';
+import { SpeciesPreferencesProvider } from '@/contexts/SpeciesPreferencesContext';
 import { CHANGELOG_CONTENT } from '@/constants/changelog';
+import packageJson from '../package.json';
 
-// Get version from package.json
-const APP_VERSION = '0.1.3';
+// Get version from package.json automatically
+const APP_VERSION = packageJson.version;
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -47,12 +52,20 @@ export default function RootLayout() {
 
   return (
     <CustomThemeProvider>
-      <WhatsNewProvider
-        changelogContent={CHANGELOG_CONTENT}
-        currentVersion={APP_VERSION}
-      >
-        <RootLayoutNav />
-      </WhatsNewProvider>
+      <FavoritesProvider>
+        <LocationPreferencesProvider>
+          <SortPreferencesProvider>
+            <SpeciesPreferencesProvider>
+              <WhatsNewProvider
+                changelogContent={CHANGELOG_CONTENT}
+                currentVersion={APP_VERSION}
+              >
+                <RootLayoutNav />
+              </WhatsNewProvider>
+            </SpeciesPreferencesProvider>
+          </SortPreferencesProvider>
+        </LocationPreferencesProvider>
+      </FavoritesProvider>
     </CustomThemeProvider>
   );
 }
@@ -64,7 +77,19 @@ function RootLayoutNav() {
     <RescueGroupsProvider>
       <GluestackUIProvider mode={colorMode}>
         <ThemeProvider value={colorMode === 'dark' ? DarkTheme : DefaultTheme}>
-          <Slot />
+          <Stack>
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="tabs" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="pet/[id]"
+              options={{
+                headerShown: true,
+                headerTitle: '',
+                gestureEnabled: true,
+              }}
+            />
+          </Stack>
         </ThemeProvider>
       </GluestackUIProvider>
     </RescueGroupsProvider>

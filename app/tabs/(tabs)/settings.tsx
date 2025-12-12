@@ -1,5 +1,6 @@
 import { ScrollView } from 'react-native';
 import { useState } from 'react';
+import packageJson from '../../../package.json';
 import { Center } from '@/components/ui/center';
 import { Heading } from '@/components/ui/heading';
 import { HStack } from '@/components/ui/hstack';
@@ -8,11 +9,22 @@ import { VStack } from '@/components/ui/vstack';
 import { Switch } from '@/components/ui/switch';
 import { Icon } from '@/components/ui/icon';
 import { MoonIcon, SunIcon } from '@/components/ui/icon';
-import { Button, ButtonText } from '@/components/ui/button';
+import { Button, ButtonText, ButtonIcon } from '@/components/ui/button';
 import { Link, LinkText } from '@/components/ui/link';
-import { Sparkles, ChevronDown, ChevronUp } from 'lucide-react-native';
+import { Divider } from '@/components/ui/divider';
+import {
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  Trash2,
+  Heart,
+  Info,
+  Github,
+  ExternalLink,
+} from 'lucide-react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useWhatsNew } from '@/contexts/WhatsNewContext';
+import { useFavorites } from '@/contexts/FavoritesContext';
 import { Badge, BadgeText } from '@/components/ui/badge';
 import {
   Drawer,
@@ -22,6 +34,14 @@ import {
   DrawerBody,
   DrawerFooter,
 } from '@/components/ui/drawer';
+import {
+  AlertDialog,
+  AlertDialogBackdrop,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogBody,
+  AlertDialogFooter,
+} from '@/components/ui/alert-dialog';
 import {
   Checkbox,
   CheckboxIndicator,
@@ -64,8 +84,11 @@ export default function Settings() {
     hasNewVersion,
     markVersionAsSeen,
   } = useWhatsNew();
+  const { count: favoritesCount, clearAllFavorites } = useFavorites();
   const isDarkMode = colorMode === 'dark';
+  const appVersion = packageJson.version;
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(true);
+  const [showClearDialog, setShowClearDialog] = useState(false);
 
   // Handle drawer close - mark version as seen if there's a new version
   const handleDrawerClose = () => {
@@ -118,6 +141,23 @@ export default function Settings() {
     }
   };
 
+  // Handle clear all favorites with confirmation
+  const handleClearFavorites = () => {
+    if (favoritesCount === 0) {
+      return; // Button is disabled, but extra safety
+    }
+    setShowClearDialog(true);
+  };
+
+  const handleConfirmClear = async () => {
+    await clearAllFavorites();
+    setShowClearDialog(false);
+  };
+
+  const handleCancelClear = () => {
+    setShowClearDialog(false);
+  };
+
   return (
     <>
       <ScrollView className="flex-1">
@@ -167,6 +207,154 @@ export default function Settings() {
                   size="md"
                 />
               </HStack>
+            </VStack>
+
+            {/* Data Management Section */}
+            <VStack className="gap-2">
+              <Heading
+                size="sm"
+                className="font-semibold text-typography-700 px-2"
+              >
+                Data Management
+              </Heading>
+              <VStack className="gap-4">
+                {/* Clear Favorites Button */}
+                <HStack className="justify-between items-center py-3 px-4 bg-background-50 rounded-lg">
+                  <HStack className="items-center gap-3 flex-1">
+                    <Icon as={Heart} size="xl" className="text-red-500" />
+                    <VStack className="flex-1">
+                      <Text className="font-semibold text-base">
+                        Clear Favorites
+                      </Text>
+                      <Text className="text-sm text-typography-500">
+                        {favoritesCount === 0
+                          ? 'No favorites saved'
+                          : `${favoritesCount} ${favoritesCount === 1 ? 'favorite' : 'favorites'} saved`}
+                      </Text>
+                    </VStack>
+                  </HStack>
+                  <Button
+                    onPress={handleClearFavorites}
+                    action="negative"
+                    size="sm"
+                    variant="outline"
+                    isDisabled={favoritesCount === 0}
+                    accessibilityLabel="Clear Favorites"
+                  >
+                    <ButtonIcon
+                      as={Trash2}
+                      size="sm"
+                      className="text-error-500"
+                    />
+                  </Button>
+                </HStack>
+              </VStack>
+            </VStack>
+
+            {/* About Section */}
+            <VStack className="gap-2">
+              <Heading
+                size="sm"
+                className="font-semibold text-typography-700 px-2"
+              >
+                About
+              </Heading>
+              <VStack className="gap-4 py-4 px-4 bg-background-50 rounded-lg">
+                {/* App Name and Version */}
+                <VStack className="gap-1">
+                  <Text className="font-bold text-xl">Unleashd</Text>
+                  <Text className="text-sm text-typography-500">
+                    Version {appVersion}
+                  </Text>
+                </VStack>
+
+                {/* App Description */}
+                <Text className="text-sm text-typography-600">
+                  A cross-platform mobile app for finding adoptable pets.
+                </Text>
+
+                <Divider className="my-1" />
+
+                {/* RescueGroups Attribution */}
+                <VStack className="gap-2">
+                  <HStack className="items-center gap-2">
+                    <Icon as={Heart} size="md" className="text-red-500" />
+                    <Text className="font-semibold text-sm">Data Provider</Text>
+                  </HStack>
+                  <Text className="text-sm text-typography-600">
+                    Animal data provided by RescueGroups.org
+                  </Text>
+                  <Link href="https://www.rescuegroups.org" isExternal>
+                    <HStack className="items-center gap-1">
+                      <LinkText className="text-sm text-blue-500">
+                        Visit RescueGroups.org
+                      </LinkText>
+                      <Icon
+                        as={ExternalLink}
+                        size="xs"
+                        className="text-blue-500"
+                      />
+                    </HStack>
+                  </Link>
+                </VStack>
+
+                <Divider className="my-1" />
+
+                {/* GitHub Repository */}
+                <VStack className="gap-2">
+                  <HStack className="items-center gap-2">
+                    <Icon
+                      as={Github}
+                      size="md"
+                      className="text-typography-700"
+                    />
+                    <Text className="font-semibold text-sm">Source Code</Text>
+                  </HStack>
+                  <Link
+                    href="https://github.com/aknox-epi/unleashd-client"
+                    isExternal
+                  >
+                    <HStack className="items-center gap-1">
+                      <LinkText className="text-sm text-blue-500">
+                        View on GitHub
+                      </LinkText>
+                      <Icon
+                        as={ExternalLink}
+                        size="xs"
+                        className="text-blue-500"
+                      />
+                    </HStack>
+                  </Link>
+                </VStack>
+
+                <Divider className="my-1" />
+
+                {/* License */}
+                <VStack className="gap-2">
+                  <HStack className="items-center gap-2">
+                    <Icon as={Info} size="md" className="text-typography-700" />
+                    <Text className="font-semibold text-sm">License</Text>
+                  </HStack>
+                  <Text className="text-sm text-typography-600">
+                    © 2025 Unleashd Contributors
+                  </Text>
+                  <Link
+                    href="https://github.com/aknox-epi/unleashd-client#readme"
+                    isExternal
+                  >
+                    <HStack className="items-center gap-1">
+                      <LinkText className="text-sm text-blue-500">
+                        View license information
+                      </LinkText>
+                      <Icon
+                        as={ExternalLink}
+                        size="xs"
+                        className="text-blue-500"
+                      />
+                    </HStack>
+                  </Link>
+                </VStack>
+              </VStack>
             </VStack>
           </VStack>
         </Center>
@@ -339,6 +527,31 @@ export default function Settings() {
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
+
+      {/* Clear Favorites Confirmation Dialog */}
+      <AlertDialog isOpen={showClearDialog} onClose={handleCancelClear}>
+        <AlertDialogBackdrop />
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <Heading size="lg">Clear All Favorites?</Heading>
+          </AlertDialogHeader>
+          <AlertDialogBody>
+            <Text>
+              Are you sure you want to clear all {favoritesCount}{' '}
+              {favoritesCount === 1 ? 'favorite' : 'favorites'}? This cannot be
+              undone.
+            </Text>
+          </AlertDialogBody>
+          <AlertDialogFooter>
+            <Button variant="outline" onPress={handleCancelClear}>
+              <ButtonText>Cancel</ButtonText>
+            </Button>
+            <Button action="negative" onPress={handleConfirmClear}>
+              <ButtonText>Clear All</ButtonText>
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

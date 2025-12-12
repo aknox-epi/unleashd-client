@@ -25,6 +25,7 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - Age filter (Baby, Young, Adult, Senior, All) - ✅ Added in v0.1.0
 - Size filter (Small, Medium, Large, X-Large, All) - ✅ Added in v0.1.0
 - Collapsible filter accordion with active filter count indicator - ✅ Added in v0.1.0
+- Prevents accordion collapse and maintains focus during filter changes - ✅ Fixed in v0.4.1
 - "Clear All Filters" button - ✅ Added in v0.1.0
 
 **Display Components:**
@@ -40,6 +41,8 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - Haptic feedback on interactions (search, refresh, card taps, species selector)
 - Scroll-to-top FAB button (appears after 300px scroll with fade animation)
 - Theme-aware RefreshControl styling (dynamic colors for light/dark mode)
+- Entrance animations for animal cards (300ms fade-in + slide-up on mount) - ✅ Added in v0.4.1
+- Smooth loading transitions using React Native Animated API
 
 #### 📱 Pet Details & Gallery
 
@@ -68,6 +71,7 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - Photo counter overlay (e.g., "1 of 5")
 - Navigation buttons for web users (mouse-friendly)
 - Fullscreen image modal with gesture support
+- Accessibility improvements (aria-hidden focus management) - ✅ Fixed in v0.4.1
 - Multiple images with smart URL fallback handling
 - Single image direct rendering (avoids gesture conflicts)
 - Filter out images without valid URLs
@@ -85,6 +89,7 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - Contact information (phone, email, website)
 - Social media links (Facebook, Twitter)
 - Clickable contact links (tel:, mailto:, https:)
+- Uses publicSearch action for improved API compatibility - ✅ Fixed in v0.4.1
 
 **Adoption Information:**
 
@@ -101,6 +106,7 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - Directions via Maps integration
   - Apple Maps for iOS
   - Google Maps for web/Android
+  - Requires valid street address for activation - ✅ Added in v0.4.1
 - Platform-specific URL handling
 - Comprehensive error handling for all contact methods
 
@@ -128,6 +134,7 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - Drawer with comprehensive changelog display
 - Persistent user preferences via AsyncStorage
 - Badge marks version as seen on drawer close (prevents double-press bug)
+- Badge properly disappears when drawer closes, not just on navigation - ✅ Fixed in v0.4.1
 - Unique React keys for changelog rendering (no duplicate key warnings)
 - 100% test coverage for What's New feature (30 WhatsNewContext tests)
 
@@ -151,6 +158,7 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - 99%+ coverage for API integrations
 - 95%+ coverage for critical services
 - Clean test output with suppressed cosmetic warnings
+- Environment-aware logger suppresses noise in test environment - ✅ Added in v0.4.1
 - Reorganized test commands (test, test:watch, test:coverage)
 - Comprehensive TESTING.md documentation guide
 - Pre-commit hooks (lint, format, test staged files)
@@ -160,6 +168,7 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - Mock implementations for external dependencies
 - Coverage reports generated in coverage/ directory
 - Documented Bun test runner incompatibility with React Native
+- Suppressed React act() warnings for cleaner test output - ✅ Added in v0.4.1
 
 **Development Workflow:**
 
@@ -261,6 +270,8 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - ✅ Sort alphabetically by name (A-Z, Z-A) - **Completed**
 - ✅ Sort by distance from location (closest/furthest) - **Completed**
 - ✅ Remember sort preference in AsyncStorage - **Completed**
+- ✅ Fixed sort preference state race conditions (auto-search respects saved preferences) - **Fixed in v0.4.1**
+- ✅ Fixed sort selection not applying immediately (resolved stale state issues) - **Fixed in v0.4.1**
 - Recently viewed pets
 - Sort by age
 
@@ -271,6 +282,12 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - Pinch-to-zoom for images
 - Add notes/comments for saved pets
 - Mark pet as "contacted" or "applied"
+
+#### Recent Improvements (v0.4.1)
+
+- ✅ Get Directions validates street address before enabling
+- ✅ Fullscreen image modal accessibility improvements (aria-hidden focus)
+- ✅ Organization data fetched via publicSearch for better compatibility
 
 ### ⚙️ Settings Enhancements
 
@@ -354,12 +371,12 @@ Priority order for next features (subject to change):
 
 1. **High Priority** (Next Sprint)
 
-   **Advanced Filtering** - Enhance search capabilities
+   **Advanced Filtering** - ✅ **Completed v0.4.0**
    - ✅ ~~Age range filter (Baby, Young, Adult, Senior)~~ - Completed
    - ✅ ~~Size filter (Small, Medium, Large, X-Large)~~ - Completed
    - ✅ ~~Gender filter (Male, Female)~~ - Completed
    - ✅ ~~Multi-filter support (combine filters)~~ - Completed
-   - ✅ ~~Location/distance filter (zip code + radius)~~ - **Completed v0.4.0**
+   - ✅ ~~Location/distance filter (zip code + radius)~~ - Completed v0.4.0
      - ✅ ZIP code input with validation (5-digit and ZIP+4 formats)
      - ✅ Radius dropdown (10, 25, 50, 100, 250, 500 miles)
      - ✅ API integration with location/radius parameters
@@ -368,7 +385,7 @@ Priority order for next features (subject to change):
      - ✅ AsyncStorage for default location preference (auto-saves/loads ZIP and radius)
      - 🔄 Optional: Geolocation "Use My Location" button (future enhancement)
 
-   **Sorting Capabilities** - ✅ **Completed**
+   **Sorting Capabilities** - ✅ **Completed v0.4.0**
    - ✅ Sort by newest/oldest listings (animalUpdatedDate)
    - ✅ Sort by distance (closest/furthest - requires location filter)
    - ✅ Sort alphabetically (A-Z, Z-A)
@@ -376,6 +393,14 @@ Priority order for next features (subject to change):
    - ✅ Auto-trigger search on sort change
    - ✅ Disable distance sort when no ZIP code entered
    - ✅ 100% test coverage for SortPreferencesContext
+   - ✅ Fixed state race conditions for sort preferences - Fixed v0.4.1
+
+   **UX Polish & Animations** - ✅ **Completed v0.4.1**
+   - ✅ Entrance animations for animal cards (fade-in + slide-up)
+   - ✅ Smooth transitions using React Native Animated API
+   - ✅ Improved layout (inline location icons)
+   - ✅ Fixed filter accordion collapse behavior
+   - ✅ Fixed What's New badge behavior
 
 2. **Medium Priority** (Next 2-3 Sprints)
 

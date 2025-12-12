@@ -1,5 +1,29 @@
 module.exports = {
   extends: ['@commitlint/config-conventional'],
+  defaultIgnores: true,
+  ignores: [
+    (commit) => {
+      // Extract first line (header) from commit message
+      const header = commit.split('\n')[0];
+
+      // Ignore GitHub PR merge commits with branch name format (legacy PRs)
+      // Examples: "Feature/add-feature (#123)", "Fix/bug-fix (#456)", "Settings Page (#4)"
+      if (
+        /^(Feature|Fix|Docs|Feat|Chore|Settings)[\s/].+\(#\d+\)$/.test(header)
+      ) {
+        return true;
+      }
+
+      // Ignore GitHub's "Merge pull request #N" commits
+      if (/^Merge pull request #\d+/.test(header)) {
+        return true;
+      }
+
+      // Note: "Merge branch" commits are already ignored by defaultIgnores: true
+
+      return false;
+    },
+  ],
   rules: {
     'type-enum': [
       2,

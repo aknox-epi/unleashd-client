@@ -1,3 +1,19 @@
+<!--
+⚠️ IMPORTANT: Your PR title must follow Conventional Commits format!
+
+Valid PR title examples:
+✅ feat: add dark mode toggle
+✅ fix(auth): resolve login timeout
+✅ docs: update API documentation
+✅ refactor(ui): simplify button component
+
+❌ Feature/add dark mode
+❌ Fix authentication bug
+❌ Updated docs
+
+The PR title becomes the merge commit message, so it must be properly formatted.
+-->
+
 ## Description
 
 <!-- Provide a clear and concise description of your changes -->
@@ -53,6 +69,7 @@ Closes #<!-- issue number -->
 - [ ] New and existing unit tests pass locally with my changes
 - [ ] Any dependent changes have been merged and published
 - [ ] My commits follow the conventional commit format
+- [ ] My PR title follows the conventional commit format (required for merge)
 - [ ] I have updated the CHANGELOG (if applicable)
 
 ## Additional Notes

@@ -178,6 +178,29 @@ footer?
 - Header max 100 characters
 - Use imperative mood ("add" not "added")
 
+### Pull Request Titles
+
+**CRITICAL:** PR titles MUST follow Conventional Commits format because they become merge commit messages.
+
+✅ **Valid PR titles:**
+
+- `feat: add dark mode toggle`
+- `fix(auth): resolve login timeout`
+- `docs: update API documentation`
+- `refactor(ui): simplify button component`
+
+❌ **Invalid PR titles:**
+
+- `Feature/add dark mode` (branch name format)
+- `Fix authentication bug` (missing type prefix)
+- `Updated docs` (wrong tense, missing type)
+
+**Automated validation:**
+
+- PR title validation runs automatically on all pull requests
+- Merge will be blocked if PR title doesn't follow the format
+- The PR template includes format examples and guidance
+
 ## Changelog Generation
 
 This project uses [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) to automatically generate changelogs and manage versions based on Conventional Commits.

@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.4.0](https://github.com/aknox-epi/unleashd-client/compare/v0.3.0...v0.4.0) (2025-12-12)
+
+### Features
+
+- automate dev→main PR creation for releases ([#40](https://github.com/aknox-epi/unleashd-client/issues/40)) ([2b49f47](https://github.com/aknox-epi/unleashd-client/commit/2b49f479f04548e5890df906cf59045a85aa3510))
+- implement automated git tagging for production releases ([#41](https://github.com/aknox-epi/unleashd-client/issues/41)) ([091b67e](https://github.com/aknox-epi/unleashd-client/commit/091b67e984662a02198d48871e01ffb3aac30557))
+- simplify release workflow and fix tag management ([#42](https://github.com/aknox-epi/unleashd-client/issues/42)) ([28fef61](https://github.com/aknox-epi/unleashd-client/commit/28fef615bb55763470fa73698fdc85f826da3e1d))
+
 ## [0.3.1](https://github.com/aknox-epi/unleashd-client/compare/v0.3.0...v0.3.1) (2025-12-12)
 
 ## [0.3.0](https://github.com/aknox-epi/unleashd-client/compare/v0.2.0...v0.3.0) (2025-12-12)

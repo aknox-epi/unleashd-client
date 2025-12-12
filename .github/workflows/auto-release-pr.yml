@@ -1,0 +1,102 @@
+name: Auto-create Release PR
+
+on:
+  push:
+    branches:
+      - dev
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  create-release-pr:
+    name: Create dev→main PR for Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check if this is a release commit
+        id: check_release
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=%s)
+          echo "Commit message: $COMMIT_MSG"
+
+          if echo "$COMMIT_MSG" | grep -qE "^chore\(release\): [0-9]+\.[0-9]+\.[0-9]+$"; then
+            echo "is_release=true" >> $GITHUB_OUTPUT
+            echo "✅ This is a release commit"
+          else
+            echo "is_release=false" >> $GITHUB_OUTPUT
+            echo "ℹ️  Not a release commit, skipping PR creation"
+          fi
+
+      - name: Check for existing PR
+        if: steps.check_release.outputs.is_release == 'true'
+        id: check_pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Check if a PR from dev to main already exists
+          EXISTING_PR=$(gh pr list --base main --head dev --json number --jq '.[0].number')
+
+          if [ -n "$EXISTING_PR" ]; then
+            echo "pr_exists=true" >> $GITHUB_OUTPUT
+            echo "ℹ️  PR #$EXISTING_PR already exists (dev → main)"
+          else
+            echo "pr_exists=false" >> $GITHUB_OUTPUT
+            echo "✅ No existing PR found"
+          fi
+
+      - name: Extract version from package.json
+        if: steps.check_release.outputs.is_release == 'true' && steps.check_pr.outputs.pr_exists == 'false'
+        id: get_version
+        run: |
+          VERSION=$(jq -r .version package.json)
+
+          if [ -z "$VERSION" ] || [ "$VERSION" == "null" ]; then
+            echo "❌ Failed to extract version from package.json"
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "✅ Extracted version: $VERSION"
+
+      - name: Create pull request
+        if: steps.check_release.outputs.is_release == 'true' && steps.check_pr.outputs.pr_exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+
+          # Create PR with proper title and body
+          gh pr create \
+            --base main \
+            --head dev \
+            --title "chore: release v${VERSION} to production" \
+            --body "Production release v${VERSION} - see CHANGELOG.md for details
+
+          ## Checklist
+          - [ ] Reviewed CHANGELOG.md for accuracy
+          - [ ] All CI checks have passed
+          - [ ] Ready to deploy to production
+
+          ---
+
+          This PR was automatically created by the [auto-release-pr workflow](.github/workflows/auto-release-pr.yml)."
+
+          echo "✅ Successfully created PR: dev → main"
+          echo "📋 Title: chore: release v${VERSION} to production"
+
+      - name: Summary
+        if: steps.check_release.outputs.is_release == 'true'
+        run: |
+          if [ "${{ steps.check_pr.outputs.pr_exists }}" == "true" ]; then
+            echo "ℹ️  Skipped: PR already exists for dev → main"
+          else
+            echo "✅ Successfully created release PR for v${{ steps.get_version.outputs.version }}"
+            echo "👉 Review and merge: https://github.com/${{ github.repository }}/pulls"
+          fi

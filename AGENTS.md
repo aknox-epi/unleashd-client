@@ -178,6 +178,55 @@ footer?
 - Header max 100 characters
 - Use imperative mood ("add" not "added")
 
+### Pull Request Titles
+
+**CRITICAL:** PR titles MUST follow Conventional Commits format because they become merge commit messages.
+
+✅ **Valid PR titles:**
+
+- `feat: add dark mode toggle`
+- `fix(auth): resolve login timeout`
+- `docs: update API documentation`
+- `refactor(ui): simplify button component`
+
+❌ **Invalid PR titles:**
+
+- `Feature/add dark mode` (branch name format)
+- `Fix authentication bug` (missing type prefix)
+- `Updated docs` (wrong tense, missing type)
+
+**Automated validation:**
+
+- PR title validation runs automatically on all pull requests
+- Merge will be blocked if PR title doesn't follow the format
+- The PR template includes format examples and guidance
+
+### Merge Strategy
+
+**CRITICAL**: All PRs must use **"Squash and merge"** strategy on GitHub.
+
+**Why Squash and Merge?**
+
+1. ✅ **PR title becomes commit message** - Validated by PR Title Check
+2. ✅ **Clean linear history** - One commit per PR/feature
+3. ✅ **Prevents branch divergence** - No complex merge commit conflicts
+4. ✅ **Perfect changelog** - Each commit represents one logical change
+5. ✅ **Automated validation** - What you validate is what you get
+
+**Merge Strategy by Branch:**
+
+| From → To           | Strategy         | PR Title Format                       |
+| ------------------- | ---------------- | ------------------------------------- |
+| `feature/*` → `dev` | Squash and merge | `feat: description`                   |
+| `fix/*` → `dev`     | Squash and merge | `fix: description`                    |
+| `release/*` → `dev` | Squash and merge | `chore(release): x.x.x`               |
+| `dev` → `main`      | Squash and merge | `chore: release vx.x.x to production` |
+
+**Never use:**
+
+- ❌ Create a merge commit (causes branch divergence)
+- ❌ Rebase and merge (rewrites history)
+
 ## Changelog Generation
 
 This project uses [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) to automatically generate changelogs and manage versions based on Conventional Commits.
@@ -206,7 +255,7 @@ This project uses [commit-and-tag-version](https://github.com/absolute-version/c
 
 Releases are created using a dedicated release branch that merges to `dev` first, then `dev` merges to `main` for production.
 
-**CRITICAL**: Always use **"Create a merge commit"** when merging PRs. Never use squash merge, as it breaks commit history and causes conflicts when syncing branches.
+**CRITICAL**: Always use **"Squash and merge"** when merging PRs. This ensures clean linear history and prevents branch divergence.
 
 1. **Create release branch from dev**:
 
@@ -216,28 +265,13 @@ Releases are created using a dedicated release branch that merges to `dev` first
    git checkout -b release/0.x.x
    ```
 
-2. **Push changes to origin**
-
-   ```bash
-   git push origin feature/branch
-   ```
-
-3. **Create PR to dev and get approvals**
-
-4. **Squash commits** (optional but recommended):
-
-   ```bash
-   git rebase -i dev
-
-   ```
-
-5. **Preview release** (recommended first step):
+2. **Preview release** (recommended first step):
 
    ```bash
    bun run release:dry
    ```
 
-6. **Generate release**:
+3. **Generate release**:
 
    ```bash
    bun run release        # Auto-detect version bump
@@ -247,38 +281,34 @@ Releases are created using a dedicated release branch that merges to `dev` first
    # bun run release:patch
    ```
 
-7. **Review changes**:
+4. **Review changes**:
    - Check `CHANGELOG.md` for accuracy
    - Verify version bump in `package.json`
    - Review the git commit and tag
 
-8. **Push release branch with tags**:
+5. **Push release branch with tags**:
 
    ```bash
    git push --follow-tags origin release/0.x.x
    ```
 
-9. **Create PR from release branch to dev**:
+6. **Create PR from release branch to dev on GitHub**:
+   - **Title**: `chore(release): 0.x.x`
+   - **Body**: `Release preparation - updates changelog and version`
+   - Wait for CI checks to pass
+   - Get approval from reviewers
 
-   ```bash
-   gh pr create --base dev --head release/0.x.x \
-     --title "chore(release): 0.x.x" \
-     --body "Release preparation - updates changelog and version"
-   ```
+7. **Merge release PR to dev using "Squash and merge"**
 
-10. **Get approval and merge to dev using "Create a merge commit"** (NOT squash merge!)
+8. **Create PR from dev to main on GitHub**:
+   - **Title**: `chore: release v0.x.x to production`
+   - **Body**: `Production release v0.x.x - see CHANGELOG.md for details`
+   - Wait for CI checks to pass
+   - Get approval from reviewers
 
-11. **Create PR from dev to main**:
+9. **Merge dev to main using "Squash and merge"**
 
-    ```bash
-    gh pr create --base main --head dev \
-      --title "Release v0.x.x" \
-      --body "Production release v0.x.x - see CHANGELOG.md"
-    ```
-
-12. **Get approval and merge to main using "Create a merge commit"** (NOT squash merge!)
-
-13. **Sync local branches and clean up**:
+10. **Sync local branches and clean up**:
 
     ```bash
     git checkout dev && git pull origin dev
@@ -314,7 +344,7 @@ Release behavior is configured in `.versionrc.json`:
 - **Use semantic commits consistently**: Ensures accurate version bumps
 - **Review before pushing**: Check changelog and version are correct
 - **Push with tags**: Use `git push --follow-tags` to include version tags
-- **Always use "Create a merge commit"**: Never squash merge PRs to avoid history conflicts
+- **Always use "Squash and merge"**: Ensures clean history and prevents branch divergence
 
 ## Development Workflow
 
@@ -333,7 +363,7 @@ Release behavior is configured in `.versionrc.json`:
    - Blocks commits with invalid message format
    - Use proper type prefix (feat, fix, docs, chore, etc.)
 4. **Pull requests**: Open PRs against `dev` branch, not `main`
-5. **Merge strategy**: Always use "Create a merge commit" on GitHub (never squash merge)
+5. **Merge strategy**: Always use "Squash and merge" on GitHub
 6. **Manual checks**: Run `bun run lint:fix` to fix all code quality issues in the project
 7. **Manual formatting**: Run `bun run format` to format all files (Prettier runs on commit automatically)
 8. **Code quality**: ESLint checks logic, best practices, React rules, TypeScript issues

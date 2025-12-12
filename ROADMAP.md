@@ -174,7 +174,7 @@ This document outlines potential features and enhancements for the Unleashd pet 
 
 - Modified GitHub Flow (main ← dev ← feature branches)
 - Release branch workflow (release → dev → main)
-- Regular merge strategy (no squash merge to preserve history)
+- Squash and merge strategy for clean, linear history
 - Automated changelog generation with commit-and-tag-version
 - Semantic versioning (feat → minor, fix → patch, BREAKING → major)
 - Husky + lint-staged for Git hooks
@@ -193,7 +193,7 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - API integration documentation with examples
 - Testing guidelines and coverage standards
 - Release process documentation (10-step workflow)
-- Merge strategy documentation (regular merge only)
+- Merge strategy documentation (squash and merge for all PRs)
 
 **CI/CD:**
 

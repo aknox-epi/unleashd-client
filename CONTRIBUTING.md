@@ -80,7 +80,7 @@ git push origin feature/your-feature-name
 
 After initial approval:
 
-1. **Merge via GitHub** using **"Create a merge commit"** (NOT squash merge)
+1. **Merge via GitHub** using **"Squash and merge"**
 2. Delete the remote branch (GitHub offers this option)
 3. Clean up locally:
 
@@ -90,7 +90,12 @@ git pull origin dev
 git branch -d feature/your-feature-name
 ```
 
-**Important**: Always use "Create a merge commit" when merging PRs. Squash merging breaks commit history and causes conflicts when syncing branches.
+**Important**: Always use "Squash and merge" when merging PRs. This strategy:
+
+- Ensures your PR title becomes the commit message in history
+- Creates clean, linear history (one commit per feature/fix)
+- Prevents branch divergence and merge conflicts
+- Works seamlessly with automated changelog generation
 
 ## Branch Naming
 
@@ -262,12 +267,17 @@ When opening a PR, ensure:
 
 ### Merge Strategy
 
-**CRITICAL**: Always use **"Create a merge commit"** when merging PRs to `dev` or `main`.
+**CRITICAL**: Always use **"Squash and merge"** when merging PRs to `dev` or `main`.
 
-- ✅ **DO**: Use "Create a merge commit" button on GitHub
-- ❌ **DON'T**: Use "Squash and merge" or "Rebase and merge"
+- ✅ **DO**: Use "Squash and merge" button on GitHub
+- ❌ **DON'T**: Use "Create a merge commit" or "Rebase and merge"
 
-**Why?** Squash merging creates new commit hashes that break the git history chain. This causes merge conflicts when syncing `dev` ↔ `main`. Regular merge commits preserve history and allow clean branch synchronization.
+**Why?** Squash merging:
+
+- Uses your validated PR title as the commit message
+- Creates clean, linear history (one commit per PR)
+- Prevents branch divergence that causes merge conflicts
+- Ensures changelog accurately reflects changes
 
 ## Release Process
 
@@ -307,33 +317,25 @@ git push --follow-tags origin release/0.x.x
 
 #### Step 1: Merge release branch to dev
 
-```bash
-# Create PR from release branch to dev
-gh pr create --base dev --head release/0.x.x \
-  --title "chore(release): 0.x.x" \
-  --body "Release preparation - updates changelog and version"
-```
-
 **On GitHub:**
 
-- Get approval from team
-- **Use "Create a merge commit"** (NOT squash merge!)
-- Merge to `dev`
+1. Create PR from release branch to dev
+   - **Title**: `chore(release): 0.x.x`
+   - **Body**: `Release preparation - updates changelog and version`
+2. Wait for CI checks to pass
+3. Get approval from team
+4. **Use "Squash and merge"** to merge to `dev`
 
 #### Step 2: Merge dev to main (production release)
 
-```bash
-# Create PR from dev to main
-gh pr create --base main --head dev \
-  --title "Release v0.x.x" \
-  --body "Production release v0.x.x - see CHANGELOG.md for details"
-```
-
 **On GitHub:**
 
-- Get approval from team
-- **Use "Create a merge commit"** (NOT squash merge!)
-- Merge to `main`
+1. Create PR from dev to main
+   - **Title**: `chore: release v0.x.x to production`
+   - **Body**: `Production release v0.x.x - see CHANGELOG.md for details`
+2. Wait for CI checks to pass
+3. Get approval from team
+4. **Use "Squash and merge"** to merge to `main`
 
 #### Step 3: Sync and clean up
 

@@ -1,6 +1,11 @@
 module.exports = {
   extends: ['@commitlint/config-conventional'],
   defaultIgnores: true,
+  // NOTE: The ignores array handles legacy commits from before the "Squash and merge"
+  // policy was implemented (before PR title validation was added). All new commits
+  // will follow Conventional Commits format via PR title validation, so these patterns
+  // should not match any future commits. We keep these ignores to avoid breaking
+  // validation on existing commit history.
   ignores: [
     (commit) => {
       // Extract first line (header) from commit message
@@ -14,7 +19,7 @@ module.exports = {
         return true;
       }
 
-      // Ignore GitHub's "Merge pull request #N" commits
+      // Ignore GitHub's "Merge pull request #N" commits (legacy PRs)
       if (/^Merge pull request #\d+/.test(header)) {
         return true;
       }

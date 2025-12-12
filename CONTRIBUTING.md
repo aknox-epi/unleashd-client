@@ -291,13 +291,13 @@ Version is automatically determined by commit types since last release:
 - `fix:` commits → **patch** version bump (0.1.0 → 0.1.1)
 - `BREAKING CHANGE:` footer → **major** version bump (0.1.0 → 1.0.0)
 
-### Creating a Release (dev → main)
+### Creating a Release
 
 ```bash
 # 1. Create release branch from dev
 git checkout dev
 git pull origin dev
-git checkout -b release/0.x.x
+git checkout -b release/0.x.x  # Or release-0.x.x, naming is flexible
 
 # 2. Preview the release (recommended)
 bun run release:dry
@@ -309,8 +309,10 @@ bun run release        # Auto-detect version bump
 # bun run release:major   # 0.1.0 → 1.0.0
 # bun run release:patch   # 0.1.0 → 0.1.1
 
-# 4. Push release branch with tags
-git push --follow-tags origin release/0.x.x
+# 4. Push release branch (without tags)
+git push origin release/0.x.x
+
+# NOTE: Do NOT use --follow-tags. Tags are created automatically on main.
 ```
 
 ### Merging the Release

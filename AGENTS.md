@@ -288,11 +288,13 @@ Releases are created using a dedicated release branch that merges to `dev` first
    - Verify version bump in `package.json`
    - Review the git commit and tag
 
-5. **Push release branch with tags**:
+5. **Push release branch (without tags)**:
 
    ```bash
-   git push --follow-tags origin release/0.x.x
+   git push origin release/0.x.x
    ```
+
+   **Note:** Do NOT use `--follow-tags`. Tags are created automatically on `main` by the auto-tag workflow. Pushing tags from release branches causes conflicts.
 
 6. **Create PR from release branch to dev on GitHub**:
    - **Title**: `chore(release): 0.x.x`

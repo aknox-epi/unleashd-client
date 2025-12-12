@@ -1,0 +1,93 @@
+name: Auto-tag Release on Main
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  tag-release:
+    name: Tag Production Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if this is a release commit
+        id: check_release
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=%s)
+          echo "Commit message: $COMMIT_MSG"
+
+          # Match pattern: "chore: release vX.X.X to production"
+          if echo "$COMMIT_MSG" | grep -qE "^chore: release v[0-9]+\.[0-9]+\.[0-9]+ to production$"; then
+            echo "is_release=true" >> $GITHUB_OUTPUT
+            echo "✅ This is a production release commit"
+          else
+            echo "is_release=false" >> $GITHUB_OUTPUT
+            echo "ℹ️  Not a release commit, skipping tagging"
+          fi
+
+      - name: Extract version from package.json
+        if: steps.check_release.outputs.is_release == 'true'
+        id: get_version
+        run: |
+          VERSION=$(jq -r .version package.json)
+
+          if [ -z "$VERSION" ] || [ "$VERSION" == "null" ]; then
+            echo "❌ Failed to extract version from package.json"
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "✅ Extracted version: $VERSION"
+
+      - name: Check if tag already exists
+        if: steps.check_release.outputs.is_release == 'true'
+        id: check_tag
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+
+          if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
+            echo "tag_exists=true" >> $GITHUB_OUTPUT
+            echo "ℹ️  Tag v${VERSION} already exists"
+          else
+            echo "tag_exists=false" >> $GITHUB_OUTPUT
+            echo "✅ Tag v${VERSION} does not exist yet"
+          fi
+
+      - name: Create and push tag
+        if: steps.check_release.outputs.is_release == 'true' && steps.check_tag.outputs.tag_exists == 'false'
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Create annotated tag
+          git tag -a "v${VERSION}" -m "Release v${VERSION}"
+
+          # Push tag to origin
+          git push origin "v${VERSION}"
+
+          echo "✅ Successfully created and pushed tag v${VERSION}"
+
+      - name: Summary
+        if: steps.check_release.outputs.is_release == 'true'
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+
+          if [ "${{ steps.check_tag.outputs.tag_exists }}" == "true" ]; then
+            echo "ℹ️  Skipped: Tag v${VERSION} already exists"
+          else
+            echo "✅ Successfully tagged production release v${VERSION}"
+            echo "📋 Tag: v${VERSION}"
+            echo "🔗 Create GitHub release: https://github.com/${{ github.repository }}/releases/new?tag=v${VERSION}"
+          fi

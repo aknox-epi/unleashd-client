@@ -371,6 +371,34 @@ bun run release:minor  # Force minor: 1.0.0 → 1.1.0
 bun run release:patch  # Force patch: 1.0.0 → 1.0.1
 ```
 
+### Git Tag Strategy
+
+**Important:** This project uses a **"tags only on main"** strategy.
+
+**What This Means:**
+
+- Git tags (e.g., `v0.3.2`) are only created on the `main` branch
+- Tags represent production releases, not development milestones
+- When you run `bun run release` on a release branch, a temporary tag is created locally
+- That tag does NOT get pushed or transferred when using "Squash and merge"
+- A GitHub Action automatically creates the production tag on `main` after the release merges
+
+**Why This Approach?**
+
+- ✅ Each tag points to exactly one commit (semantic correctness)
+- ✅ No duplicate tags across branches
+- ✅ Works perfectly with "Squash and merge" strategy
+- ✅ Tags represent actual production releases
+
+**Auto-Fetching Tags:**
+All release commands (`bun run release`, `bun run release:dry`, etc.) automatically fetch tags from `origin` before running. This ensures `commit-and-tag-version` can detect the latest release even when working on the `dev` branch.
+
+**Automation:**
+
+- Tags are automatically created by `.github/workflows/auto-tag-release.yml`
+- No manual tagging needed
+- Tags appear on `main` after the release PR is merged
+
 ## Code Quality
 
 ### Linting and Formatting

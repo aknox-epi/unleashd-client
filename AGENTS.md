@@ -302,13 +302,15 @@ Releases are created using a dedicated release branch that merges to `dev` first
 
 7. **Merge release PR to dev using "Squash and merge"**
 
-8. **Create PR from dev to main on GitHub**:
-   - **Title**: `chore: release v0.x.x to production`
+8. **GitHub Action auto-creates PR from dev to main**:
+   - Triggered automatically when release merges to dev
+   - **Title**: `chore: release v0.x.x to production` (auto-populated)
    - **Body**: `Production release v0.x.x - see CHANGELOG.md for details`
+   - Review the auto-created PR for accuracy
    - Wait for CI checks to pass
    - Get approval from reviewers
 
-9. **Merge dev to main using "Squash and merge"**
+9. **Merge the auto-created PR using "Squash and merge"**
 
    ```bash
    gh pr create --base main --head dev \
@@ -372,6 +374,9 @@ Release behavior is configured in `.versionrc.json`:
 - **Review before pushing**: Check changelog and version are correct
 - **Push with tags**: Use `git push --follow-tags` to include version tags
 - **Always use "Squash and merge"**: Ensures clean history and prevents branch divergence
+- **Monitor auto-release PRs**: Verify auto-created dev→main PRs are accurate before merging
+
+**Note:** The dev→main PR is created automatically by GitHub Actions workflow (`.github/workflows/auto-release-pr.yml`)
 
 ## Development Workflow
 

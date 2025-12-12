@@ -267,28 +267,13 @@ Releases are created using a dedicated release branch that merges to `dev` first
    git checkout -b release/0.x.x
    ```
 
-2. **Push changes to origin**
-
-   ```bash
-   git push origin feature/branch
-   ```
-
-3. **Create PR to dev and get approvals**
-
-4. **Squash commits** (optional but recommended):
-
-   ```bash
-   git rebase -i dev
-
-   ```
-
-5. **Preview release** (recommended first step):
+2. **Preview release** (recommended first step):
 
    ```bash
    bun run release:dry
    ```
 
-6. **Generate release**:
+3. **Generate release**:
 
    ```bash
    bun run release        # Auto-detect version bump
@@ -298,55 +283,59 @@ Releases are created using a dedicated release branch that merges to `dev` first
    # bun run release:patch
    ```
 
-7. **Review changes**:
+4. **Review changes**:
    - Check `CHANGELOG.md` for accuracy
    - Verify version bump in `package.json`
    - Review the git commit and tag
 
-8. **Push release branch with tags**:
+5. **Push release branch with tags**:
 
    ```bash
    git push --follow-tags origin release/0.x.x
    ```
 
-9. **Create PR from release branch to dev**:
+6. **Create PR from release branch to dev on GitHub**:
+   - **Title**: `chore(release): 0.x.x`
+   - **Body**: `Release preparation - updates changelog and version`
+   - Wait for CI checks to pass
+   - Get approval from reviewers
+
+7. **Merge release PR to dev using "Squash and merge"**
+
+8. **Create PR from dev to main on GitHub**:
+   - **Title**: `chore: release v0.x.x to production`
+   - **Body**: `Production release v0.x.x - see CHANGELOG.md for details`
+   - Wait for CI checks to pass
+   - Get approval from reviewers
+
+9. **Merge dev to main using "Squash and merge"**
 
    ```bash
-   gh pr create --base dev --head release/0.x.x \
-     --title "chore(release): 0.x.x" \
-     --body "Release preparation - updates changelog and version"
+   gh pr create --base main --head dev \
+     --title "Release v0.x.x" \
+     --body "Production release v0.x.x - see CHANGELOG.md"
    ```
 
-10. **Get approval and merge to dev using "Create a merge commit"** (NOT squash merge!)
+10. **Get approval and merge to main using "Create a merge commit"** (NOT squash merge!)
 
-11. **Create PR from dev to main**:
-
-    ```bash
-    gh pr create --base main --head dev \
-      --title "Release v0.x.x" \
-      --body "Production release v0.x.x - see CHANGELOG.md"
-    ```
-
-12. **Get approval and merge to main using "Create a merge commit"** (NOT squash merge!)
-
-13. **Sync local branches and clean up**:
-14. **Create PR from release branch to dev on GitHub**:
+11. **Sync local branches and clean up**:
+12. **Create PR from release branch to dev on GitHub**:
     - **Title**: `chore(release): 0.x.x`
     - **Body**: `Release preparation - updates changelog and version`
     - Wait for CI checks to pass
     - Get approval from reviewers
 
-15. **Merge release PR to dev using "Squash and merge"**
+13. **Merge release PR to dev using "Squash and merge"**
 
-16. **Create PR from dev to main on GitHub**:
+14. **Create PR from dev to main on GitHub**:
     - **Title**: `chore: release v0.x.x to production`
     - **Body**: `Production release v0.x.x - see CHANGELOG.md for details`
     - Wait for CI checks to pass
     - Get approval from reviewers
 
-17. **Merge dev to main using "Squash and merge"**
+15. **Merge dev to main using "Squash and merge"**
 
-18. **Sync local branches and clean up**:
+16. **Sync local branches and clean up**:
 
     ```bash
     git checkout dev && git pull origin dev

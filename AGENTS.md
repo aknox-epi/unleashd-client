@@ -71,6 +71,8 @@ When changes are ready to be committed, agents must follow this exact workflow:
 
 **Important:** Feature branches should be created from `dev` and pull requests should target `dev`, not `main`.
 
+**Important:** Feature branches should be created from `dev` and pull requests should target `dev`, not `main`.
+
 ## Build/Test Commands
 
 - **Start dev**: `bun run start` (or `npm start` for iOS/Android/web)
@@ -312,7 +314,32 @@ Releases are created using a dedicated release branch that merges to `dev` first
 
 9. **Merge the auto-created PR using "Squash and merge"**
 
-10. **Sync local branches and clean up**:
+   ```bash
+   gh pr create --base main --head dev \
+     --title "Release v0.x.x" \
+     --body "Production release v0.x.x - see CHANGELOG.md"
+   ```
+
+10. **Get approval and merge to main using "Create a merge commit"** (NOT squash merge!)
+
+11. **Sync local branches and clean up**:
+12. **Create PR from release branch to dev on GitHub**:
+    - **Title**: `chore(release): 0.x.x`
+    - **Body**: `Release preparation - updates changelog and version`
+    - Wait for CI checks to pass
+    - Get approval from reviewers
+
+13. **Merge release PR to dev using "Squash and merge"**
+
+14. **Create PR from dev to main on GitHub**:
+    - **Title**: `chore: release v0.x.x to production`
+    - **Body**: `Production release v0.x.x - see CHANGELOG.md for details`
+    - Wait for CI checks to pass
+    - Get approval from reviewers
+
+15. **Merge dev to main using "Squash and merge"**
+
+16. **Sync local branches and clean up**:
 
     ```bash
     git checkout dev && git pull origin dev

@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.6.0](https://github.com/aknox-epi/unleashd-client/compare/v0.3.0...v0.6.0) (2025-12-15)
+
+### Features
+
+- automate dev→main PR creation for releases ([#40](https://github.com/aknox-epi/unleashd-client/issues/40)) ([2b49f47](https://github.com/aknox-epi/unleashd-client/commit/2b49f479f04548e5890df906cf59045a85aa3510))
+- **drawer:** apply max-width constraint directly to What's New drawer ([e9cb122](https://github.com/aknox-epi/unleashd-client/commit/e9cb12246cba4a6f1840b47391c9a655d10beea0))
+- implement automated git tagging for production releases ([#41](https://github.com/aknox-epi/unleashd-client/issues/41)) ([091b67e](https://github.com/aknox-epi/unleashd-client/commit/091b67e984662a02198d48871e01ffb3aac30557))
+- **pet-details:** apply max-w-md constraint to pet details page ([06a73cc](https://github.com/aknox-epi/unleashd-client/commit/06a73ccbb99a40c8a3bd8dff2a900b5fce5f6968))
+- simplify release workflow and fix tag management ([#42](https://github.com/aknox-epi/unleashd-client/issues/42)) ([28fef61](https://github.com/aknox-epi/unleashd-client/commit/28fef615bb55763470fa73698fdc85f826da3e1d))
+- **ui:** standardize max-width across all tab screens ([ca563f9](https://github.com/aknox-epi/unleashd-client/commit/ca563f9a03c822910e808e18597b58adec275975))
+
+### Bug Fixes
+
+- **explore:** prevent infinite search loop and restore scrolling ([8b84f18](https://github.com/aknox-epi/unleashd-client/commit/8b84f18844dac273eb7bffe9f0375ded764d1f2b))
+
 ## [0.5.0](https://github.com/aknox-epi/unleashd-client/compare/v0.3.0...v0.5.0) (2025-12-15)
 
 ### Features

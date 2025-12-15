@@ -80,22 +80,18 @@ git push origin feature/your-feature-name
 
 After initial approval:
 
-1. **Merge via GitHub** using **"Squash and merge"**
-2. Delete the remote branch (GitHub offers this option)
-3. Clean up locally:
+1. **Merge via GitHub** using **"Create a merge commit"**
 
-```bash
-git checkout dev
-git pull origin dev
-git branch -d feature/your-feature-name
-```
+**Merging a Feature PR:**
 
-**Important**: Always use "Squash and merge" when merging PRs. This strategy:
+For all PRs (features, fixes, docs, releases), use GitHub's **"Create a merge commit"** button. This preserves all commits from your feature branch in the history.
 
-- Ensures your PR title becomes the commit message in history
-- Creates clean, linear history (one commit per feature/fix)
-- Prevents branch divergence and merge conflicts
-- Works seamlessly with automated changelog generation
+**Important**: Always use "Create a merge commit" when merging PRs. This strategy:
+
+- Preserves full commit history from feature branches
+- Ensures your commits are visible in the history for debugging
+- Works perfectly with our automated release and tagging workflow
+- Maintains consistency across branches
 
 ## Branch Naming
 
@@ -267,17 +263,18 @@ When opening a PR, ensure:
 
 ### Merge Strategy
 
-**CRITICAL**: Always use **"Squash and merge"** when merging PRs to `dev` or `main`.
+**CRITICAL**: Always use **"Create a merge commit"** when merging PRs to `dev` or `main`.
 
-- ✅ **DO**: Use "Squash and merge" button on GitHub
-- ❌ **DON'T**: Use "Create a merge commit" or "Rebase and merge"
+- ✅ **DO**: Use "Create a merge commit" button on GitHub
+- ❌ **DON'T**: Use "Squash and merge" or "Rebase and merge"
 
-**Why?** Squash merging:
+**Why?** Merge commits:
 
-- Uses your validated PR title as the commit message
-- Creates clean, linear history (one commit per PR)
-- Prevents branch divergence that causes merge conflicts
-- Ensures changelog accurately reflects changes
+- Preserve full commit history from feature branches
+- Ensure your commits are visible in history for debugging
+- Work perfectly with our automated release and tagging workflow
+- Allow git tags to follow commits naturally through branches
+- Maintain consistency across branches
 
 ## Release Process
 
@@ -302,17 +299,21 @@ git checkout -b release/0.x.x  # Or release-0.x.x, naming is flexible
 # 2. Preview the release (recommended)
 bun run release:dry
 
-# 3. Create the release
+# 3. Create the release (updates 3 files automatically)
 bun run release        # Auto-detect version bump
 # OR force specific bump:
 # bun run release:minor   # 0.1.0 → 0.2.0
 # bun run release:major   # 0.1.0 → 1.0.0
 # bun run release:patch   # 0.1.0 → 0.1.1
 
-# 4. Push release branch (without tags)
-git push origin release/0.x.x
+# This automatically updates:
+# - package.json (version)
+# - CHANGELOG.md (release notes)
+# - constants/changelog.ts (embedded changelog for What's New feature)
 
-# NOTE: Do NOT use --follow-tags. Tags are created automatically on main.
+# 4. Push release branch WITH tags
+bun run release:push
+# Or manually: git push origin release/0.x.x --follow-tags
 ```
 
 ### Merging the Release
@@ -326,7 +327,7 @@ git push origin release/0.x.x
    - **Body**: `Release preparation - updates changelog and version`
 2. Wait for CI checks to pass
 3. Get approval from team
-4. **Use "Squash and merge"** to merge to `dev`
+4. **Use "Create a merge commit"** to merge to `dev`
 
 #### Step 2: Merge dev to main (production release)
 
@@ -338,7 +339,7 @@ git push origin release/0.x.x
 2. Review the auto-created PR for accuracy
 3. Wait for CI checks to pass
 4. Get approval from team
-5. **Use "Squash and merge"** to merge to `main`
+5. **Use "Create a merge commit"** to merge to `main`
 
 **Note:** The PR creation is automated via `.github/workflows/auto-release-pr.yml`. You only need to review and merge the auto-created PR.
 
@@ -360,8 +361,11 @@ git push origin --delete release/0.x.x
 2. Determines version bump based on commit types
 3. Updates `CHANGELOG.md` with grouped changes
 4. Updates `package.json` version
-5. Creates a git commit: `chore(release): x.x.x`
-6. Creates a git tag: `vx.x.x`
+5. **Automatically embeds changelog** into `constants/changelog.ts` (for What's New feature)
+6. Creates a git commit with all 3 files: `chore(release): x.x.x`
+7. Creates a git tag: `vx.x.x`
+
+**Note:** The changelog embedding happens automatically via the `postchangelog` lifecycle hook in `.versionrc.json`. You don't need to manually update `constants/changelog.ts`.
 
 ### Manual Version Override
 
@@ -375,31 +379,86 @@ bun run release:patch  # Force patch: 1.0.0 → 1.0.1
 
 ### Git Tag Strategy
 
-**Important:** This project uses a **"tags only on main"** strategy.
+**Important:** This project uses git tags to mark production releases on the `main` branch.
 
-**What This Means:**
+**How It Works:**
 
-- Git tags (e.g., `v0.3.2`) are only created on the `main` branch
-- Tags represent production releases, not development milestones
-- When you run `bun run release` on a release branch, a temporary tag is created locally
-- That tag does NOT get pushed or transferred when using "Squash and merge"
-- A GitHub Action automatically creates the production tag on `main` after the release merges
+1. When you run `bun run release` on a release branch, a git tag is created locally
+2. Push the tag along with the branch using `bun run release:push` (or `git push --follow-tags`)
+3. When merging with **"Create a merge commit"**, the tag follows the commit through both `dev` and `main`
+4. Tags naturally appear on `main` after the release PR merges through dev
 
 **Why This Approach?**
 
-- ✅ Each tag points to exactly one commit (semantic correctness)
-- ✅ No duplicate tags across branches
-- ✅ Works perfectly with "Squash and merge" strategy
-- ✅ Tags represent actual production releases
+- ✅ **Simple and standard**: Tags follow commits through merge commits
+- ✅ **Semantic correctness**: Tags represent production releases on `main`
+- ✅ **No automation needed**: Standard git behavior handles everything
+- ✅ **Single source of truth**: Each tag points to exactly one commit
+- ✅ **GitHub releases**: Tags on `main` enable proper GitHub release creation
 
-**Auto-Fetching Tags:**
-All release commands (`bun run release`, `bun run release:dry`, etc.) automatically fetch tags from `origin` before running. This ensures `commit-and-tag-version` can detect the latest release even when working on the `dev` branch.
+**Important Notes:**
 
-**Automation:**
+- **Always push with tags**: Use `bun run release:push` or the `--follow-tags` flag
+- **Tags follow commits**: With merge commits, tags stay with their commits across branches
+- **No manual re-tagging**: Tags automatically appear on `main` after merging
 
-- Tags are automatically created by `.github/workflows/auto-tag-release.yml`
-- No manual tagging needed
-- Tags appear on `main` after the release PR is merged
+### Troubleshooting Releases
+
+#### Changelog is out of sync
+
+If `constants/changelog.ts` doesn't match `package.json` version:
+
+```bash
+# Check if they're in sync
+bun run validate:changelog
+
+# If out of sync, the next release will fix it automatically
+# Or manually run:
+node scripts/embed-changelog.js
+git add constants/changelog.ts
+git commit -m "chore: sync embedded changelog"
+```
+
+#### Forgot to push tags with release branch
+
+If you pushed the release branch without tags:
+
+```bash
+# Push tags separately
+git push origin --tags
+
+# Or delete the branch and re-push with tags
+git push origin --delete release/0.x.x
+bun run release:push
+```
+
+#### Release command fails with "tag already exists"
+
+If a tag already exists locally or remotely:
+
+```bash
+# Delete local tag
+git tag -d v0.x.x
+
+# Delete remote tag (careful!)
+git push origin :refs/tags/v0.x.x
+
+# Re-run release
+bun run release
+```
+
+#### Pre-push hook blocks push (missing tags on release branch)
+
+If you try to push a release branch without tags:
+
+```bash
+# The pre-push hook will show an error message
+# Use the release:push command instead:
+bun run release:push
+
+# Or manually add --follow-tags:
+git push origin release/0.x.x --follow-tags
+```
 
 ## Code Quality
 

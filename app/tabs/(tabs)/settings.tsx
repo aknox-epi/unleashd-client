@@ -363,7 +363,7 @@ export default function Settings() {
       {/* What's New Drawer */}
       <Drawer isOpen={isDrawerOpen} onClose={handleDrawerClose} size="lg">
         <DrawerBackdrop />
-        <DrawerContent className="flex flex-col overflow-hidden px-3 py-6">
+        <DrawerContent className="flex flex-col overflow-hidden px-3 py-6 max-w-md">
           <DrawerHeader className="shrink-0">
             <HStack className="items-center gap-2">
               <Icon as={Sparkles} size="lg" className="text-blue-500" />
@@ -408,7 +408,7 @@ export default function Settings() {
                         </Text>
                         <Select
                           onValueChange={handleTimelineChange}
-                          value={filters.timeline}
+                          defaultValue={filters.timeline}
                         >
                           <SelectTrigger>
                             <SelectInput placeholder="Select timeline" />

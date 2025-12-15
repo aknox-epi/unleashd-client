@@ -74,47 +74,6 @@ import {
   getBaseZipCode,
 } from '@/utils/zipCodeValidation';
 
-/**
- * Get the appropriate icon for an animal species
- */
-function getSpeciesIcon(species: string) {
-  const speciesLower = species.toLowerCase();
-  if (speciesLower.includes('dog')) return Dog;
-  if (speciesLower.includes('cat')) return Cat;
-  if (speciesLower.includes('bird')) return Bird;
-  if (speciesLower.includes('rabbit')) return Rabbit;
-  return ImageIcon; // Generic fallback
-}
-
-/**
- * Image fallback component for when no image is available or fails to load
- */
-function ImageFallback({
-  species,
-  isDarkMode,
-}: {
-  species: string;
-  isDarkMode: boolean;
-}) {
-  const SpeciesIcon = getSpeciesIcon(species);
-
-  return (
-    <Box
-      className={`h-32 w-32 rounded-lg border ${
-        isDarkMode
-          ? 'bg-background-100 border-outline-300'
-          : 'bg-background-50 border-outline-200'
-      } items-center justify-center`}
-    >
-      <Icon
-        as={SpeciesIcon}
-        size={64}
-        className={isDarkMode ? 'text-typography-400' : 'text-typography-300'}
-      />
-    </Box>
-  );
-}
-
 export default function Explore() {
   const { search, loadMore, results, total, hasMore, isLoading, error } =
     useAnimalSearch();
@@ -186,13 +145,27 @@ export default function Explore() {
   // Auto-search on mount after preferences load
   // This ensures we use saved preferences (if any) on initial search
   // We pass the loaded sort preference directly to avoid race condition with state updates
+  const [hasPerformedInitialSearch, setHasPerformedInitialSearch] =
+    useState(false);
+
   useEffect(() => {
-    if (!prefsLoading && !sortPrefsLoading && !speciesPrefsLoading) {
+    if (
+      !prefsLoading &&
+      !sortPrefsLoading &&
+      !speciesPrefsLoading &&
+      !hasPerformedInitialSearch
+    ) {
+      setHasPerformedInitialSearch(true);
       const sortToUse = sortPreferences.selectedSort || selectedSort;
       handleSearch(false, sortToUse); // Pass loaded sort directly
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prefsLoading, sortPrefsLoading, speciesPrefsLoading]);
+  }, [
+    prefsLoading,
+    sortPrefsLoading,
+    speciesPrefsLoading,
+    hasPerformedInitialSearch,
+  ]);
 
   const handleSearch = useCallback(
     async (includeHaptic = true, sortOverride?: SortOption) => {
@@ -686,7 +659,7 @@ export default function Explore() {
             </AccordionItem>
           </Accordion>
 
-          <Button onPress={handleSearch} isDisabled={isLoading}>
+          <Button onPress={() => handleSearch()} isDisabled={isLoading}>
             <Icon as={Search} className="text-typography-0 mr-2" />
             <ButtonText>Search {selectedSpecies}s</ButtonText>
           </Button>
@@ -817,7 +790,7 @@ export default function Explore() {
                 your connection and try again.
               </Text>
             </VStack>
-            <Button onPress={handleSearch} size="sm" className="mt-2">
+            <Button onPress={() => handleSearch()} size="sm" className="mt-2">
               <ButtonText>Retry</ButtonText>
             </Button>
           </VStack>
@@ -876,24 +849,32 @@ export default function Explore() {
       <FlatList
         ref={flatListRef}
         data={isLoading && results.length === 0 ? Array(5).fill(null) : results}
-        renderItem={({ item }) =>
-          isLoading && results.length === 0 ? (
-            <AnimalCardSkeleton isDarkMode={isDarkMode} />
-          ) : (
-            <AnimalCard
-              animal={item}
-              onPress={handleAnimalPress}
-              isDarkMode={isDarkMode}
-            />
-          )
-        }
+        renderItem={({ item }) => (
+          <Center className="w-full">
+            <Box className="w-full max-w-md">
+              {isLoading && results.length === 0 ? (
+                <AnimalCardSkeleton isDarkMode={isDarkMode} />
+              ) : (
+                <AnimalCard
+                  animal={item}
+                  onPress={handleAnimalPress}
+                  isDarkMode={isDarkMode}
+                />
+              )}
+            </Box>
+          </Center>
+        )}
         keyExtractor={(item, index) =>
           isLoading && results.length === 0
             ? `skeleton-${index}`
             : item.animalID
         }
-        contentContainerStyle={{ padding: 24, gap: 16 }}
-        ListHeaderComponent={renderHeader}
+        contentContainerStyle={{ padding: 16, gap: 16 }}
+        ListHeaderComponent={
+          <Center className="w-full">
+            <Box className="w-full max-w-md">{renderHeader}</Box>
+          </Center>
+        }
         ListEmptyComponent={renderEmpty}
         ListFooterComponent={renderFooter}
         onEndReached={handleLoadMore}

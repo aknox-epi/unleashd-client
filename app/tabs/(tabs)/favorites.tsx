@@ -94,38 +94,40 @@ export default function FavoritesScreen() {
 
   return (
     <Box className="flex-1 bg-background-0">
-      <FlatList
-        data={favorites}
-        keyExtractor={(item) => item.animalID}
-        renderItem={({ item }) => (
-          <Box className="px-4 py-2">
+      <Center className="flex-1">
+        <FlatList
+          data={favorites}
+          keyExtractor={(item) => item.animalID}
+          renderItem={({ item }) => (
             <AnimalCard
               animal={favoriteToAnimal(item)}
               onPress={handleCardPress}
               isDarkMode={isDarkMode}
             />
-          </Box>
-        )}
-        contentContainerStyle={{
-          paddingTop: 8,
-          paddingBottom: 24,
-        }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={isDarkMode ? '#9ca3af' : '#6b7280'}
-            colors={[isDarkMode ? '#9ca3af' : '#6b7280']}
-          />
-        }
-        ListHeaderComponent={
-          <Box className="px-4 py-4">
-            <Text className="text-typography-500 text-sm">
-              {count} {count === 1 ? 'favorite' : 'favorites'}
-            </Text>
-          </Box>
-        }
-      />
+          )}
+          contentContainerStyle={{
+            paddingTop: 8,
+            paddingBottom: 24,
+            gap: 16,
+          }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={isDarkMode ? '#9ca3af' : '#6b7280'}
+              colors={[isDarkMode ? '#9ca3af' : '#6b7280']}
+            />
+          }
+          ListHeaderComponent={
+            <Box className="px-4 py-4">
+              <Text className="text-typography-500 text-sm">
+                {count} {count === 1 ? 'favorite' : 'favorites'}
+              </Text>
+            </Box>
+          }
+          className="w-full max-w-md px-4"
+        />
+      </Center>
     </Box>
   );
 }

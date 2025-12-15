@@ -145,13 +145,27 @@ export default function Explore() {
   // Auto-search on mount after preferences load
   // This ensures we use saved preferences (if any) on initial search
   // We pass the loaded sort preference directly to avoid race condition with state updates
+  const [hasPerformedInitialSearch, setHasPerformedInitialSearch] =
+    useState(false);
+
   useEffect(() => {
-    if (!prefsLoading && !sortPrefsLoading && !speciesPrefsLoading) {
+    if (
+      !prefsLoading &&
+      !sortPrefsLoading &&
+      !speciesPrefsLoading &&
+      !hasPerformedInitialSearch
+    ) {
+      setHasPerformedInitialSearch(true);
       const sortToUse = sortPreferences.selectedSort || selectedSort;
       handleSearch(false, sortToUse); // Pass loaded sort directly
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prefsLoading, sortPrefsLoading, speciesPrefsLoading]);
+  }, [
+    prefsLoading,
+    sortPrefsLoading,
+    speciesPrefsLoading,
+    hasPerformedInitialSearch,
+  ]);
 
   const handleSearch = useCallback(
     async (includeHaptic = true, sortOverride?: SortOption) => {
@@ -832,15 +846,13 @@ export default function Explore() {
 
   return (
     <Box className="flex-1">
-      <Center className="flex-1">
-        <Box className="w-full max-w-md">
-          <FlatList
-            ref={flatListRef}
-            data={
-              isLoading && results.length === 0 ? Array(5).fill(null) : results
-            }
-            renderItem={({ item }) =>
-              isLoading && results.length === 0 ? (
+      <FlatList
+        ref={flatListRef}
+        data={isLoading && results.length === 0 ? Array(5).fill(null) : results}
+        renderItem={({ item }) => (
+          <Center className="w-full">
+            <Box className="w-full max-w-md">
+              {isLoading && results.length === 0 ? (
                 <AnimalCardSkeleton isDarkMode={isDarkMode} />
               ) : (
                 <AnimalCard
@@ -848,33 +860,37 @@ export default function Explore() {
                   onPress={handleAnimalPress}
                   isDarkMode={isDarkMode}
                 />
-              )
-            }
-            keyExtractor={(item, index) =>
-              isLoading && results.length === 0
-                ? `skeleton-${index}`
-                : item.animalID
-            }
-            contentContainerStyle={{ padding: 16, gap: 16 }}
-            ListHeaderComponent={renderHeader}
-            ListEmptyComponent={renderEmpty}
-            ListFooterComponent={renderFooter}
-            onEndReached={handleLoadMore}
-            onEndReachedThreshold={0.5}
-            onScroll={handleScroll}
-            scrollEventThrottle={16}
-            refreshControl={
-              <RefreshControl
-                refreshing={isRefreshing}
-                onRefresh={handleRefresh}
-                tintColor={isDarkMode ? '#9BA1A6' : '#687076'}
-                colors={['#0a7ea4', '#0891b2']}
-                progressBackgroundColor={isDarkMode ? '#1F2937' : '#F9FAFB'}
-              />
-            }
+              )}
+            </Box>
+          </Center>
+        )}
+        keyExtractor={(item, index) =>
+          isLoading && results.length === 0
+            ? `skeleton-${index}`
+            : item.animalID
+        }
+        contentContainerStyle={{ padding: 16, gap: 16 }}
+        ListHeaderComponent={
+          <Center className="w-full">
+            <Box className="w-full max-w-md">{renderHeader}</Box>
+          </Center>
+        }
+        ListEmptyComponent={renderEmpty}
+        ListFooterComponent={renderFooter}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={isDarkMode ? '#9BA1A6' : '#687076'}
+            colors={['#0a7ea4', '#0891b2']}
+            progressBackgroundColor={isDarkMode ? '#1F2937' : '#F9FAFB'}
           />
-        </Box>
-      </Center>
+        }
+      />
       {showScrollToTop && (
         <Fab onPress={scrollToTop} size="md" placement="bottom right">
           <FabIcon as={ArrowUp} />

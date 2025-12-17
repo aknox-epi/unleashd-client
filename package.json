@@ -22,12 +22,14 @@
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "prepare": "husky",
-    "release": "git fetch origin --tags && commit-and-tag-version",
-    "release:minor": "git fetch origin --tags && commit-and-tag-version --release-as minor",
-    "release:major": "git fetch origin --tags && commit-and-tag-version --release-as major",
-    "release:patch": "git fetch origin --tags && commit-and-tag-version --release-as patch",
-    "release:first": "git fetch origin --tags && commit-and-tag-version --first-release",
-    "release:dry": "git fetch origin --tags && commit-and-tag-version --dry-run"
+    "release": "commit-and-tag-version -a",
+    "release:minor": "commit-and-tag-version -a --release-as minor",
+    "release:major": "commit-and-tag-version -a --release-as major",
+    "release:patch": "commit-and-tag-version -a --release-as patch",
+    "release:first": "commit-and-tag-version -a --first-release",
+    "release:dry": "commit-and-tag-version -a --dry-run",
+    "release:push": "git push origin $(git rev-parse --abbrev-ref HEAD) --follow-tags",
+    "validate:changelog": "node scripts/validate-changelog-sync.js"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [

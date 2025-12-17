@@ -1,1 +1,39 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run tests with coverage before pushing
+echo "🧪 Running tests with coverage before push..."
 bunx jest --ci --coverage --maxWorkers=2 --forceExit
+
+# Check if tests passed
+if [ $? -ne 0 ]; then
+  echo "❌ Tests failed. Push aborted."
+  echo "Fix the failing tests and try again."
+  exit 1
+fi
+
+echo "✅ All tests passed."
+
+# Check if pushing a release branch without tags
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+if echo "$BRANCH" | grep -q "^release/"; then
+  echo "🏷️  Checking for unpushed tags on release branch..."
+  
+  # Check if there are local tags not on remote
+  UNPUSHED_TAGS=$(git push --dry-run --follow-tags 2>&1 | grep -E "new tag|would update")
+  
+  if echo "$UNPUSHED_TAGS" | grep -q "new tag"; then
+    echo ""
+    echo "❌ Release branch detected with unpushed tags!"
+    echo "   You must push tags along with the release branch."
+    echo ""
+    echo "   Use: git push origin $BRANCH --follow-tags"
+    echo "   Or:  bun run release:push"
+    echo ""
+    exit 1
+  fi
+  
+  echo "✅ Tag check passed."
+fi
+
+echo "✅ Proceeding with push..."

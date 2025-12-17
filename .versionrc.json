@@ -12,5 +12,8 @@
     { "type": "chore", "section": "Chores", "hidden": true },
     { "type": "revert", "section": "Reverts" }
   ],
-  "header": "# Changelog\n\nAll notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.\n"
+  "header": "# Changelog\n\nAll notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.\n",
+  "scripts": {
+    "postchangelog": "node scripts/embed-changelog.js && git add constants/changelog.ts"
+  }
 }

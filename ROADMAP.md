@@ -125,7 +125,7 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - Animated sparkle notification badge on Settings tab
 - Enabled by default with opt-out toggle for changelog notifications
 - Version tracking and comparison (isNewerVersion)
-- Automated changelog embedding system (scripts/embed-changelog.js)
+- Automated changelog embedding system (runs automatically during releases via postchangelog hook)
 - Dynamic version reading from package.json
 - Changelog parsing from CHANGELOG.md
 - Collapsible filter section with Accordion
@@ -174,7 +174,7 @@ This document outlines potential features and enhancements for the Unleashd pet 
 
 - Modified GitHub Flow (main ← dev ← feature branches)
 - Release branch workflow (release → dev → main)
-- Squash and merge strategy for clean, linear history
+- Merge commit strategy to preserve full commit history
 - Automated changelog generation with commit-and-tag-version
 - Semantic versioning (feat → minor, fix → patch, BREAKING → major)
 - Husky + lint-staged for Git hooks
@@ -193,7 +193,7 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - API integration documentation with examples
 - Testing guidelines and coverage standards
 - Release process documentation (10-step workflow)
-- Merge strategy documentation (squash and merge for all PRs)
+- Merge strategy documentation (merge commits to preserve history)
 
 **CI/CD:**
 

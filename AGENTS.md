@@ -86,8 +86,10 @@ When changes are ready to be committed, agents must follow this exact workflow:
 - **Lint fix**: `bun run lint:fix` (auto-fix linting issues)
 - **Format**: `bun run format` (format all code with Prettier)
 - **Format check**: `bun run format:check` (check formatting without changes)
-- **Release**: `bun run release` (generate changelog and bump version)
+- **Release**: `bun run release` (generate changelog, embed it, and bump version)
+- **Release push**: `bun run release:push` (push release branch with tags)
 - **Release dry run**: `bun run release:dry` (preview release without changes)
+- **Validate changelog**: `bun run validate:changelog` (verify changelog sync with package.json)
 
 **⚠️ Important:** Never use `bun test` directly - it uses Bun's native test runner which is incompatible with React Native. Always use `bun run test` or other npm scripts. See [TESTING.md](./TESTING.md) for detailed testing documentation.
 
@@ -182,52 +184,48 @@ footer?
 
 ### Pull Request Titles
 
-**CRITICAL:** PR titles MUST follow Conventional Commits format because they become merge commit messages.
+**Recommended:** PR titles should follow Conventional Commits format for consistency and documentation.
 
-✅ **Valid PR titles:**
+✅ **Good PR titles:**
 
 - `feat: add dark mode toggle`
 - `fix(auth): resolve login timeout`
 - `docs: update API documentation`
 - `refactor(ui): simplify button component`
 
-❌ **Invalid PR titles:**
+❌ **Avoid:**
 
 - `Feature/add dark mode` (branch name format)
 - `Fix authentication bug` (missing type prefix)
 - `Updated docs` (wrong tense, missing type)
 
-**Automated validation:**
-
-- PR title validation runs automatically on all pull requests
-- Merge will be blocked if PR title doesn't follow the format
-- The PR template includes format examples and guidance
+**Note:** PR title validation runs automatically on all pull requests to maintain consistency in documentation and communication.
 
 ### Merge Strategy
 
-**CRITICAL**: All PRs must use **"Squash and merge"** strategy on GitHub.
+**CRITICAL**: All PRs must use **"Create a merge commit"** strategy on GitHub.
 
-**Why Squash and Merge?**
+**Why Merge Commits?**
 
-1. ✅ **PR title becomes commit message** - Validated by PR Title Check
-2. ✅ **Clean linear history** - One commit per PR/feature
-3. ✅ **Prevents branch divergence** - No complex merge commit conflicts
-4. ✅ **Perfect changelog** - Each commit represents one logical change
-5. ✅ **Automated validation** - What you validate is what you get
+1. ✅ **Preserves full history** - All commits from feature branches are visible
+2. ✅ **Better for debugging** - Full context of changes preserved
+3. ✅ **Consistent git history** - Tags and commits stay consistent across branches
+4. ✅ **Simpler workflow** - No special handling for different branch types
+5. ✅ **Better changelog** - commit-and-tag-version works perfectly with merge commits
 
 **Merge Strategy by Branch:**
 
-| From → To           | Strategy         | PR Title Format                       |
-| ------------------- | ---------------- | ------------------------------------- |
-| `feature/*` → `dev` | Squash and merge | `feat: description`                   |
-| `fix/*` → `dev`     | Squash and merge | `fix: description`                    |
-| `release/*` → `dev` | Squash and merge | `chore(release): x.x.x`               |
-| `dev` → `main`      | Squash and merge | `chore: release vx.x.x to production` |
+| From → To           | Strategy              | Notes                            |
+| ------------------- | --------------------- | -------------------------------- |
+| `feature/*` → `dev` | Create a merge commit | Preserves all feature commits    |
+| `fix/*` → `dev`     | Create a merge commit | Preserves all fix commits        |
+| `release/*` → `dev` | Create a merge commit | Preserves release commit and tag |
+| `dev` → `main`      | Create a merge commit | Preserves all commits from dev   |
 
 **Never use:**
 
-- ❌ Create a merge commit (causes branch divergence)
-- ❌ Rebase and merge (rewrites history)
+- ❌ Squash and merge (loses commit history)
+- ❌ Rebase and merge (rewrites history, breaks tags)
 
 ## Changelog Generation
 
@@ -246,18 +244,19 @@ This project uses [commit-and-tag-version](https://github.com/absolute-version/c
 
 ### Release Commands
 
-- `bun run release` - Auto-detect version bump and generate changelog
+- `bun run release` - Auto-detect version bump, generate and embed changelog
 - `bun run release:major` - Force major version bump (breaking changes)
 - `bun run release:minor` - Force minor version bump (new features)
 - `bun run release:patch` - Force patch version bump (bug fixes)
 - `bun run release:first` - Create initial release (v0.1.0 or v1.0.0)
 - `bun run release:dry` - Preview changes without modifying files
+- `bun run release:push` - Push release branch with tags
 
 ### Release Workflow
 
 Releases are created using a dedicated release branch that merges to `dev` first, then `dev` merges to `main` for production.
 
-**CRITICAL**: Always use **"Squash and merge"** when merging PRs. This ensures clean linear history and prevents branch divergence.
+**CRITICAL**: Always use **"Create a merge commit"** when merging PRs. This preserves full commit history and works perfectly with our release workflow.
 
 1. **Create release branch from dev**:
 
@@ -283,18 +282,25 @@ Releases are created using a dedicated release branch that merges to `dev` first
    # bun run release:patch
    ```
 
+   **Note:** This automatically updates three files in one commit:
+   - `package.json` (version)
+   - `CHANGELOG.md` (release notes)
+   - `constants/changelog.ts` (embedded changelog for What's New feature)
+
 4. **Review changes**:
    - Check `CHANGELOG.md` for accuracy
    - Verify version bump in `package.json`
+   - Verify `constants/changelog.ts` is updated (automatic)
    - Review the git commit and tag
 
-5. **Push release branch (without tags)**:
+5. **Push release branch with tags**:
 
    ```bash
-   git push origin release/0.x.x
+   bun run release:push
+   # Or manually: git push origin release/0.x.x --follow-tags
    ```
 
-   **Note:** Do NOT use `--follow-tags`. Tags are created automatically on `main` by the auto-tag workflow. Pushing tags from release branches causes conflicts.
+   **Note:** Tags are pushed along with the branch and will follow through merge commits.
 
 6. **Create PR from release branch to dev on GitHub**:
    - **Title**: `chore(release): 0.x.x`
@@ -302,7 +308,7 @@ Releases are created using a dedicated release branch that merges to `dev` first
    - Wait for CI checks to pass
    - Get approval from reviewers
 
-7. **Merge release PR to dev using "Squash and merge"**
+7. **Merge release PR to dev using "Create a merge commit"**
 
 8. **GitHub Action auto-creates PR from dev to main**:
    - Triggered automatically when release merges to dev
@@ -312,34 +318,9 @@ Releases are created using a dedicated release branch that merges to `dev` first
    - Wait for CI checks to pass
    - Get approval from reviewers
 
-9. **Merge the auto-created PR using "Squash and merge"**
+9. **Merge the auto-created PR using "Create a merge commit"**
 
-   ```bash
-   gh pr create --base main --head dev \
-     --title "Release v0.x.x" \
-     --body "Production release v0.x.x - see CHANGELOG.md"
-   ```
-
-10. **Get approval and merge to main using "Create a merge commit"** (NOT squash merge!)
-
-11. **Sync local branches and clean up**:
-12. **Create PR from release branch to dev on GitHub**:
-    - **Title**: `chore(release): 0.x.x`
-    - **Body**: `Release preparation - updates changelog and version`
-    - Wait for CI checks to pass
-    - Get approval from reviewers
-
-13. **Merge release PR to dev using "Squash and merge"**
-
-14. **Create PR from dev to main on GitHub**:
-    - **Title**: `chore: release v0.x.x to production`
-    - **Body**: `Production release v0.x.x - see CHANGELOG.md for details`
-    - Wait for CI checks to pass
-    - Get approval from reviewers
-
-15. **Merge dev to main using "Squash and merge"**
-
-16. **Sync local branches and clean up**:
+10. **Sync local branches and clean up**:
 
     ```bash
     git checkout dev && git pull origin dev
@@ -374,39 +355,37 @@ Release behavior is configured in `.versionrc.json`:
 - **Don't edit CHANGELOG manually**: Regenerate if needed
 - **Use semantic commits consistently**: Ensures accurate version bumps
 - **Review before pushing**: Check changelog and version are correct
-- **Push with tags**: Use `git push --follow-tags` to include version tags
-- **Always use "Squash and merge"**: Ensures clean history and prevents branch divergence
+- **Push with tags**: Use `bun run release:push` or `git push --follow-tags`
+- **Always use "Create a merge commit"**: Preserves full history and works with tags
+- **Changelog is automatic**: constants/changelog.ts updates automatically during release
 - **Monitor auto-release PRs**: Verify auto-created dev→main PRs are accurate before merging
 
 **Note:** The dev→main PR is created automatically by GitHub Actions workflow (`.github/workflows/auto-release-pr.yml`)
 
 ### Git Tag Strategy
 
-This project follows a **"tags only on main"** strategy for semantic versioning:
-
-**Why This Approach?**
-
-- ✅ **Semantic correctness**: Git tags represent production releases (code on `main`)
-- ✅ **Single source of truth**: Each tag points to exactly one commit (no duplicates)
-- ✅ **GitHub releases**: Tags on `main` enable proper GitHub release creation
-- ✅ **Squash and merge compatible**: Works perfectly with squash strategy
+This project uses git tags to mark production releases on the `main` branch.
 
 **How It Works:**
 
 1. When you run `bun run release` on a release branch, a tag is created locally
-2. When the release PR merges to `dev`, the tag stays on the release branch (not transferred due to squash)
-3. When `dev` merges to `main`, a GitHub Action automatically tags the squashed commit on `main`
-4. All release scripts automatically fetch tags from `origin` before running
+2. Push the tag along with the branch: `bun run release:push` or `git push --follow-tags`
+3. When merging with "Create a merge commit", the tag follows the commit through both `dev` and `main`
+4. Tags naturally appear on `main` after the release PR merges
+
+**Why This Approach?**
+
+- ✅ **Simple and standard**: Tags follow commits through merge commits
+- ✅ **Semantic correctness**: Tags represent production releases on `main`
+- ✅ **No automation needed**: Standard git behavior handles everything
+- ✅ **Single source of truth**: Each tag points to exactly one commit
+- ✅ **GitHub releases**: Tags on `main` enable proper GitHub release creation
 
 **Important Notes:**
 
-- **Tags live only on `main`** - They represent production releases
-- **Tags are auto-fetched** - Release scripts run `git fetch origin --tags` automatically
-- **Tags are auto-created** - GitHub Actions workflow (`.github/workflows/auto-tag-release.yml`) handles tagging
-- **No manual tagging needed** - The automation handles everything
-
-**For Developers:**
-When previewing or creating releases from `dev` branch, tags are automatically fetched from `main`, so `commit-and-tag-version` can correctly determine the last release version and calculate the next version bump.
+- **Always push with tags**: Use `bun run release:push` or `--follow-tags` flag
+- **Tags follow commits**: With merge commits, tags stay with their commits across branches
+- **No manual re-tagging**: Tags automatically appear on `main` after merging
 
 ## Development Workflow
 
@@ -425,7 +404,7 @@ When previewing or creating releases from `dev` branch, tags are automatically f
    - Blocks commits with invalid message format
    - Use proper type prefix (feat, fix, docs, chore, etc.)
 4. **Pull requests**: Open PRs against `dev` branch, not `main`
-5. **Merge strategy**: Always use "Squash and merge" on GitHub
+5. **Merge strategy**: Always use "Create a merge commit" on GitHub
 6. **Manual checks**: Run `bun run lint:fix` to fix all code quality issues in the project
 7. **Manual formatting**: Run `bun run format` to format all files (Prettier runs on commit automatically)
 8. **Code quality**: ESLint checks logic, best practices, React rules, TypeScript issues

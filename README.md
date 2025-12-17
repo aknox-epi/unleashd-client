@@ -245,11 +245,19 @@ This project uses automated changelog generation and semantic versioning based o
 
 **Release Commands:**
 
-- `bun run release` - Auto-detect version bump and generate changelog
+- `bun run release` - Auto-detect version bump, generate changelog, and embed it
 - `bun run release:major` - Force major version bump (breaking changes)
 - `bun run release:minor` - Force minor version bump (new features)
 - `bun run release:patch` - Force patch version bump (bug fixes)
 - `bun run release:dry` - Preview release without making changes
+- `bun run release:push` - Push release branch with tags
+- `bun run validate:changelog` - Verify changelog sync with package.json
+
+**Note:** The release commands automatically update three files in one commit:
+
+- `package.json` (version)
+- `CHANGELOG.md` (release notes)
+- `constants/changelog.ts` (embedded changelog for What's New feature)
 
 **For the complete release workflow** (creating release branches, merging to dev and main), see [CONTRIBUTING.md - Release Process](./CONTRIBUTING.md#release-process).
 

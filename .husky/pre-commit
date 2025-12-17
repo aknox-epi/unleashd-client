@@ -1,1 +1,15 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
 bun lint-staged
+
+# Validate changelog sync (skip during release commits)
+# Check if this is a release commit by looking at staged files
+if git diff --cached --name-only | grep -q "CHANGELOG.md"; then
+  # If CHANGELOG.md is being committed, likely a release - skip validation
+  # as the postchangelog hook will handle the sync
+  echo "ℹ️  Skipping changelog validation (release commit detected)"
+else
+  # Normal commit - validate sync
+  node scripts/validate-changelog-sync.js || exit 1
+fi

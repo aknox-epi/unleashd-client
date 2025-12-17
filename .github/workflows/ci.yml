@@ -45,6 +45,9 @@ jobs:
       - name: Run tests
         run: bun run test:ci
 
+      - name: Validate changelog sync
+        run: bun run validate:changelog
+
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4
         if: success()

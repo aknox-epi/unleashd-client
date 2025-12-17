@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.7.0](https://github.com/aknox-epi/unleashd-client/compare/v0.6.0...v0.7.0) (2025-12-17)
+
+### Features
+
+- implement automatic changelog embedding for What's New feature ([ae0751f](https://github.com/aknox-epi/unleashd-client/commit/ae0751f5cdb70ac3833c4875c38c28f3041adb27))
+
 ## [0.6.0](https://github.com/aknox-epi/unleashd-client/compare/v0.3.0...v0.6.0) (2025-12-15)
 
 ### Features

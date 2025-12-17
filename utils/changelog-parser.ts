@@ -17,14 +17,20 @@ export function parseLatestChangelog(
     // Split into lines for processing
     const lines = changelogContent.split('\n');
 
-    // Find the first version heading (e.g., "## 0.1.3 (2025-11-12)")
+    // Find the first version heading
+    // Supports both formats:
+    // - New format: "## [0.7.0](url) (2025-12-17)"
+    // - Old format: "## 0.2.0 (2025-11-12)"
     let versionLineIndex = -1;
     let version = '';
     let date = '';
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
-      const versionMatch = line.match(/^##\s+(\d+\.\d+\.\d+)\s+\(([^)]+)\)/);
+      // Match either format: ## [0.7.0](url) (date) OR ## 0.7.0 (date)
+      const versionMatch = line.match(
+        /^##\s+\[?(\d+\.\d+\.\d+)\]?(?:\([^)]+\))?\s+\(([^)]+)\)/
+      );
       if (versionMatch) {
         versionLineIndex = i;
         version = versionMatch[1];
@@ -71,8 +77,9 @@ export function parseLatestChangelog(
         continue;
       }
 
-      // Check for list item (e.g., "- add settings tab...")
-      const itemMatch = trimmedLine.match(/^-\s+(.+)$/);
+      // Check for list item (e.g., "- add settings tab..." or "* add settings tab...")
+      // Support both - and * as list markers (commit-and-tag-version uses different markers)
+      const itemMatch = trimmedLine.match(/^[-*]\s+(.+)$/);
       if (itemMatch && currentSection) {
         let itemText = itemMatch[1];
         let commitHash: string | undefined;
@@ -156,7 +163,10 @@ export function parseAllChangelogs(changelogContent: string): ChangelogEntry[] {
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
-      const versionMatch = line.match(/^##\s+(\d+\.\d+\.\d+)\s+\(([^)]+)\)/);
+      // Match either format: ## [0.7.0](url) (date) OR ## 0.7.0 (date)
+      const versionMatch = line.match(
+        /^##\s+\[?(\d+\.\d+\.\d+)\]?(?:\([^)]+\))?\s+\(([^)]+)\)/
+      );
       if (versionMatch) {
         versionIndices.push({
           index: i,
@@ -197,8 +207,9 @@ export function parseAllChangelogs(changelogContent: string): ChangelogEntry[] {
           continue;
         }
 
-        // Check for list item (e.g., "- add settings tab...")
-        const itemMatch = trimmedLine.match(/^-\s+(.+)$/);
+        // Check for list item (e.g., "- add settings tab..." or "* add settings tab...")
+        // Support both - and * as list markers (commit-and-tag-version uses different markers)
+        const itemMatch = trimmedLine.match(/^[-*]\s+(.+)$/);
         if (itemMatch && currentSection) {
           let itemText = itemMatch[1];
           let commitHash: string | undefined;

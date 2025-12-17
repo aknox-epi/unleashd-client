@@ -13,7 +13,7 @@ import type { ChangelogEntry } from '@/types/whats-new';
 
 describe('changelog-parser', () => {
   describe('parseLatestChangelog', () => {
-    it('should parse a valid changelog with single version', () => {
+    it('should parse a valid changelog with single version (old format)', () => {
       const content = `# Changelog
 
 ## 0.1.3 (2025-11-12)
@@ -38,6 +38,85 @@ describe('changelog-parser', () => {
       expect(result?.sections[0].items[0].text).toBe('add settings tab');
       expect(result?.sections[0].items[0].commitHash).toBe('abc1234');
       expect(result?.sections[1].title).toBe('Bug Fixes');
+    });
+
+    it('should parse version with markdown link (new format)', () => {
+      const content = `# Changelog
+
+## [0.7.0](https://github.com/user/repo/compare/v0.6.0...v0.7.0) (2025-12-17)
+
+### Features
+
+- implement automatic changelog embedding ([ae0751f](https://github.com/user/repo/commit/ae0751f))
+
+### Bug Fixes
+
+- fix version detection issue ([123abcd](https://github.com/user/repo/commit/123abcd))
+`;
+
+      const result = parseLatestChangelog(content);
+
+      expect(result).not.toBeNull();
+      expect(result?.version).toBe('0.7.0');
+      expect(result?.date).toBe('2025-12-17');
+      expect(result?.sections).toHaveLength(2);
+      expect(result?.sections[0].title).toBe('Features');
+      expect(result?.sections[0].items).toHaveLength(1);
+      expect(result?.sections[0].items[0].text).toBe(
+        'implement automatic changelog embedding'
+      );
+      expect(result?.sections[0].items[0].commitHash).toBe('ae0751f');
+      expect(result?.sections[1].title).toBe('Bug Fixes');
+    });
+
+    it('should parse version with asterisk list markers', () => {
+      const content = `# Changelog
+
+## [0.7.0](https://github.com/user/repo/compare/v0.6.0...v0.7.0) (2025-12-17)
+
+### Features
+
+* implement automatic changelog embedding ([ae0751f](https://github.com/user/repo/commit/ae0751f))
+
+### Bug Fixes
+
+* fix version detection issue ([123abcd](https://github.com/user/repo/commit/123abcd))
+`;
+
+      const result = parseLatestChangelog(content);
+
+      expect(result).not.toBeNull();
+      expect(result?.version).toBe('0.7.0');
+      expect(result?.date).toBe('2025-12-17');
+      expect(result?.sections).toHaveLength(2);
+      expect(result?.sections[0].title).toBe('Features');
+      expect(result?.sections[0].items).toHaveLength(1);
+      expect(result?.sections[0].items[0].text).toBe(
+        'implement automatic changelog embedding'
+      );
+      expect(result?.sections[0].items[0].commitHash).toBe('ae0751f');
+      expect(result?.sections[1].title).toBe('Bug Fixes');
+      expect(result?.sections[1].items).toHaveLength(1);
+    });
+
+    it('should parse mixed dash and asterisk list markers', () => {
+      const content = `# Changelog
+
+## [0.8.0](https://github.com/user/repo/compare/v0.7.0...v0.8.0) (2025-12-18)
+
+### Features
+
+* feature with asterisk ([abc1234](https://github.com/user/repo/commit/abc1234))
+- feature with dash ([def5678](https://github.com/user/repo/commit/def5678))
+`;
+
+      const result = parseLatestChangelog(content);
+
+      expect(result).not.toBeNull();
+      expect(result?.sections).toHaveLength(1);
+      expect(result?.sections[0].items).toHaveLength(2);
+      expect(result?.sections[0].items[0].text).toBe('feature with asterisk');
+      expect(result?.sections[0].items[1].text).toBe('feature with dash');
     });
 
     it('should extract version number correctly', () => {
@@ -273,7 +352,7 @@ Some intro text with no versions.
   });
 
   describe('parseAllChangelogs', () => {
-    it('should parse multiple version entries', () => {
+    it('should parse multiple version entries (old format)', () => {
       const content = `## 0.2.0 (2025-11-15)
 
 ### Features
@@ -292,6 +371,84 @@ Some intro text with no versions.
       expect(result).toHaveLength(2);
       expect(result[0].version).toBe('0.2.0');
       expect(result[1].version).toBe('0.1.0');
+    });
+
+    it('should parse mixed format versions (new and old)', () => {
+      const content = `## [0.7.0](https://github.com/user/repo/compare/v0.6.0...v0.7.0) (2025-12-17)
+
+### Features
+
+- new format feature
+
+## [0.6.0](https://github.com/user/repo/compare/v0.5.0...v0.6.0) (2025-12-15)
+
+### Features
+
+- another new format
+
+## 0.2.0 (2025-11-15)
+
+### Features
+
+- old format feature
+
+## 0.1.0 (2025-11-12)
+
+### Features
+
+- another old format
+`;
+
+      const result = parseAllChangelogs(content);
+
+      expect(result).toHaveLength(4);
+      expect(result[0].version).toBe('0.7.0');
+      expect(result[0].date).toBe('2025-12-17');
+      expect(result[1].version).toBe('0.6.0');
+      expect(result[1].date).toBe('2025-12-15');
+      expect(result[2].version).toBe('0.2.0');
+      expect(result[2].date).toBe('2025-11-15');
+      expect(result[3].version).toBe('0.1.0');
+      expect(result[3].date).toBe('2025-11-12');
+    });
+
+    it('should parse versions with asterisk list markers', () => {
+      const content = `## [0.8.0](https://github.com/user/repo/compare/v0.7.0...v0.8.0) (2025-12-18)
+
+### Features
+
+* feature with asterisk
+* another asterisk feature
+
+## [0.7.0](https://github.com/user/repo/compare/v0.6.0...v0.7.0) (2025-12-17)
+
+### Features
+
+* implement automatic changelog embedding
+
+### Bug Fixes
+
+* fix version detection
+
+## [0.6.0](https://github.com/user/repo/compare/v0.5.0...v0.6.0) (2025-12-15)
+
+### Features
+
+- feature with dash
+`;
+
+      const result = parseAllChangelogs(content);
+
+      expect(result).toHaveLength(3);
+      expect(result[0].version).toBe('0.8.0');
+      expect(result[0].sections[0].items).toHaveLength(2);
+      expect(result[1].version).toBe('0.7.0');
+      expect(result[1].sections).toHaveLength(2);
+      expect(result[1].sections[0].items[0].text).toBe(
+        'implement automatic changelog embedding'
+      );
+      expect(result[2].version).toBe('0.6.0');
+      expect(result[2].sections[0].items[0].text).toBe('feature with dash');
     });
 
     it('should return entries in correct order', () => {

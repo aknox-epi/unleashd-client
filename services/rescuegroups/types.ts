@@ -301,6 +301,11 @@ export interface AnimalSearchParams {
   specialNeeds?: boolean;
 
   /**
+   * Organization ID to filter by specific rescue/shelter
+   */
+  orgID?: string;
+
+  /**
    * Pagination
    */
   limit?: number;

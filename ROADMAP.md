@@ -289,6 +289,37 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - ✅ Fullscreen image modal accessibility improvements (aria-hidden focus)
 - ✅ Organization data fetched via publicSearch for better compatibility
 
+### 🏢 Organization Features
+
+#### Organization Details Screen (Planned)
+
+- Dedicated organization details screen (`/org/[id]`)
+- Comprehensive organization information display
+- Navigate from pet details to organization page
+- Organization favorites functionality
+- OrganizationCard reusable component
+
+#### Organization Data Display
+
+- Organization name, type, and description
+- Location and contact information (phone, email, website)
+- Social media links (Facebook, Twitter)
+- Available pets from organization
+- "View All Pets" navigation to dedicated list screen
+
+#### Organization Filtering
+
+- Filter explore page by organization
+- View all pets from specific organization
+- Organization search and discovery
+
+#### Nice-to-Have Enhancements
+
+- Organization logos/branding images
+- Operating hours display
+- Distance calculation from user location
+- Reviews/ratings system for organizations
+
 ### ⚙️ Settings Enhancements
 
 #### User Preferences

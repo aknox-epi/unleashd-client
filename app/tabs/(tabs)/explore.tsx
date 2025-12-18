@@ -53,11 +53,13 @@ import { useSpeciesPreferences } from '@/contexts/SpeciesPreferencesContext';
 import { RESCUEGROUPS_CONFIG } from '@/constants/RescueGroupsConfig';
 import {
   getErrorMessage,
+  organizationService,
   type Animal,
   type AnimalSpecies,
   type Sex,
   type GeneralAge,
   type GeneralSizePotential,
+  type Organization,
 } from '@/services/rescuegroups';
 import {
   SortOption,
@@ -100,6 +102,9 @@ export default function Explore() {
   const [selectedGender, setSelectedGender] = useState<Sex>('');
   const [selectedAge, setSelectedAge] = useState<GeneralAge>('');
   const [selectedSize, setSelectedSize] = useState<GeneralSizePotential>('');
+  const [selectedOrg, setSelectedOrg] = useState<string>('');
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [orgsLoading, setOrgsLoading] = useState(false);
   const [selectedSort, setSelectedSort] = useState<SortOption>(
     SortOption.NEWEST
   );
@@ -141,6 +146,24 @@ export default function Explore() {
       setSelectedSpecies(speciesPreferences.defaultSpecies);
     }
   }, [speciesPrefsLoading, speciesPreferences]);
+
+  // Load organizations for filter dropdown
+  useEffect(() => {
+    const loadOrganizations = async () => {
+      setOrgsLoading(true);
+      try {
+        const result = await organizationService.searchOrganizations(100);
+        setOrganizations(result.data);
+      } catch {
+        // Silently fail - org filter will just be empty
+        setOrganizations([]);
+      } finally {
+        setOrgsLoading(false);
+      }
+    };
+
+    loadOrganizations();
+  }, []);
 
   // Auto-search on mount after preferences load
   // This ensures we use saved preferences (if any) on initial search
@@ -198,6 +221,7 @@ export default function Explore() {
         sex: selectedGender || undefined,
         age: selectedAge || undefined,
         size: selectedSize || undefined,
+        orgID: selectedOrg || undefined,
         location:
           zipCode && isValidZipCode(zipCode)
             ? getBaseZipCode(zipCode)
@@ -219,6 +243,7 @@ export default function Explore() {
       selectedGender,
       selectedAge,
       selectedSize,
+      selectedOrg,
       selectedSort,
       radius,
       search,
@@ -244,6 +269,7 @@ export default function Explore() {
       sex: selectedGender || undefined,
       age: selectedAge || undefined,
       size: selectedSize || undefined,
+      orgID: selectedOrg || undefined,
       location:
         zipCode && isValidZipCode(zipCode)
           ? getBaseZipCode(zipCode)
@@ -290,10 +316,11 @@ export default function Explore() {
     if (selectedGender) count++;
     if (selectedAge) count++;
     if (selectedSize) count++;
+    if (selectedOrg) count++;
     if (zipCode && isValidZipCode(zipCode)) count++;
     if (radius) count++;
     return count;
-  }, [selectedGender, selectedAge, selectedSize, zipCode, radius]);
+  }, [selectedGender, selectedAge, selectedSize, selectedOrg, zipCode, radius]);
 
   const handleClearFilters = useCallback(async () => {
     try {
@@ -304,6 +331,7 @@ export default function Explore() {
     setSelectedGender('');
     setSelectedAge('');
     setSelectedSize('');
+    setSelectedOrg('');
     setZipCode('');
     setRadius('');
     setZipCodeError('');
@@ -580,6 +608,47 @@ export default function Explore() {
                     </AccessibleSelectPortal>
                   </AccessibleSelect>
 
+                  <AccessibleSelect
+                    selectedValue={selectedOrg}
+                    onValueChange={(value) => {
+                      try {
+                        Haptics.selectionAsync();
+                      } catch {
+                        // Haptics not supported on web, ignore
+                      }
+                      setSelectedOrg(value);
+                    }}
+                    isDisabled={orgsLoading}
+                  >
+                    <AccessibleSelectTrigger variant="outline" size="md">
+                      <AccessibleSelectInput
+                        placeholder={
+                          orgsLoading
+                            ? 'Loading Organizations...'
+                            : 'Organization (All)'
+                        }
+                      />
+                    </AccessibleSelectTrigger>
+                    <AccessibleSelectPortal>
+                      <AccessibleSelectContent>
+                        <AccessibleSelectDragIndicatorWrapper>
+                          <AccessibleSelectDragIndicator />
+                        </AccessibleSelectDragIndicatorWrapper>
+                        <AccessibleSelectItem
+                          label="All Organizations"
+                          value=""
+                        />
+                        {organizations.map((org) => (
+                          <AccessibleSelectItem
+                            key={org.orgID}
+                            label={org.orgName}
+                            value={org.orgID}
+                          />
+                        ))}
+                      </AccessibleSelectContent>
+                    </AccessibleSelectPortal>
+                  </AccessibleSelect>
+
                   <VStack space="sm">
                     <Text className="text-sm font-medium text-typography-600">
                       Location (Optional)
@@ -719,10 +788,13 @@ export default function Explore() {
     selectedGender,
     selectedAge,
     selectedSize,
+    selectedOrg,
     selectedSort,
     zipCode,
     zipCodeError,
     radius,
+    organizations,
+    orgsLoading,
     isFiltersExpanded,
     searchPerformed,
     results.length,

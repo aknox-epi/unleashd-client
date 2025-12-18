@@ -40,7 +40,6 @@ import { Center } from '@/components/ui/center';
 import { Spinner } from '@/components/ui/spinner';
 import { Badge, BadgeText } from '@/components/ui/badge';
 import { Divider } from '@/components/ui/divider';
-import { Image } from '@/components/ui/image';
 import {
   Actionsheet,
   ActionsheetBackdrop,
@@ -58,6 +57,7 @@ import {
   getErrorMessage,
   type Animal,
   type Organization,
+  type AnimalPicture,
 } from '@/services/rescuegroups';
 import type { FavoriteAnimal } from '@/types/favorites';
 import { logger } from '@/utils/logger';
@@ -214,8 +214,8 @@ export default function PetDetailScreen() {
   };
 
   const handleWebsite = () => {
-    if (organization?.orgWebsite) {
-      Linking.openURL(organization.orgWebsite);
+    if (organization?.orgWebsiteUrl) {
+      Linking.openURL(organization.orgWebsiteUrl);
     }
   };
 
@@ -260,7 +260,7 @@ export default function PetDetailScreen() {
     }
   };
 
-  const getImageUrl = (picture: Animal['animalPictures'][0]) => {
+  const getImageUrl = (picture: AnimalPicture) => {
     return (
       picture.urlSecureLarge ||
       picture.urlSecureFullsize ||
@@ -430,10 +430,8 @@ export default function PetDetailScreen() {
       return (
         <Box className="w-full h-80 bg-background-200">
           <Pressable onPress={() => openFullscreenImage(0)}>
-            <Image
+            <RNImage
               source={{ uri: imageUrl }}
-              alt={`${animal.animalName} photo`}
-              className="w-full h-full"
               style={{ width: '100%', height: 320 }}
               resizeMode="cover"
             />
@@ -462,11 +460,9 @@ export default function PetDetailScreen() {
                   className="bg-background-200 items-center justify-center"
                   style={{ width: galleryWidth, height: 320 }}
                 >
-                  <Image
+                  <RNImage
                     source={{ uri: imageUrl }}
-                    alt={`${animal.animalName} photo`}
-                    className="w-full h-full"
-                    style={{ width: '100%', height: '100%' }}
+                    style={{ width: galleryWidth, height: 320 }}
                     resizeMode="cover"
                   />
                 </Box>
@@ -844,7 +840,7 @@ export default function PetDetailScreen() {
               )}
 
               {/* Adoption Requirements */}
-              {(animal.animalFence || organization?.orgAboutAdopt) && (
+              {animal.animalFence && (
                 <>
                   <Divider />
                   <VStack space="md">
@@ -852,41 +848,31 @@ export default function PetDetailScreen() {
                       Adoption Requirements
                     </Heading>
                     <VStack space="sm">
-                      {animal.animalFence && (
-                        <HStack space="sm" className="items-start">
-                          <Text className="text-typography-700">•</Text>
-                          <Text className="text-typography-600 flex-1">
-                            Fenced yard required
-                          </Text>
-                        </HStack>
-                      )}
-                      {organization?.orgAboutAdopt ? (
-                        <Text className="text-typography-600 leading-6">
-                          {organization.orgAboutAdopt}
+                      <HStack space="sm" className="items-start">
+                        <Text className="text-typography-700">•</Text>
+                        <Text className="text-typography-600 flex-1">
+                          Fenced yard required
                         </Text>
-                      ) : (
-                        <>
-                          <HStack space="sm" className="items-start">
-                            <Text className="text-typography-700">•</Text>
-                            <Text className="text-typography-600 flex-1">
-                              Complete adoption application
-                            </Text>
-                          </HStack>
-                          <HStack space="sm" className="items-start">
-                            <Text className="text-typography-700">•</Text>
-                            <Text className="text-typography-600 flex-1">
-                              Provide references
-                            </Text>
-                          </HStack>
-                          <HStack space="sm" className="items-start">
-                            <Text className="text-typography-700">•</Text>
-                            <Text className="text-typography-600 flex-1">
-                              Home visit may be required
-                            </Text>
-                          </HStack>
-                        </>
-                      )}
-                      {organization?.orgWebsite && (
+                      </HStack>
+                      <HStack space="sm" className="items-start">
+                        <Text className="text-typography-700">•</Text>
+                        <Text className="text-typography-600 flex-1">
+                          Complete adoption application
+                        </Text>
+                      </HStack>
+                      <HStack space="sm" className="items-start">
+                        <Text className="text-typography-700">•</Text>
+                        <Text className="text-typography-600 flex-1">
+                          Provide references
+                        </Text>
+                      </HStack>
+                      <HStack space="sm" className="items-start">
+                        <Text className="text-typography-700">•</Text>
+                        <Text className="text-typography-600 flex-1">
+                          Home visit may be required
+                        </Text>
+                      </HStack>
+                      {organization?.orgWebsiteUrl && (
                         <Text className="text-typography-500 text-sm">
                           Visit the organization&apos;s website for complete
                           adoption requirements
@@ -906,11 +892,17 @@ export default function PetDetailScreen() {
                       About the Organization
                     </Heading>
 
-                    {/* Organization Name */}
+                    {/* Organization Name - Clickable */}
                     {organization.orgName && (
-                      <Text className="text-typography-700 font-semibold text-lg">
-                        {organization.orgName}
-                      </Text>
+                      <Pressable
+                        onPress={() =>
+                          router.push(`/org/${organization.orgID}`)
+                        }
+                      >
+                        <Text className="text-info-600 font-semibold text-lg underline">
+                          {organization.orgName}
+                        </Text>
+                      </Pressable>
                     )}
 
                     {/* Organization Description */}
@@ -968,10 +960,10 @@ export default function PetDetailScreen() {
                           </HStack>
                         </Pressable>
                       )}
-                      {organization.orgWebsite && (
+                      {organization.orgWebsiteUrl && (
                         <Pressable
                           onPress={() =>
-                            Linking.openURL(organization.orgWebsite!)
+                            Linking.openURL(organization.orgWebsiteUrl!)
                           }
                         >
                           <HStack space="sm" className="items-center">
@@ -979,7 +971,7 @@ export default function PetDetailScreen() {
                               Website:
                             </Text>
                             <Text className="text-info-600">
-                              {organization.orgWebsite}
+                              {organization.orgWebsiteUrl}
                             </Text>
                           </HStack>
                         </Pressable>
@@ -987,28 +979,29 @@ export default function PetDetailScreen() {
                     </VStack>
 
                     {/* Social Media Links */}
-                    {(organization.orgFacebook || organization.orgTwitter) && (
+                    {(organization.orgFacebookUrl ||
+                      organization.orgTwitterUrl) && (
                       <HStack space="sm" className="items-center">
                         <Text className="font-semibold text-typography-700">
                           Connect:
                         </Text>
-                        {organization.orgFacebook && (
+                        {organization.orgFacebookUrl && (
                           <Pressable
                             onPress={() =>
-                              Linking.openURL(organization.orgFacebook!)
+                              Linking.openURL(organization.orgFacebookUrl!)
                             }
                           >
                             <Text className="text-info-600">Facebook</Text>
                           </Pressable>
                         )}
-                        {organization.orgFacebook &&
-                          organization.orgTwitter && (
+                        {organization.orgFacebookUrl &&
+                          organization.orgTwitterUrl && (
                             <Text className="text-typography-500">•</Text>
                           )}
-                        {organization.orgTwitter && (
+                        {organization.orgTwitterUrl && (
                           <Pressable
                             onPress={() =>
-                              Linking.openURL(organization.orgTwitter!)
+                              Linking.openURL(organization.orgTwitterUrl!)
                             }
                           >
                             <Text className="text-info-600">Twitter</Text>
@@ -1017,6 +1010,16 @@ export default function PetDetailScreen() {
                       </HStack>
                     )}
                   </VStack>
+
+                  {/* View Organization Button */}
+                  <Button
+                    variant="outline"
+                    onPress={() => router.push(`/org/${organization.orgID}`)}
+                    className="mt-2"
+                  >
+                    <ButtonText>View Organization Details</ButtonText>
+                    <ButtonIcon as={ExternalLink} />
+                  </Button>
                 </>
               )}
 
@@ -1070,7 +1073,7 @@ export default function PetDetailScreen() {
                       handleWebsite();
                       setIsContactActionSheetOpen(false);
                     }}
-                    isDisabled={!organization?.orgWebsite}
+                    isDisabled={!organization?.orgWebsiteUrl}
                   >
                     <ActionsheetIcon as={Globe} />
                     <ActionsheetItemText>Visit Website</ActionsheetItemText>

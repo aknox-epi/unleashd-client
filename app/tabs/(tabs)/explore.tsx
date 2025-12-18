@@ -167,7 +167,7 @@ export default function Explore() {
 
   // Auto-search on mount after preferences load
   // This ensures we use saved preferences (if any) on initial search
-  // We pass the loaded sort preference directly to avoid race condition with state updates
+  // We pass the loaded preferences directly to avoid race condition with state updates
   const [hasPerformedInitialSearch, setHasPerformedInitialSearch] =
     useState(false);
 
@@ -180,7 +180,8 @@ export default function Explore() {
     ) {
       setHasPerformedInitialSearch(true);
       const sortToUse = sortPreferences.selectedSort || selectedSort;
-      handleSearch(false, sortToUse); // Pass loaded sort directly
+      const speciesToUse = speciesPreferences.defaultSpecies || selectedSpecies;
+      handleSearch(false, sortToUse, speciesToUse); // Pass loaded preferences directly
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -191,7 +192,11 @@ export default function Explore() {
   ]);
 
   const handleSearch = useCallback(
-    async (includeHaptic = true, sortOverride?: SortOption) => {
+    async (
+      includeHaptic = true,
+      sortOverride?: SortOption,
+      speciesOverride?: AnimalSpecies
+    ) => {
       if (includeHaptic) {
         try {
           await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -210,14 +215,15 @@ export default function Explore() {
       setErrorDismissed(false);
       setWarningsDismissed(false);
 
-      // Use sortOverride if provided (for immediate sort changes), otherwise use state
+      // Use overrides if provided (for immediate changes), otherwise use state
       const activeSortOption = sortOverride ?? selectedSort;
+      const activeSpecies = speciesOverride ?? selectedSpecies;
 
       // Get sort field mapping
       const sortMapping = getSortFieldMapping(activeSortOption);
 
       await search({
-        species: selectedSpecies,
+        species: activeSpecies,
         sex: selectedGender || undefined,
         age: selectedAge || undefined,
         size: selectedSize || undefined,

@@ -18,11 +18,11 @@ const ORGANIZATION_FIELDS = [
   'orgType',
 
   // Location
-  'orgLocationCitystate',
+  'orgLocationCityState',
   'orgAddress',
   'orgCity',
   'orgState',
-  'orgPostalcode',
+  'orgPostalCode',
   'orgCountry',
 
   // Contact information
@@ -36,7 +36,6 @@ const ORGANIZATION_FIELDS = [
 
   // Description
   'orgAbout',
-  'orgDescription',
 ];
 
 /**

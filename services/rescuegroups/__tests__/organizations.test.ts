@@ -33,11 +33,11 @@ describe('OrganizationService', () => {
       orgID: 'org-123',
       orgName: 'Happy Paws Rescue',
       orgType: 'Rescue',
-      orgLocationCitystate: 'Los Angeles, CA',
+      orgLocationCityState: 'Los Angeles, CA',
       orgAddress: '123 Main Street',
       orgCity: 'Los Angeles',
       orgState: 'CA',
-      orgPostalcode: '90001',
+      orgPostalCode: '90001',
       orgCountry: 'US',
       orgPhone: '555-0123',
       orgEmail: 'contact@happypaws.org',
@@ -45,7 +45,6 @@ describe('OrganizationService', () => {
       orgFacebookUrl: 'https://facebook.com/happypaws',
       orgTwitterUrl: 'https://twitter.com/happypaws',
       orgAbout: 'Dedicated to finding homes for rescue animals',
-      orgDescription: 'We are a nonprofit rescue organization...',
     };
 
     it('should fetch organization by ID successfully', async () => {
@@ -130,11 +129,11 @@ describe('OrganizationService', () => {
           'orgID',
           'orgName',
           'orgType',
-          'orgLocationCitystate',
+          'orgLocationCityState',
           'orgAddress',
           'orgCity',
           'orgState',
-          'orgPostalcode',
+          'orgPostalCode',
           'orgCountry',
           'orgPhone',
           'orgEmail',
@@ -142,7 +141,6 @@ describe('OrganizationService', () => {
           'orgFacebookUrl',
           'orgTwitterUrl',
           'orgAbout',
-          'orgDescription',
         ])
       );
     });

@@ -85,7 +85,6 @@ function RootLayoutNav() {
               name="pet/[id]"
               options={{
                 headerShown: true,
-                headerTitle: '',
                 gestureEnabled: true,
               }}
             />
@@ -93,7 +92,6 @@ function RootLayoutNav() {
               name="org/[id]"
               options={{
                 headerShown: true,
-                headerTitle: '',
                 gestureEnabled: true,
               }}
             />
@@ -101,7 +99,6 @@ function RootLayoutNav() {
               name="org/pets/[id]"
               options={{
                 headerShown: true,
-                headerTitle: '',
                 gestureEnabled: true,
               }}
             />

@@ -27,7 +27,7 @@ export interface FavoriteOrganization {
   orgID: string;
   orgName: string;
   orgType?: string;
-  orgLocationCitystate?: string;
+  orgLocationCityState?: string;
   orgCity?: string;
   orgState?: string;
   orgAbout?: string;

@@ -498,12 +498,12 @@ Priority order for next features (subject to change):
 2. **High Priority** (Next Sprint)
 
    **Settings Enhancements** - User preferences
-   - Location preference for searches (already implemented)
-   - Default pet type preference
-   - Search radius preference (already saved with location)
+   - ✅ Location preference for searches - **Completed v0.4.0**
+   - ✅ Search radius preference (saved with location) - **Completed v0.4.0**
+   - ✅ Default species preference (remember last selection) - **Completed v0.4.0**
    - Display preferences (grid/list)
    - Clear favorites functionality (in Settings)
-   - Default species preference (remember last selection)
+   - Default pet type preference (deprecated - species preference covers this)
 
 3. **Medium Priority** (Next 2-3 Sprints)
 

@@ -19,7 +19,7 @@ describe('OrganizationCard', () => {
     orgName: 'Happy Tails Rescue',
     orgType: 'Rescue Group',
     orgAbout: 'We rescue and rehome dogs and cats',
-    orgLocationCitystate: 'San Francisco, CA',
+    orgLocationCityState: 'San Francisco, CA',
     orgCity: 'San Francisco',
     orgState: 'CA',
     orgPhone: '555-0123',
@@ -43,17 +43,17 @@ describe('OrganizationCard', () => {
       expect(getByText('Rescue Group')).toBeTruthy();
     });
 
-    it('renders location when orgLocationCitystate is available', () => {
+    it('renders location when orgLocationCityState is available', () => {
       const { getByText } = render(
         <OrganizationCard organization={mockOrganization} />
       );
       expect(getByText('San Francisco, CA')).toBeTruthy();
     });
 
-    it('renders location from orgCity and orgState when orgLocationCitystate is missing', () => {
+    it('renders location from orgCity and orgState when orgLocationCityState is missing', () => {
       const orgWithoutCitystate = {
         ...mockOrganization,
-        orgLocationCitystate: undefined,
+        orgLocationCityState: undefined,
       };
       const { getByText } = render(
         <OrganizationCard organization={orgWithoutCitystate} />
@@ -64,7 +64,7 @@ describe('OrganizationCard', () => {
     it('does not render location when no location data available', () => {
       const orgWithoutLocation = {
         ...mockOrganization,
-        orgLocationCitystate: undefined,
+        orgLocationCityState: undefined,
         orgCity: undefined,
         orgState: undefined,
       };

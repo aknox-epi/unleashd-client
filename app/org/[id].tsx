@@ -169,8 +169,8 @@ export default function OrganizationDetailScreen() {
   const handleGetDirections = () => {
     if (!organization) return;
 
-    const { orgAddress, orgCity, orgState, orgPostalcode } = organization;
-    const addressParts = [orgAddress, orgCity, orgState, orgPostalcode]
+    const { orgAddress, orgCity, orgState, orgPostalCode } = organization;
+    const addressParts = [orgAddress, orgCity, orgState, orgPostalCode]
       .filter(Boolean)
       .join(', ');
 
@@ -210,7 +210,7 @@ export default function OrganizationDetailScreen() {
       orgID: organization.orgID,
       orgName: organization.orgName,
       orgType: organization.orgType,
-      orgLocationCitystate: organization.orgLocationCitystate,
+      orgLocationCityState: organization.orgLocationCityState,
       orgCity: organization.orgCity,
       orgState: organization.orgState,
       orgAbout: organization.orgAbout,
@@ -222,7 +222,7 @@ export default function OrganizationDetailScreen() {
 
   // Format location string
   const location =
-    organization?.orgLocationCitystate ||
+    organization?.orgLocationCityState ||
     [organization?.orgCity, organization?.orgState].filter(Boolean).join(', ');
 
   // Check if address is available for directions
@@ -349,12 +349,12 @@ export default function OrganizationDetailScreen() {
           <Divider className="my-2" />
 
           {/* About Section */}
-          {(organization.orgAbout || organization.orgDescription) && (
+          {organization.orgAbout && (
             <>
               <VStack space="sm" className="p-4">
                 <Heading size="md">About</Heading>
                 <Text className="text-typography-700 whitespace-normal">
-                  {organization.orgAbout || organization.orgDescription}
+                  {organization.orgAbout}
                 </Text>
               </VStack>
               <Divider className="my-2" />

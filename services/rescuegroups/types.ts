@@ -242,7 +242,7 @@ export interface Organization {
   orgAddress?: string;
   orgCity?: string;
   orgState?: string;
-  orgPostalcode?: string;
+  orgPostalCode?: string;
   orgCountry?: string;
   orgPhone?: string;
   orgEmail?: string;
@@ -250,10 +250,9 @@ export interface Organization {
   orgFacebookUrl?: string;
   orgTwitterUrl?: string;
   orgAbout?: string;
-  orgDescription?: string;
   orgType?: string;
   orgDistance?: number;
-  orgLocationCitystate?: string;
+  orgLocationCityState?: string;
 }
 
 /**

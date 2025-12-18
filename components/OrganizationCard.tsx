@@ -115,7 +115,7 @@ export function OrganizationCard({
 
   // Location string (city, state)
   const location =
-    organization.orgLocationCitystate ||
+    organization.orgLocationCityState ||
     [organization.orgCity, organization.orgState].filter(Boolean).join(', ');
 
   const content = (

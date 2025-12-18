@@ -89,6 +89,22 @@ function RootLayoutNav() {
                 gestureEnabled: true,
               }}
             />
+            <Stack.Screen
+              name="org/[id]"
+              options={{
+                headerShown: true,
+                headerTitle: '',
+                gestureEnabled: true,
+              }}
+            />
+            <Stack.Screen
+              name="org/pets/[id]"
+              options={{
+                headerShown: true,
+                headerTitle: '',
+                gestureEnabled: true,
+              }}
+            />
           </Stack>
         </ThemeProvider>
       </GluestackUIProvider>

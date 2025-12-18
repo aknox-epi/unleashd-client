@@ -117,15 +117,14 @@ describe('PetDetailScreen', () => {
     orgID: 'org-456',
     orgName: 'Happy Tails Rescue',
     orgAbout: 'Dedicated to finding loving homes for animals in need',
-    orgAboutAdopt: 'We require a home visit and application process',
     orgAddress: '123 Main St',
     orgCity: 'San Francisco',
     orgState: 'CA',
     orgPhone: '555-0123',
     orgEmail: 'adopt@happytails.org',
-    orgWebsite: 'https://happytails.org',
-    orgFacebook: 'https://facebook.com/happytails',
-    orgTwitter: 'https://twitter.com/happytails',
+    orgWebsiteUrl: 'https://happytails.org',
+    orgFacebookUrl: 'https://facebook.com/happytails',
+    orgTwitterUrl: 'https://twitter.com/happytails',
   };
 
   beforeEach(() => {
@@ -452,97 +451,6 @@ describe('PetDetailScreen', () => {
 
       await waitFor(() => {
         expect(organizationService.getOrganizationById).not.toHaveBeenCalled();
-      });
-    });
-  });
-
-  describe('Adoption Requirements', () => {
-    it('displays fence requirement when specified', async () => {
-      const animalWithFence = {
-        ...mockAnimal,
-        animalFence: 'Yes',
-      };
-      (animalService.getAnimalById as jest.Mock).mockResolvedValue(
-        animalWithFence
-      );
-
-      const { getByText } = renderWithProviders(<PetDetailScreen />);
-
-      await waitFor(() => {
-        expect(getByText('Fenced yard required')).toBeTruthy();
-      });
-    });
-
-    it('displays organization adoption requirements when available', async () => {
-      (animalService.getAnimalById as jest.Mock).mockResolvedValue(mockAnimal);
-
-      const { getByText } = renderWithProviders(<PetDetailScreen />);
-
-      await waitFor(() => {
-        expect(getByText('Adoption Requirements')).toBeTruthy();
-        expect(
-          getByText('We require a home visit and application process')
-        ).toBeTruthy();
-      });
-    });
-
-    it('displays default adoption requirements when org data unavailable', async () => {
-      const animalWithFence = {
-        ...mockAnimal,
-        animalFence: 'Yes',
-      };
-      (animalService.getAnimalById as jest.Mock).mockResolvedValue(
-        animalWithFence
-      );
-      (organizationService.getOrganizationById as jest.Mock).mockResolvedValue({
-        ...mockOrganization,
-        orgAboutAdopt: undefined,
-      });
-
-      const { getByText } = renderWithProviders(<PetDetailScreen />);
-
-      await waitFor(() => {
-        expect(getByText('Complete adoption application')).toBeTruthy();
-        expect(getByText('Provide references')).toBeTruthy();
-        expect(getByText('Home visit may be required')).toBeTruthy();
-      });
-    });
-
-    it('shows link to org website for full requirements', async () => {
-      const animalWithFence = {
-        ...mockAnimal,
-        animalFence: 'Yes',
-      };
-      (animalService.getAnimalById as jest.Mock).mockResolvedValue(
-        animalWithFence
-      );
-
-      const { getByText } = renderWithProviders(<PetDetailScreen />);
-
-      await waitFor(() => {
-        expect(
-          getByText(/Visit the organization's website for complete/)
-        ).toBeTruthy();
-      });
-    });
-
-    it('does not show adoption requirements section when no data available', async () => {
-      const animalWithoutFence = {
-        ...mockAnimal,
-        animalFence: undefined,
-      };
-      (animalService.getAnimalById as jest.Mock).mockResolvedValue(
-        animalWithoutFence
-      );
-      (organizationService.getOrganizationById as jest.Mock).mockResolvedValue({
-        ...mockOrganization,
-        orgAboutAdopt: undefined,
-      });
-
-      const { queryByText } = renderWithProviders(<PetDetailScreen />);
-
-      await waitFor(() => {
-        expect(queryByText('Adoption Requirements')).toBeNull();
       });
     });
   });

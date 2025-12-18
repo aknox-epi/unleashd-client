@@ -2,6 +2,8 @@ import { RESCUEGROUPS_CONFIG } from '@/constants/RescueGroupsConfig';
 import { rescueGroupsClient } from './client';
 import type {
   Animal,
+  AnimalPicture,
+  AnimalVideo,
   AnimalSearchParams,
   Filter,
   RescueGroupsResponse,
@@ -106,6 +108,7 @@ export class AnimalService {
       age,
       size,
       specialNeeds,
+      orgID,
       limit = RESCUEGROUPS_CONFIG.PAGINATION.DEFAULT_LIMIT,
       offset = RESCUEGROUPS_CONFIG.PAGINATION.DEFAULT_START,
       sort = 'animalName',
@@ -175,6 +178,14 @@ export class AnimalService {
         fieldName: 'animalSpecialNeeds',
         operation: 'equals',
         criteria: specialNeeds ? '1' : '0',
+      });
+    }
+
+    if (orgID) {
+      filters.push({
+        fieldName: 'animalOrgID',
+        operation: 'equals',
+        criteria: orgID,
       });
     }
 
@@ -260,7 +271,32 @@ export class AnimalService {
       return [];
     }
 
-    return Object.values(response.data);
+    // Convert response data to array and transform pictures/videos from objects to arrays
+    return Object.values(response.data).map((animal) => {
+      const transformed: Animal = {
+        ...animal,
+        // Transform animalPictures from object to array if it exists
+        animalPictures: animal.animalPictures
+          ? Array.isArray(animal.animalPictures)
+            ? animal.animalPictures
+            : Object.values(
+                animal.animalPictures as unknown as Record<
+                  string,
+                  AnimalPicture
+                >
+              )
+          : undefined,
+        // Transform animalVideos from object to array if it exists
+        animalVideos: animal.animalVideos
+          ? Array.isArray(animal.animalVideos)
+            ? animal.animalVideos
+            : Object.values(
+                animal.animalVideos as unknown as Record<string, AnimalVideo>
+              )
+          : undefined,
+      };
+      return transformed;
+    });
   }
 
   /**

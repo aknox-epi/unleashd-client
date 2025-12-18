@@ -24,6 +24,7 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - Gender filter (Male, Female, All) - ✅ Added in v0.1.0
 - Age filter (Baby, Young, Adult, Senior, All) - ✅ Added in v0.1.0
 - Size filter (Small, Medium, Large, X-Large, All) - ✅ Added in v0.1.0
+- Organization filter (dropdown with 100+ organizations) - ✅ Added in v0.8.0
 - Collapsible filter accordion with active filter count indicator - ✅ Added in v0.1.0
 - Prevents accordion collapse and maintains focus during filter changes - ✅ Fixed in v0.4.1
 - "Clear All Filters" button - ✅ Added in v0.1.0
@@ -89,6 +90,8 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - Contact information (phone, email, website)
 - Social media links (Facebook, Twitter)
 - Clickable contact links (tel:, mailto:, https:)
+- Clickable organization name links to org detail page - ✅ Added in v0.8.0
+- View Organization Details button - ✅ Added in v0.8.0
 - Uses publicSearch action for improved API compatibility - ✅ Fixed in v0.4.1
 
 **Adoption Information:**
@@ -224,8 +227,9 @@ This document outlines potential features and enhancements for the Unleashd pet 
 **Core Functionality:**
 
 - Favorite/save pets from card and detail screens
+- Favorite/save organizations from detail screens
 - Heart button with haptic feedback on interactions
-- Visual indicators for favorited pets (filled red heart)
+- Visual indicators for favorited items (filled red heart)
 - Persist favorites locally with AsyncStorage
 - Dedicated Favorites tab in navigation
 - Remove from favorites functionality
@@ -233,20 +237,80 @@ This document outlines potential features and enhancements for the Unleashd pet 
 
 **Favorites Tab:**
 
+- Tabbed interface for pets and organizations
+- Tab switcher with badge counts for each type
 - Grid display of favorited pets
+- Compact list display of favorited organizations
 - Pull-to-refresh functionality
-- Empty state with helpful message
+- Empty state with helpful message for each tab
 - Sort by most recently favorited
-- Tap to view pet details
+- Tap to view pet/organization details
 - Favorites counter in header
 
 **Implementation:**
 
-- FavoritesContext with React Context API
+- FavoritesContext with React Context API supporting both pets and organizations
 - O(1) favorite lookup performance (Set-based)
 - Versioned storage schema for future migrations
 - 100% test coverage (20 comprehensive tests)
 - Optimistic updates for instant UI feedback
+
+#### 🏢 Organization Features
+
+**Organization Details Screen:**
+
+- Dedicated organization details screen at `/org/[id]` - ✅ Added in v0.8.0
+- Comprehensive organization information display
+- Organization name, type, and description
+- Location and contact information (phone, email, website)
+- Social media links (Facebook, Twitter)
+- Clickable contact actions (call, email, website, directions)
+- Contact action sheet with multiple options
+- Organization logo placeholder with building icon
+- Theme-aware styling for light/dark mode
+
+**Organization Pets List:**
+
+- Dedicated screen at `/org/pets/[id]` for viewing all pets from an organization
+- Infinite scroll pagination (20 pets per page)
+- Pull-to-refresh functionality
+- Pet count display in header
+- Empty state when no pets available
+- Navigate to pet details from list
+
+**Organization Card Component:**
+
+- Reusable OrganizationCard component for consistent display
+- Compact variant for favorites list
+- Shows organization name, type, location, and description
+- Favorite button with heart icon
+- Theme-aware styling
+- 100% test coverage for component
+
+**Organization Favorites:**
+
+- Save/favorite organizations from detail screens
+- Organization favorites tab in Favorites screen
+- Tab switcher between pets and organizations
+- Remove from favorites functionality
+- Organization count badge
+- Persist to AsyncStorage
+
+**Organization Filtering:**
+
+- Filter explore page by organization dropdown
+- View all pets from a specific organization
+- Navigate from pet details to organization page
+- Navigate from organization details to full pets list
+
+**Implementation:**
+
+- OrganizationCard component with full test coverage
+- getAnimalsByOrgId service method with pagination support
+- Extended FavoritesContext to support organizations
+- Updated Organization type with normalized URL field names
+- Nested route structure for organization screens
+- Integration with existing pet detail flow
 
 ## Planned Features
 
@@ -289,36 +353,23 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - ✅ Fullscreen image modal accessibility improvements (aria-hidden focus)
 - ✅ Organization data fetched via publicSearch for better compatibility
 
-### 🏢 Organization Features
+### 🏢 Organization Features (Future Enhancements)
 
-#### Organization Details Screen (Planned)
+#### Organization Search & Discovery
 
-- Dedicated organization details screen (`/org/[id]`)
-- Comprehensive organization information display
-- Navigate from pet details to organization page
-- Organization favorites functionality
-- OrganizationCard reusable component
+- Dedicated organization search/browse screen
+- Search organizations by name or location
+- Filter organizations by type (rescue, shelter, etc.)
+- Organization listings independent of pet search
 
-#### Organization Data Display
-
-- Organization name, type, and description
-- Location and contact information (phone, email, website)
-- Social media links (Facebook, Twitter)
-- Available pets from organization
-- "View All Pets" navigation to dedicated list screen
-
-#### Organization Filtering
-
-- Filter explore page by organization
-- View all pets from specific organization
-- Organization search and discovery
-
-#### Nice-to-Have Enhancements
+#### Enhanced Organization Features
 
 - Organization logos/branding images
 - Operating hours display
 - Distance calculation from user location
 - Reviews/ratings system for organizations
+- Adoption statistics (total pets adopted, success stories)
+- Organization verification badges
 
 ### ⚙️ Settings Enhancements
 
@@ -433,7 +484,18 @@ Priority order for next features (subject to change):
    - ✅ Fixed filter accordion collapse behavior
    - ✅ Fixed What's New badge behavior
 
-2. **Medium Priority** (Next 2-3 Sprints)
+   **Organization Features** - ✅ **Completed v0.8.0**
+   - ✅ Organization detail screens (`/org/[id]`)
+   - ✅ Organization pets list with pagination (`/org/pets/[id]`)
+   - ✅ OrganizationCard component with full test coverage
+   - ✅ Organization favorites functionality
+   - ✅ Organization filter in explore page
+   - ✅ Navigate from pet details to organization pages
+   - ✅ Contact action sheet for organizations
+   - ✅ Extended FavoritesContext to support organizations
+   - ✅ Tabbed favorites interface (pets & organizations)
+
+2. **High Priority** (Next Sprint)
 
    **Settings Enhancements** - User preferences
    - Location preference for searches (already implemented)
@@ -441,13 +503,21 @@ Priority order for next features (subject to change):
    - Search radius preference (already saved with location)
    - Display preferences (grid/list)
    - Clear favorites functionality (in Settings)
+   - Default species preference (remember last selection)
+
+3. **Medium Priority** (Next 2-3 Sprints)
 
    **Pet Details Polish** - Improve detail screen UX
    - Pinch-to-zoom for images
    - Recently viewed pets tracking
    - Add notes/comments for favorited pets
 
-3. **Low Priority** (Future Sprints)
+   **Organization Enhancements**
+   - Organization search/browse screen
+   - Organization logos and branding
+   - Reviews/ratings system
+
+4. **Low Priority** (Future Sprints)
    - Status tab detailed metrics and dashboard
    - Social sharing enhancements
    - Push notifications system
@@ -455,7 +525,7 @@ Priority order for next features (subject to change):
    - Advanced accessibility features
    - User accounts and profile management
 
-4. **Long-term / Research Needed**
+5. **Long-term / Research Needed**
    - Backend service for favorites sync across devices
    - User authentication system
    - Adoption application tracking

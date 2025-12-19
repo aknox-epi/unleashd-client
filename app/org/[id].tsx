@@ -34,6 +34,7 @@ import {
   ActionsheetIcon,
 } from '@/components/ui/actionsheet';
 import { AnimalCard } from '@/components/AnimalCard';
+import { HtmlText } from '@/components/HtmlText';
 import { organizationService } from '@/services/rescuegroups';
 import {
   getErrorMessage,
@@ -349,9 +350,10 @@ export default function OrganizationDetailScreen() {
             <>
               <VStack space="sm" className="p-4">
                 <Heading size="md">About</Heading>
-                <Text className="text-typography-700 whitespace-normal">
-                  {organization.orgAbout}
-                </Text>
+                <HtmlText
+                  content={organization.orgAbout}
+                  className="text-typography-700 whitespace-normal"
+                />
               </VStack>
               <Divider className="my-2" />
             </>

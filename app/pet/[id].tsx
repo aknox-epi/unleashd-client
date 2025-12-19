@@ -52,6 +52,7 @@ import {
   ActionsheetIcon,
 } from '@/components/ui/actionsheet';
 import { SpeciesBadge } from '@/components/SpeciesBadge';
+import { HtmlText } from '@/components/HtmlText';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { animalService, organizationService } from '@/services/rescuegroups';
 import {
@@ -719,9 +720,10 @@ export default function PetDetailScreen() {
                     <Heading className="text-xl font-semibold">
                       Description
                     </Heading>
-                    <Text className="text-typography-600 leading-6 whitespace-normal">
-                      {animal.animalDescriptionPlain}
-                    </Text>
+                    <HtmlText
+                      content={animal.animalDescriptionPlain}
+                      className="text-typography-600 leading-6 whitespace-normal"
+                    />
                   </VStack>
                 </>
               )}
@@ -798,9 +800,10 @@ export default function PetDetailScreen() {
                       Special Needs
                     </Heading>
                     {animal.animalSpecialNeedsDescription ? (
-                      <Text className="text-typography-600">
-                        {animal.animalSpecialNeedsDescription}
-                      </Text>
+                      <HtmlText
+                        content={animal.animalSpecialNeedsDescription}
+                        className="text-typography-600"
+                      />
                     ) : (
                       <Text className="text-typography-600">
                         This pet has special needs. Please contact the shelter
@@ -894,9 +897,10 @@ export default function PetDetailScreen() {
 
                     {/* Organization Description */}
                     {organization.orgAbout && (
-                      <Text className="text-typography-600 leading-6">
-                        {organization.orgAbout}
-                      </Text>
+                      <HtmlText
+                        content={organization.orgAbout}
+                        className="text-typography-600 leading-6"
+                      />
                     )}
 
                     {/* Location */}

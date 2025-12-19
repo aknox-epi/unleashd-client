@@ -3,7 +3,6 @@ import { ScrollView, Linking, Share, Platform, Pressable } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
 import {
-  ArrowLeft,
   Share2,
   Phone,
   Mail,
@@ -14,6 +13,8 @@ import {
   Heart,
 } from 'lucide-react-native';
 import { Box } from '@/components/ui/box';
+import { AppHeader } from '@/components/AppHeader';
+import { useConditionalBack } from '@/hooks/useConditionalBack';
 import { VStack } from '@/components/ui/vstack';
 import { HStack } from '@/components/ui/hstack';
 import { Heading } from '@/components/ui/heading';
@@ -60,6 +61,7 @@ export default function OrganizationDetailScreen() {
     useState(false);
 
   const isFavorited = id ? isOrgFavorite(id) : false;
+  const { canGoBack, goBack, goToExplore } = useConditionalBack();
 
   useEffect(() => {
     loadOrganizationDetails();
@@ -116,15 +118,6 @@ export default function OrganizationDetailScreen() {
     } finally {
       setPetsLoading(false);
     }
-  };
-
-  const handleBack = async () => {
-    try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    } catch {
-      // Haptics not supported on web
-    }
-    router.back();
   };
 
   const handleShare = async () => {
@@ -233,13 +226,13 @@ export default function OrganizationDetailScreen() {
       <>
         <Stack.Screen
           options={{
-            title: 'Loading...',
+            title: '',
             headerLeft: () => (
-              <Box className="ml-2">
-                <Button variant="link" size="md" onPress={handleBack}>
-                  <ButtonIcon as={ArrowLeft} size="xl" />
-                </Button>
-              </Box>
+              <AppHeader
+                canGoBack={canGoBack}
+                onBack={goBack}
+                onPressApp={goToExplore}
+              />
             ),
           }}
         />
@@ -255,13 +248,13 @@ export default function OrganizationDetailScreen() {
       <>
         <Stack.Screen
           options={{
-            title: 'Error',
+            title: '',
             headerLeft: () => (
-              <Box className="ml-2">
-                <Button variant="link" size="md" onPress={handleBack}>
-                  <ButtonIcon as={ArrowLeft} size="xl" />
-                </Button>
-              </Box>
+              <AppHeader
+                canGoBack={canGoBack}
+                onBack={goBack}
+                onPressApp={goToExplore}
+              />
             ),
           }}
         />
@@ -288,13 +281,13 @@ export default function OrganizationDetailScreen() {
     <>
       <Stack.Screen
         options={{
-          title: organization.orgName,
+          title: '',
           headerLeft: () => (
-            <Box className="ml-2">
-              <Button variant="link" size="md" onPress={handleBack}>
-                <ButtonIcon as={ArrowLeft} size="xl" />
-              </Button>
-            </Box>
+            <AppHeader
+              canGoBack={canGoBack}
+              onBack={goBack}
+              onPressApp={goToExplore}
+            />
           ),
           headerRight: () => (
             <Box className="mr-2">
@@ -336,13 +329,16 @@ export default function OrganizationDetailScreen() {
                   }
                 />
               </Box>
-              {organization.orgType && (
-                <VStack space="xs" className="flex-1">
+              <VStack space="xs" className="flex-1">
+                <Heading size="xl" className="text-typography-900">
+                  {organization.orgName}
+                </Heading>
+                {organization.orgType && (
                   <Text className="text-typography-500 text-lg">
                     {organization.orgType}
                   </Text>
-                </VStack>
-              )}
+                )}
+              </VStack>
             </HStack>
           </VStack>
 

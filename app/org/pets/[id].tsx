@@ -1,12 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import { FlatList, RefreshControl, ActivityIndicator } from 'react-native';
-import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
-import { ArrowLeft } from 'lucide-react-native';
 import { Box } from '@/components/ui/box';
+import { AppHeader } from '@/components/AppHeader';
+import { useConditionalBack } from '@/hooks/useConditionalBack';
 import { Heading } from '@/components/ui/heading';
 import { Text } from '@/components/ui/text';
-import { Button, ButtonText, ButtonIcon } from '@/components/ui/button';
+import { Button, ButtonText } from '@/components/ui/button';
 import { Center } from '@/components/ui/center';
 import { Spinner } from '@/components/ui/spinner';
 import { AnimalCard } from '@/components/AnimalCard';
@@ -35,6 +35,7 @@ export default function OrganizationPetsListScreen() {
   const [hasMore, setHasMore] = useState(true);
   const [totalPets, setTotalPets] = useState(0);
   const [offset, setOffset] = useState(0);
+  const { canGoBack, goBack, goToExplore } = useConditionalBack();
 
   useEffect(() => {
     loadOrganization();
@@ -123,15 +124,6 @@ export default function OrganizationPetsListScreen() {
     }
   };
 
-  const handleBack = async () => {
-    try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    } catch {
-      // Haptics not supported on web
-    }
-    router.back();
-  };
-
   const handlePetPress = useCallback((animal: Animal) => {
     router.push(`/pet/${animal.animalID}`);
   }, []);
@@ -150,7 +142,10 @@ export default function OrganizationPetsListScreen() {
   );
 
   const renderHeader = () => (
-    <Box className="px-4 pt-3 pb-2">
+    <Box className="px-4 pt-4 pb-2">
+      <Heading size="xl" className="mb-2 text-typography-900">
+        {organization?.orgName || 'Organization'} Pets
+      </Heading>
       <Text className="text-typography-500">
         {totalPets} {totalPets === 1 ? 'pet' : 'pets'} available
       </Text>
@@ -184,13 +179,13 @@ export default function OrganizationPetsListScreen() {
       <>
         <Stack.Screen
           options={{
-            title: 'Loading...',
+            title: '',
             headerLeft: () => (
-              <Box className="ml-2">
-                <Button variant="link" size="md" onPress={handleBack}>
-                  <ButtonIcon as={ArrowLeft} size="xl" />
-                </Button>
-              </Box>
+              <AppHeader
+                canGoBack={canGoBack}
+                onBack={goBack}
+                onPressApp={goToExplore}
+              />
             ),
           }}
         />
@@ -206,13 +201,13 @@ export default function OrganizationPetsListScreen() {
       <>
         <Stack.Screen
           options={{
-            title: 'Error',
+            title: '',
             headerLeft: () => (
-              <Box className="ml-2">
-                <Button variant="link" size="md" onPress={handleBack}>
-                  <ButtonIcon as={ArrowLeft} size="xl" />
-                </Button>
-              </Box>
+              <AppHeader
+                canGoBack={canGoBack}
+                onBack={goBack}
+                onPressApp={goToExplore}
+              />
             ),
           }}
         />
@@ -237,13 +232,13 @@ export default function OrganizationPetsListScreen() {
     <>
       <Stack.Screen
         options={{
-          title: `${organization?.orgName || 'Organization'} Pets`,
+          title: '',
           headerLeft: () => (
-            <Box className="ml-2">
-              <Button variant="link" size="md" onPress={handleBack}>
-                <ButtonIcon as={ArrowLeft} size="xl" />
-              </Button>
-            </Box>
+            <AppHeader
+              canGoBack={canGoBack}
+              onBack={goBack}
+              onPressApp={goToExplore}
+            />
           ),
         }}
       />

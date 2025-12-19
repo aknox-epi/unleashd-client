@@ -18,7 +18,6 @@ import {
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
 import {
-  ArrowLeft,
   Share2,
   Heart,
   ChevronLeft,
@@ -31,6 +30,8 @@ import {
   MapPin,
 } from 'lucide-react-native';
 import { Box } from '@/components/ui/box';
+import { AppHeader } from '@/components/AppHeader';
+import { useConditionalBack } from '@/hooks/useConditionalBack';
 import { VStack } from '@/components/ui/vstack';
 import { HStack } from '@/components/ui/hstack';
 import { Heading } from '@/components/ui/heading';
@@ -83,6 +84,7 @@ export default function PetDetailScreen() {
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
   const maxContentWidth = 448; // max-w-md in pixels
   const galleryWidth = Math.min(screenWidth, maxContentWidth);
+  const { canGoBack, goBack, goToExplore } = useConditionalBack();
 
   useEffect(() => {
     loadAnimalDetails();
@@ -133,21 +135,6 @@ export default function PetDetailScreen() {
       });
     } catch {
       // User cancelled or error occurred
-    }
-  };
-
-  const handleBack = async () => {
-    try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    } catch {
-      // Haptics not supported on web, ignore
-    }
-
-    // Check if we can go back, otherwise navigate to explore
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.push('/tabs/explore');
     }
   };
 
@@ -588,13 +575,13 @@ export default function PetDetailScreen() {
       <Box className="flex-1 bg-background-0">
         <Stack.Screen
           options={{
-            title: 'Loading...',
+            title: '',
             headerLeft: () => (
-              <Box className="ml-2">
-                <Button variant="link" size="md" onPress={handleBack}>
-                  <ButtonIcon as={ArrowLeft} size="xl" />
-                </Button>
-              </Box>
+              <AppHeader
+                canGoBack={canGoBack}
+                onBack={goBack}
+                onPressApp={goToExplore}
+              />
             ),
           }}
         />
@@ -610,13 +597,13 @@ export default function PetDetailScreen() {
       <Box className="flex-1 bg-background-0">
         <Stack.Screen
           options={{
-            title: 'Error',
+            title: '',
             headerLeft: () => (
-              <Box className="ml-2">
-                <Button variant="link" size="md" onPress={handleBack}>
-                  <ButtonIcon as={ArrowLeft} size="xl" />
-                </Button>
-              </Box>
+              <AppHeader
+                canGoBack={canGoBack}
+                onBack={goBack}
+                onPressApp={goToExplore}
+              />
             ),
           }}
         />
@@ -641,14 +628,14 @@ export default function PetDetailScreen() {
     <Box className="flex-1 bg-background-0">
       <Stack.Screen
         options={{
-          title: animal.animalName,
+          title: '',
           gestureEnabled: true,
           headerLeft: () => (
-            <Box className="ml-2">
-              <Button variant="link" size="md" onPress={handleBack}>
-                <ButtonIcon as={ArrowLeft} size="xl" />
-              </Button>
-            </Box>
+            <AppHeader
+              canGoBack={canGoBack}
+              onBack={goBack}
+              onPressApp={goToExplore}
+            />
           ),
           headerRight: () => (
             <Box className="mr-2">

@@ -36,7 +36,17 @@ jest.mock('expo-router', () => ({
   },
   router: {
     back: jest.fn(),
+    canGoBack: jest.fn(() => true),
+    replace: jest.fn(),
   },
+}));
+
+jest.mock('@/hooks/useConditionalBack', () => ({
+  useConditionalBack: jest.fn(() => ({
+    canGoBack: true,
+    goBack: jest.fn(),
+    goToExplore: jest.fn(),
+  })),
 }));
 
 jest.mock('@/services/rescuegroups', () => ({

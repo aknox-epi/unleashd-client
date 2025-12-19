@@ -1,8 +1,8 @@
 import React from 'react';
-import { Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Tabs } from 'expo-router';
-import { Settings, Sparkles, Heart } from 'lucide-react-native';
+import { Settings, Heart, PawPrint, Sparkles } from 'lucide-react-native';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 import { AnimatedTabIcon } from '@/components/ui/animated-tab-icon';
 import { useWhatsNew } from '@/contexts/WhatsNewContext';
@@ -14,6 +14,28 @@ function TabBarIcon(props: {
 }) {
   return <FontAwesome size={18} style={{ marginBottom: -3 }} {...props} />;
 }
+
+function HeaderTitle() {
+  return (
+    <View style={styles.headerContainer}>
+      <PawPrint size={20} color="#ffffff" />
+      <Text style={styles.headerText}>unleashd</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerText: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+});
 
 export default function TabLayout() {
   const { isEnabled, hasNewVersion, openDrawer } = useWhatsNew();
@@ -31,6 +53,7 @@ export default function TabLayout() {
         // Disable the static render of the header on web
         // to prevent a hydration error in React Navigation v6.
         headerShown: useClientOnlyValue(false, true),
+        headerTitle: () => <HeaderTitle />,
       }}
     >
       <Tabs.Screen

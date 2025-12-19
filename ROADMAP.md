@@ -375,17 +375,12 @@ This document outlines potential features and enhancements for the Unleashd pet 
 
 #### User Preferences
 
-- Location/zip code preference for search radius
-- Default pet type preference (remember last selection)
-- Search radius preference (5, 10, 25, 50, 100 miles)
 - Display preferences (grid vs list view)
-- Default sort order preference
 - Notification preferences (when push notifications added)
 
 #### App Settings
 
 - Clear cache option
-- Clear favorites option
 - About section (app version, credits, open source licenses)
 - Privacy policy and terms of service links
 - Feedback/support contact form
@@ -412,6 +407,19 @@ This document outlines potential features and enhancements for the Unleashd pet 
 - Recent API errors/warnings log
 - Request/response statistics
 - Visual graphs for API performance
+
+### 🧭 Navigation Enhancements
+
+#### Advanced Navigation Features
+
+- Breadcrumb navigation for complex multi-level flows
+- Custom screen transitions and animations
+- Swipe gestures for navigation on tab screens
+- Navigation history view (see previously viewed pets/organizations)
+- Quick navigation shortcuts (jump to specific sections)
+- Tab bar customization options
+- Split-screen support for tablets
+- Picture-in-picture mode for image galleries
 
 ### 🔔 Future Considerations
 
@@ -498,12 +506,8 @@ Priority order for next features (subject to change):
 2. **High Priority** (Next Sprint)
 
    **Settings Enhancements** - User preferences
-   - ✅ Location preference for searches - **Completed v0.4.0**
-   - ✅ Search radius preference (saved with location) - **Completed v0.4.0**
-   - ✅ Default species preference (remember last selection) - **Completed v0.4.0**
    - Display preferences (grid/list)
-   - Clear favorites functionality (in Settings)
-   - Default pet type preference (deprecated - species preference covers this)
+   - About section with app version and credits
 
 3. **Medium Priority** (Next 2-3 Sprints)
 
@@ -511,6 +515,12 @@ Priority order for next features (subject to change):
    - Pinch-to-zoom for images
    - Recently viewed pets tracking
    - Add notes/comments for favorited pets
+
+   **Navigation Enhancements**
+   - Breadcrumb navigation for multi-level flows
+   - Custom screen transitions and animations
+   - Navigation history view (recently viewed)
+   - Quick navigation shortcuts
 
    **Organization Enhancements**
    - Organization search/browse screen

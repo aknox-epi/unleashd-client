@@ -375,13 +375,12 @@ This document outlines potential features and enhancements for the Unleashd pet 
 
 #### User Preferences
 
-- Display preferences (grid vs list view)
 - Notification preferences (when push notifications added)
 
 #### App Settings
 
+- ✅ About section (app version, credits, open source licenses) - **Completed**
 - Clear cache option
-- About section (app version, credits, open source licenses)
 - Privacy policy and terms of service links
 - Feedback/support contact form
 - Rate the app
@@ -505,9 +504,12 @@ Priority order for next features (subject to change):
 
 2. **High Priority** (Next Sprint)
 
-   **Settings Enhancements** - User preferences
-   - Display preferences (grid/list)
-   - About section with app version and credits
+   **Settings Enhancements** - App settings improvements
+   - Clear cache option
+   - Privacy policy and terms of service links
+   - Feedback/support contact form
+   - Rate the app
+   - Export/import favorites (backup)
 
 3. **Medium Priority** (Next 2-3 Sprints)
 
